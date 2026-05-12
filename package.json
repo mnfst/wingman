@@ -1,0 +1,39 @@
+{
+  "name": "wingman",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Hosted Manifest gateway tester — impersonate OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL and inspect raw request/response.",
+  "homepage": "https://wingman.manifest.build",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mnfst/wingman"
+  },
+  "bugs": {
+    "url": "https://github.com/mnfst/wingman/issues"
+  },
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "lint": "eslint src/",
+    "format": "prettier --write 'src/**/*.{ts,tsx,css}'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "highlight.js": "^11.11.1",
+    "solid-js": "^1.9.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@typescript-eslint/eslint-plugin": "^8.56.0",
+    "@typescript-eslint/parser": "^8.56.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "prettier": "^3.8.1",
+    "typescript": "^5.7.0",
+    "vite": "^6.1.0",
+    "vite-plugin-solid": "^2.11.0"
+  }
+}
