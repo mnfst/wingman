@@ -29,14 +29,20 @@ You can pre-fill via query string: `?baseUrl=https://your.gateway&apiKey=mnfst_.
 
 ### Cross-origin requirements
 
-Wingman runs at `wingman.manifest.build` and your gateway runs elsewhere, so the gateway must allow the Wingman origin via CORS. The Manifest backend allows it out of the box; self-hosters running a different backend need:
+Wingman runs at `wingman.manifest.build` and your gateway runs elsewhere, so the gateway must allow the Wingman origin via CORS. The Manifest backend allows it **in dev mode** (`NODE_ENV !== 'production'`), which covers local and self-hosted-dev gateways. Production builds keep CORS off — the dashboard is same-origin there — so pointing Wingman at a production gateway means opting into CORS for the Wingman origin yourself.
+
+Whatever the backend, it must answer the preflight with at least:
 
 ```
 Access-Control-Allow-Origin: https://wingman.manifest.build
-Access-Control-Allow-Headers: Authorization, Content-Type, X-API-Key
+Access-Control-Allow-Headers: Authorization, Content-Type, X-API-Key, X-Stainless-Lang, X-Stainless-Package-Version, X-Stainless-OS, X-Stainless-Arch, X-Stainless-Runtime, X-Stainless-Runtime-Version, X-Stainless-Retry-Count
 ```
 
-`Access-Control-Allow-Credentials` should stay **false** — Wingman uses bearer keys, never cookies.
+The `X-Stainless-*` headers matter: the OpenClaw, Hermes, and OpenAI SDK profiles replay them to mimic the real SDK fingerprint, so an allow-list that omits them fails the preflight and the request never leaves the browser. Hermes sends a couple more (`X-Stainless-Async`, `X-Stainless-Read-Timeout`), so the robust option is to reflect the request's `Access-Control-Request-Headers` instead of hard-coding a list.
+
+If the gateway is on a loopback address (`localhost` / `127.0.0.1`) and you load Wingman over HTTPS, Chrome's Private Network Access also wants `Access-Control-Allow-Private-Network: true` on the preflight.
+
+`Access-Control-Allow-Credentials` can stay **false** — Wingman uses bearer keys, never cookies.
 
 If you're behind a corporate firewall or running a fully air-gapped Manifest, clone this repo and `npm run dev` — Wingman runs entirely client-side.
 
