@@ -1,5 +1,6 @@
 import { Show, type Component } from 'solid-js';
 import type { SendResult } from '../send';
+import type { ApiFormat } from '../formats';
 import AssistantMessage from './AssistantMessage.jsx';
 
 interface Props {
@@ -7,6 +8,8 @@ interface Props {
   result: SendResult | null;
   loading: boolean;
   hasSent: boolean;
+  format: ApiFormat;
+  streamingText: string;
 }
 
 const PaperPlane: Component = () => (
@@ -49,7 +52,12 @@ const Conversation: Component<Props> = (props) => {
             <div class="user-msg__bubble">{props.userMessage}</div>
           </div>
         </Show>
-        <AssistantMessage result={props.result} loading={props.loading} />
+        <AssistantMessage
+          result={props.result}
+          loading={props.loading}
+          format={props.format}
+          streamingText={props.streamingText}
+        />
       </Show>
     </div>
   );

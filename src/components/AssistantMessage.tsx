@@ -1,10 +1,14 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import type { SendResult } from '../send';
+import type { ApiFormat } from '../formats';
 import CodeView from './CodeView.jsx';
 
 interface Props {
   result: SendResult | null;
   loading: boolean;
+  format: ApiFormat;
+  /** Live assistant text accumulating during a streamed request. */
+  streamingText: string;
 }
 
 type Tab = 'output' | 'response-body' | 'response-headers' | 'request-body' | 'request-headers';
@@ -28,37 +32,6 @@ function prettyBody(body: string, json: unknown | null): string {
   return body || '(empty body)';
 }
 
-function extractAssistantText(json: unknown): string | null {
-  if (!json || typeof json !== 'object') return null;
-  const root = json as Record<string, unknown>;
-  const choices = root.choices;
-  if (Array.isArray(choices) && choices.length > 0) {
-    const first = choices[0] as { message?: { content?: unknown }; text?: unknown } | undefined;
-    if (first?.message && typeof first.message.content === 'string') return first.message.content;
-    if (typeof first?.text === 'string') return first.text;
-  }
-  return null;
-}
-
-function extractUsage(json: unknown): { in?: number; out?: number; total?: number } | null {
-  if (!json || typeof json !== 'object') return null;
-  const usage = (json as Record<string, unknown>).usage;
-  if (!usage || typeof usage !== 'object') return null;
-  const u = usage as Record<string, unknown>;
-  const num = (v: unknown) => (typeof v === 'number' ? v : undefined);
-  return {
-    in: num(u.prompt_tokens) ?? num(u.input_tokens),
-    out: num(u.completion_tokens) ?? num(u.output_tokens),
-    total: num(u.total_tokens),
-  };
-}
-
-function extractModel(json: unknown): string | null {
-  if (!json || typeof json !== 'object') return null;
-  const m = (json as Record<string, unknown>).model;
-  return typeof m === 'string' ? m : null;
-}
-
 const StatusPill: Component<{ status: number; ok: boolean; statusText: string }> = (props) => {
   const tone = () => {
     if (props.status === 0) return 'error';
@@ -78,23 +51,69 @@ const StatusPill: Component<{ status: number; ok: boolean; statusText: string }>
   );
 };
 
+const ClockIcon: Component = () => (
+  <svg
+    width="11"
+    height="11"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <circle cx="12" cy="12" r="10" />
+    <polyline points="12 6 12 12 16 14" />
+  </svg>
+);
+
+const TokenIcon: Component = () => (
+  <svg
+    width="11"
+    height="11"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="2"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    aria-hidden="true"
+  >
+    <rect x="3" y="11" width="18" height="11" rx="2" />
+    <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+  </svg>
+);
+
 const AssistantMessage: Component<Props> = (props) => {
   const [tab, setTab] = createSignal<Tab>('output');
 
+  // Prefer the parsed/assembled response text; fall back to streamed text.
   const assistantText = () => {
-    if (!props.result) return null;
-    return props.result.responseJson ? extractAssistantText(props.result.responseJson) : null;
+    const r = props.result;
+    if (!r) return null;
+    return props.format.extractText(r.responseJson) ?? r.streamedText ?? null;
   };
-  const usage = () => (props.result?.responseJson ? extractUsage(props.result.responseJson) : null);
-  const model = () => (props.result?.responseJson ? extractModel(props.result.responseJson) : null);
+  const usage = () => (props.result ? props.format.extractUsage(props.result.responseJson) : null);
+  const model = () => (props.result ? props.format.extractModel(props.result.responseJson) : null);
 
   return (
     <div class="assistant-msg">
       <Show when={props.loading}>
-        <div class="assistant-msg__loading">
-          <span class="spinner" />
-          <span>Thinking…</span>
-        </div>
+        <Show
+          when={props.streamingText}
+          fallback={
+            <div class="assistant-msg__loading">
+              <span class="spinner" />
+              <span>Thinking…</span>
+            </div>
+          }
+        >
+          <div class="assistant-msg__text assistant-msg__text--streaming">
+            {props.streamingText}
+            <span class="assistant-msg__cursor" aria-hidden="true" />
+          </div>
+        </Show>
       </Show>
 
       <Show when={!props.loading && props.result} keyed>
@@ -103,39 +122,19 @@ const AssistantMessage: Component<Props> = (props) => {
             <div class="assistant-msg__head">
               <StatusPill status={r.status} ok={r.ok} statusText={r.statusText} />
               <span class="metric-chip" title="Round-trip latency">
-                <svg
-                  width="11"
-                  height="11"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  aria-hidden="true"
-                >
-                  <circle cx="12" cy="12" r="10" />
-                  <polyline points="12 6 12 12 16 14" />
-                </svg>
+                <ClockIcon />
                 {r.durationMs.toFixed(0)} ms
               </span>
+              <Show when={r.ttftMs !== undefined}>
+                <span class="metric-chip" title="Time to first token">
+                  <ClockIcon />
+                  {r.ttftMs!.toFixed(0)} ms TTFT
+                </span>
+              </Show>
               <Show when={usage()?.total}>
                 {(total) => (
                   <span class="metric-chip" title="Total tokens">
-                    <svg
-                      width="11"
-                      height="11"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      stroke-width="2"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                      aria-hidden="true"
-                    >
-                      <rect x="3" y="11" width="18" height="11" rx="2" />
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                    </svg>
+                    <TokenIcon />
                     {total()} tok
                     <Show when={usage()?.in !== undefined && usage()?.out !== undefined}>
                       <span class="metric-chip__aside">
@@ -190,7 +189,14 @@ const AssistantMessage: Component<Props> = (props) => {
                 </Show>
               </Show>
               <Show when={tab() === 'response-body'}>
-                <CodeView code={prettyBody(r.responseBody, r.responseJson)} language="json" />
+                <Show
+                  when={r.isStream}
+                  fallback={
+                    <CodeView code={prettyBody(r.responseBody, r.responseJson)} language="json" />
+                  }
+                >
+                  <CodeView code={r.responseBody || '(empty stream)'} language="text" />
+                </Show>
               </Show>
               <Show when={tab() === 'response-headers'}>
                 <CodeView code={formatHeaders(r.responseHeaders)} language="http" />
