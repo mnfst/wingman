@@ -1,24 +1,32 @@
-// Verbatim system prompts captured from the real OpenClaw and Hermes CLIs
-// (see mnfst/team-skills `agent-request/templates/`). Several KB each —
-// kept in their own modules so profiles.ts stays scannable. Personal paths
-// and the host name in the OpenClaw capture are redacted to generic values;
-// everything else is byte-for-byte identical to what the gateway receives
-// from a real client.
+// Profiles are agent/SDK *fingerprints* layered on top of an API format. A
+// profile contributes request headers (to mimic a real client), a default
+// system prompt, an optional body fragment, and an SDK code snippet — but the
+// wire shape (path, auth, body, response parsing) belongs to the ApiFormat.
+// Each profile declares which formats it's compatible with; the UI filters the
+// list to the selected format.
+//
+// Verbatim system prompts captured from the real OpenClaw and Hermes CLIs are
+// kept in their own modules so this catalog stays scannable.
 import { OPENCLAW_SYSTEM } from './templates/openclaw-system';
 import { HERMES_SYSTEM } from './templates/hermes-system';
+import type { ApiFormat, ApiFormatId, RequestParams } from './formats';
+import {
+  anthropicSdkSnippet,
+  curlSnippet,
+  hermesSnippet,
+  langchainSnippet,
+  openaiResponsesSnippet,
+  openaiSdkSnippet,
+  openclawSnippet,
+  rawSnippet,
+  vercelSnippet,
+} from './snippets';
 
 export type ProfileMode = 'agent' | 'sdk' | 'raw';
 export type ProfileLang = 'typescript' | 'python' | 'bash';
 
-export interface ProfileParams {
-  baseUrl: string;
-  apiKey: string;
-  model: string;
-  systemPrompt: string;
-  userMessage: string;
-  maxTokens?: number;
-  temperature?: number;
-}
+/** @deprecated use RequestParams from ./formats — kept as an alias. */
+export type ProfileParams = RequestParams;
 
 export interface Profile {
   id: string;
@@ -29,6 +37,8 @@ export interface Profile {
   icon: string;
   langs: ProfileLang[];
   defaultLang: ProfileLang;
+  /** API formats this profile is compatible with. */
+  formats: ApiFormatId[];
   defaultSystemPrompt?: string;
   /**
    * When true, the Headers panel is hidden — the profile simulates a real
@@ -43,22 +53,13 @@ export interface Profile {
    * the TypeScript SDK profiles can do this — Python needs Pyodide.
    */
   executable?: boolean;
-  headers: (params: ProfileParams) => Record<string, string>;
-  body: (params: ProfileParams) => Record<string, unknown>;
-  code: (params: ProfileParams, lang: ProfileLang) => string;
-}
-
-function messages(params: ProfileParams) {
-  const list: Array<{ role: string; content: string }> = [];
-  if (params.systemPrompt.trim()) {
-    list.push({ role: 'system', content: params.systemPrompt });
-  }
-  list.push({ role: 'user', content: params.userMessage });
-  return list;
-}
-
-function jsonBody(body: unknown, indent = 2): string {
-  return JSON.stringify(body, null, indent);
+  headers: (params: RequestParams) => Record<string, string>;
+  /**
+   * Fingerprint-only body fields merged on top of the format's body (e.g.
+   * OpenClaw's `store:false`). Optional — most profiles add nothing.
+   */
+  bodyExtras?: (params: RequestParams) => Record<string, unknown>;
+  code: (params: RequestParams, lang: ProfileLang, format: ApiFormat) => string;
 }
 
 const stainlessJs = {
@@ -97,21 +98,12 @@ export const PROFILES: Profile[] = [
     icon: '/icons/openclaw.png',
     langs: ['bash'],
     defaultLang: 'bash',
+    formats: ['openai-chat'],
     defaultSystemPrompt: OPENCLAW_SYSTEM,
     headersLocked: true,
     headers: () => ({ ...stainlessJs }),
-    body: (p) => ({
-      model: p.model,
-      messages: messages(p),
-      stream: false,
-      store: false,
-      max_completion_tokens: p.maxTokens ?? 8192,
-    }),
-    code: (p) => `# OpenClaw routes through its built-in OpenAI-compatible client.
-# Configure once with the CLI:
-openclaw config set models.providers.manifest '{"baseUrl":"${p.baseUrl}/v1","api":"openai-completions","apiKey":"${p.apiKey || 'mnfst_YOUR_KEY'}","models":[{"id":"${p.model}","name":"Manifest Auto"}]}'
-openclaw config set agents.defaults.model.primary manifest/${p.model}
-openclaw gateway restart`,
+    bodyExtras: () => ({ store: false, max_completion_tokens: 8192 }),
+    code: (p) => openclawSnippet(p),
   },
   {
     id: 'hermes',
@@ -122,100 +114,41 @@ openclaw gateway restart`,
     icon: '/icons/hermes.png',
     langs: ['bash'],
     defaultLang: 'bash',
+    formats: ['openai-chat'],
     defaultSystemPrompt: HERMES_SYSTEM,
     headersLocked: true,
     headers: () => ({ ...stainlessPython }),
-    body: (p) => ({
-      model: p.model,
-      messages: messages(p),
-      stream: false,
-    }),
-    code: (p) => `# Hermes reads its provider from ~/.hermes/config.yaml:
-cat <<EOF > ~/.hermes/config.yaml
-model:
-  provider: custom
-  base_url: ${p.baseUrl}/v1
-  api_key: ${p.apiKey || 'mnfst_YOUR_KEY'}
-  default: ${p.model}
-EOF
-hermes chat -q '${p.userMessage.replace(/'/g, "'\\''")}'`,
+    code: (p) => hermesSnippet(p),
   },
   {
     id: 'openai-sdk',
     label: 'OpenAI SDK',
     mode: 'sdk',
     category: 'app',
-    blurb: 'Official OpenAI client (TypeScript or Python).',
+    blurb: 'Official OpenAI client (Chat Completions).',
     icon: '/icons/providers/openai.svg',
     langs: ['typescript', 'python'],
     defaultLang: 'typescript',
+    formats: ['openai-chat'],
     headersLocked: true,
     executable: true,
     headers: () => ({ ...stainlessJs }),
-    body: (p) => ({
-      model: p.model,
-      messages: messages(p),
-    }),
-    code: (p, lang) => {
-      if (lang === 'python') {
-        return `from openai import OpenAI
-
-client = OpenAI(
-    base_url="${p.baseUrl}/v1",
-    api_key="${p.apiKey || 'mnfst_YOUR_KEY'}",
-)
-
-response = client.chat.completions.create(
-    model="${p.model}",
-    messages=${jsonBody(messages(p), 4).replace(/\n/g, '\n    ')},
-)
-print(response.choices[0].message.content)`;
-      }
-      return `import OpenAI from "openai";
-
-const client = new OpenAI({
-  baseURL: "${p.baseUrl}/v1",
-  apiKey: "${p.apiKey || 'mnfst_YOUR_KEY'}",
-});
-
-const response = await client.chat.completions.create({
-  model: "${p.model}",
-  messages: ${jsonBody(messages(p), 2).replace(/\n/g, '\n  ')},
-});
-console.log(response.choices[0].message.content);`;
-    },
+    code: (p, lang) => openaiSdkSnippet(p, lang),
   },
   {
     id: 'vercel-ai-sdk',
     label: 'Vercel AI SDK',
     mode: 'sdk',
     category: 'app',
-    blurb: 'Vercel AI SDK with the OpenAI provider pointed at Manifest.',
+    blurb: 'Vercel AI SDK with the OpenAI provider.',
     icon: '/icons/vercel.svg',
     langs: ['typescript'],
     defaultLang: 'typescript',
+    formats: ['openai-chat'],
     headersLocked: true,
     executable: true,
-    headers: () => ({
-      'User-Agent': 'ai-sdk/5.0.0 (Node.js v22.17.1)',
-    }),
-    body: (p) => ({
-      model: p.model,
-      messages: messages(p),
-    }),
-    code: (p) => `import { createOpenAI } from "@ai-sdk/openai";
-import { generateText } from "ai";
-
-const manifest = createOpenAI({
-  baseURL: "${p.baseUrl}/v1",
-  apiKey: "${p.apiKey || 'mnfst_YOUR_KEY'}",
-});
-
-const { text } = await generateText({
-  model: manifest("${p.model}"),
-  ${p.systemPrompt ? `system: ${JSON.stringify(p.systemPrompt)},\n  ` : ''}prompt: ${JSON.stringify(p.userMessage)},
-});
-console.log(text);`,
+    headers: () => ({ 'User-Agent': 'ai-sdk/5.0.0 (Node.js v22.17.1)' }),
+    code: (p) => vercelSnippet(p),
   },
   {
     id: 'langchain',
@@ -226,39 +159,37 @@ console.log(text);`,
     icon: '/icons/langchain.png',
     langs: ['python', 'typescript'],
     defaultLang: 'python',
+    formats: ['openai-chat'],
     headersLocked: true,
     executable: true,
-    headers: () => ({
-      'User-Agent': 'langchain-python/0.3.0',
-    }),
-    body: (p) => ({
-      model: p.model,
-      messages: messages(p),
-    }),
-    code: (p, lang) => {
-      if (lang === 'typescript') {
-        return `import { ChatOpenAI } from "@langchain/openai";
-
-const llm = new ChatOpenAI({
-  model: "${p.model}",
-  apiKey: "${p.apiKey || 'mnfst_YOUR_KEY'}",
-  configuration: { baseURL: "${p.baseUrl}/v1" },
-});
-
-const response = await llm.invoke(${JSON.stringify(messages(p), null, 2).replace(/\n/g, '\n  ')});
-console.log(response.content);`;
-      }
-      return `from langchain_openai import ChatOpenAI
-
-llm = ChatOpenAI(
-    base_url="${p.baseUrl}/v1",
-    api_key="${p.apiKey || 'mnfst_YOUR_KEY'}",
-    model="${p.model}",
-)
-
-response = llm.invoke(${jsonBody(messages(p), 4).replace(/\n/g, '\n    ')})
-print(response.content)`;
-    },
+    headers: () => ({ 'User-Agent': 'langchain-python/0.3.0' }),
+    code: (p, lang) => langchainSnippet(p, lang),
+  },
+  {
+    id: 'openai-responses',
+    label: 'OpenAI SDK',
+    mode: 'sdk',
+    category: 'app',
+    blurb: 'Official OpenAI client via the Responses API.',
+    icon: '/icons/providers/openai.svg',
+    langs: ['typescript', 'python'],
+    defaultLang: 'typescript',
+    formats: ['openai-responses'],
+    headers: () => ({ ...stainlessJs }),
+    code: (p, lang) => openaiResponsesSnippet(p, lang),
+  },
+  {
+    id: 'anthropic-sdk',
+    label: 'Anthropic SDK',
+    mode: 'sdk',
+    category: 'app',
+    blurb: 'Official Anthropic client (Messages API).',
+    icon: '/icons/providers/anthropic.svg',
+    langs: ['typescript', 'python'],
+    defaultLang: 'typescript',
+    formats: ['anthropic-messages'],
+    headers: () => ({}),
+    code: (p, lang) => anthropicSdkSnippet(p, lang),
   },
   {
     id: 'curl',
@@ -269,23 +200,9 @@ print(response.content)`;
     icon: '/icons/other.svg',
     langs: ['bash'],
     defaultLang: 'bash',
-    headers: () => ({
-      'User-Agent': 'curl/8.6.0',
-    }),
-    body: (p) => ({
-      model: p.model,
-      messages: messages(p),
-    }),
-    code: (p) => `curl -sS -X POST ${p.baseUrl}/v1/chat/completions \\
-  -H "Authorization: Bearer ${p.apiKey || 'mnfst_YOUR_KEY'}" \\
-  -H "Content-Type: application/json" \\
-  -d '${jsonBody(
-    {
-      model: p.model,
-      messages: messages(p),
-    },
-    2,
-  ).replace(/'/g, "'\\''")}'`,
+    formats: ['openai-chat', 'openai-responses', 'anthropic-messages'],
+    headers: () => ({ 'User-Agent': 'curl/8.6.0' }),
+    code: (p, _lang, format) => curlSnippet(p, format),
   },
   {
     id: 'raw',
@@ -296,23 +213,17 @@ print(response.content)`;
     icon: '/icons/other-agent.svg',
     langs: ['bash'],
     defaultLang: 'bash',
+    formats: ['openai-chat', 'openai-responses', 'anthropic-messages'],
     headers: () => ({}),
-    body: (p) => ({
-      model: p.model,
-      messages: messages(p),
-    }),
-    code: (p) => `# Plain fetch — no User-Agent override.
-fetch("${p.baseUrl}/v1/chat/completions", {
-  method: "POST",
-  headers: {
-    "Authorization": "Bearer ${p.apiKey || 'mnfst_YOUR_KEY'}",
-    "Content-Type": "application/json",
-  },
-  body: JSON.stringify(${jsonBody({ model: p.model, messages: messages(p) }, 2).replace(/\n/g, '\n  ')}),
-});`,
+    code: (p, _lang, format) => rawSnippet(p, format),
   },
 ];
 
 export const PROFILE_BY_ID: Record<string, Profile> = Object.fromEntries(
   PROFILES.map((p) => [p.id, p]),
 );
+
+/** Profiles compatible with a given format, in catalog order. */
+export function profilesForFormat(formatId: ApiFormatId): Profile[] {
+  return PROFILES.filter((p) => p.formats.includes(formatId));
+}

@@ -2,13 +2,20 @@ import { createSignal, For, Show, type Component } from 'solid-js';
 import HeaderEditor, { type HeaderEntry } from './HeaderEditor.jsx';
 import CodeView from './CodeView.jsx';
 import ProfileDropdown from './ProfileDropdown.jsx';
+import FormatDropdown from './FormatDropdown.jsx';
 import type { Profile, ProfileLang } from '../profiles';
+import type { ApiFormat } from '../formats';
 import type { HealthStatus } from '../services/healthCheck';
 
 interface Props {
+  formats: readonly ApiFormat[];
+  activeFormatId: string;
+  onSelectFormat: (id: string) => void;
   profiles: readonly Profile[];
   activeProfileId: string;
   onSelectProfile: (id: string) => void;
+  stream: boolean;
+  onStreamChange: (value: boolean) => void;
   systemPrompt: string;
   onSystemPromptChange: (value: string) => void;
   showSystemPrompt: boolean;
@@ -21,6 +28,7 @@ interface Props {
   baseUrl: string;
   apiKey: string;
   model: string;
+  baseUrlPlaceholder: string;
   onBaseUrlChange: (value: string) => void;
   onApiKeyChange: (value: string) => void;
   onModelChange: (value: string) => void;
@@ -205,12 +213,21 @@ const Composer: Component<Props> = (props) => {
 
   return (
     <form class="composer" onSubmit={onSubmit}>
-      {/* Profile picker — single dropdown above the wrapper. */}
+      {/* Client + format pickers above the wrapper, read left→right: the
+          request fingerprint (client) flows to the endpoint format. */}
       <div class="composer__profile-row">
         <ProfileDropdown
           profiles={props.profiles}
           activeId={props.activeProfileId}
           onSelect={props.onSelectProfile}
+        />
+        <span class="composer__profile-sep" aria-hidden="true">
+          →
+        </span>
+        <FormatDropdown
+          formats={props.formats}
+          activeId={props.activeFormatId}
+          onSelect={props.onSelectFormat}
         />
       </div>
 
@@ -228,7 +245,7 @@ const Composer: Component<Props> = (props) => {
                   type="text"
                   value={props.baseUrl}
                   onInput={(e) => props.onBaseUrlChange(e.currentTarget.value)}
-                  placeholder="https://your-manifest.example.com"
+                  placeholder={props.baseUrlPlaceholder}
                   spellcheck={false}
                   autocomplete="off"
                 />
@@ -294,11 +311,7 @@ const Composer: Component<Props> = (props) => {
             </div>
             <p class="composer__panel-trust">
               Your API key never leaves the browser — Wingman is a static SPA with no backend.{' '}
-              <a
-                href="https://github.com/mnfst/wingman"
-                target="_blank"
-                rel="noopener noreferrer"
-              >
+              <a href="https://github.com/mnfst/wingman" target="_blank" rel="noopener noreferrer">
                 View source
               </a>
               .
@@ -553,6 +566,23 @@ const Composer: Component<Props> = (props) => {
           >
             <span class="composer__tool-glyph">{sdkOpen() ? '−' : '+'}</span>
             SDK code
+          </button>
+          <button
+            type="button"
+            class="composer__tool"
+            classList={{ 'composer__tool--active': props.stream }}
+            onClick={() => props.onStreamChange(!props.stream)}
+            aria-pressed={props.stream}
+            title={
+              props.stream
+                ? 'Streaming on — the response renders token by token (SSE)'
+                : 'Streaming off — the full response arrives at once'
+            }
+          >
+            Stream
+            <Show when={props.stream}>
+              <span class="composer__tool-ok" aria-hidden="true" />
+            </Show>
           </button>
           <span class="composer__hint">⌘/Ctrl + Enter to send</span>
         </div>

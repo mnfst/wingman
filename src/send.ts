@@ -1,6 +1,11 @@
+import type { AuthScheme, StreamParser } from './formats/types';
+import { readSse } from './services/sse';
+
 export interface SendInput {
   url: string;
   apiKey: string;
+  /** How to attach the key. Defaults to bearer (used by the SDK runners). */
+  auth?: AuthScheme;
   headers: Record<string, string>;
   body: Record<string, unknown>;
 }
@@ -18,6 +23,17 @@ export interface SendResult {
   responseJson: unknown | null;
   error?: string;
   errorKind?: 'network' | 'cors' | 'mixed-content' | 'aborted' | 'unknown';
+  /** True when the request was sent with stream:true and read as SSE. */
+  isStream?: boolean;
+  /** Assistant text assembled from the stream (streamed requests only). */
+  streamedText?: string;
+  /** Time to first token, ms (streamed requests only). */
+  ttftMs?: number;
+}
+
+export interface StreamOptions {
+  createParser: () => StreamParser;
+  onDelta: (text: string) => void;
 }
 
 const FORBIDDEN_HEADER_PREFIXES = ['proxy-', 'sec-'];
@@ -70,15 +86,40 @@ export function partitionHeaders(headers: Record<string, string>): {
   return { allowed, blocked };
 }
 
-export async function sendRequest(input: SendInput): Promise<SendResult> {
+/** Final request headers: Content-Type + caller headers + key per auth scheme. */
+function buildHeaders(input: SendInput, extra?: Record<string, string>): Record<string, string> {
   const { allowed } = partitionHeaders(input.headers);
-  const finalHeaders: Record<string, string> = {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     ...allowed,
+    ...extra,
   };
+  const auth = input.auth ?? { kind: 'bearer' };
   if (input.apiKey) {
-    finalHeaders.Authorization = `Bearer ${input.apiKey}`;
+    if (auth.kind === 'bearer') headers.Authorization = `Bearer ${input.apiKey}`;
+    else if (auth.kind === 'header') headers[auth.name] = input.apiKey;
   }
+  return headers;
+}
+
+function collectHeaders(response: Response): Record<string, string> {
+  const out: Record<string, string> = {};
+  response.headers.forEach((value, key) => {
+    out[key] = value;
+  });
+  return out;
+}
+
+function tryParseJson(text: string): unknown | null {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+export async function sendRequest(input: SendInput): Promise<SendResult> {
+  const finalHeaders = buildHeaders(input);
   const requestBody = JSON.stringify(input.body, null, 2);
 
   const start = performance.now();
@@ -89,47 +130,119 @@ export async function sendRequest(input: SendInput): Promise<SendResult> {
       body: requestBody,
     });
     const text = await response.text();
-    const durationMs = performance.now() - start;
-    const responseHeaders: Record<string, string> = {};
-    response.headers.forEach((value, key) => {
-      responseHeaders[key] = value;
-    });
-    let json: unknown | null = null;
-    try {
-      json = JSON.parse(text);
-    } catch {
-      json = null;
-    }
     return {
       url: input.url,
       status: response.status,
       statusText: response.statusText,
       ok: response.ok,
-      durationMs,
+      durationMs: performance.now() - start,
       requestHeaders: finalHeaders,
       requestBody,
-      responseHeaders,
+      responseHeaders: collectHeaders(response),
       responseBody: text,
-      responseJson: json,
+      responseJson: tryParseJson(text),
     };
   } catch (err) {
-    const durationMs = performance.now() - start;
-    const message = err instanceof Error ? err.message : String(err);
+    return errorResult(input, finalHeaders, requestBody, err, performance.now() - start);
+  }
+}
+
+/**
+ * Send with stream:true and read the response as SSE, pushing each event
+ * through the format's StreamParser. Non-OK responses (and bodyless ones) fall
+ * back to a buffered read — provider error payloads are JSON, not a stream.
+ */
+export async function sendRequestStreaming(
+  input: SendInput,
+  opts: StreamOptions,
+): Promise<SendResult> {
+  const finalHeaders = buildHeaders(input, { Accept: 'text/event-stream' });
+  const requestBody = JSON.stringify(input.body, null, 2);
+  const start = performance.now();
+
+  let response: Response;
+  try {
+    response = await fetch(input.url, { method: 'POST', headers: finalHeaders, body: requestBody });
+  } catch (err) {
+    return errorResult(input, finalHeaders, requestBody, err, performance.now() - start);
+  }
+
+  const base = {
+    url: input.url,
+    status: response.status,
+    statusText: response.statusText,
+    ok: response.ok,
+    requestHeaders: finalHeaders,
+    requestBody,
+    responseHeaders: collectHeaders(response),
+    isStream: true as const,
+  };
+
+  if (!response.ok || !response.body) {
+    const text = await response.text();
     return {
-      url: input.url,
-      status: 0,
-      statusText: 'Network error',
-      ok: false,
-      durationMs,
-      requestHeaders: finalHeaders,
-      requestBody,
-      responseHeaders: {},
-      responseBody: '',
-      responseJson: null,
-      error: message,
-      errorKind: classifyError(err, input.url),
+      ...base,
+      durationMs: performance.now() - start,
+      responseBody: text,
+      responseJson: tryParseJson(text),
     };
   }
+
+  const parser = opts.createParser();
+  const rawChunks: string[] = [];
+  let assembled = '';
+  let finalJson: unknown | null = null;
+  let ttftMs: number | undefined;
+  let error: string | undefined;
+
+  try {
+    for await (const evt of readSse(response.body)) {
+      rawChunks.push(evt.event ? `event: ${evt.event}\ndata: ${evt.data}` : `data: ${evt.data}`);
+      const delta = parser.push(evt);
+      if (delta.text) {
+        if (ttftMs === undefined) ttftMs = performance.now() - start;
+        assembled += delta.text;
+        opts.onDelta(delta.text);
+      }
+      if (delta.final !== undefined && delta.final !== null) finalJson = delta.final;
+      if (delta.done) break;
+    }
+  } catch (err) {
+    error = err instanceof Error ? err.message : String(err);
+  }
+
+  return {
+    ...base,
+    durationMs: performance.now() - start,
+    responseBody: rawChunks.join('\n\n'),
+    responseJson: finalJson,
+    streamedText: assembled,
+    ttftMs,
+    error,
+  };
+}
+
+function errorResult(
+  input: SendInput,
+  finalHeaders: Record<string, string>,
+  requestBody: string,
+  err: unknown,
+  durationMs: number,
+): SendResult {
+  return {
+    url: input.url,
+    status: 0,
+    statusText: 'Network error',
+    ok: false,
+    durationMs,
+    requestHeaders: finalHeaders,
+    requestBody,
+    responseHeaders: {},
+    responseBody: '',
+    responseJson: null,
+    error: err instanceof Error ? err.message : String(err),
+    errorKind: classifyError(err, input.url),
+  };
 }
 
 function classifyError(err: unknown, url: string): SendResult['errorKind'] {

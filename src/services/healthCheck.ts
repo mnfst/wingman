@@ -6,15 +6,17 @@ export type HealthStatus =
   | { kind: 'network'; message: string }
   | { kind: 'http-error'; status: number; statusText: string };
 
-const HEALTH_PATH = '/api/v1/health';
-
-export async function checkHealth(baseUrl: string, signal?: AbortSignal): Promise<HealthStatus> {
+export async function checkHealth(
+  baseUrl: string,
+  path: string,
+  signal?: AbortSignal,
+): Promise<HealthStatus> {
   const trimmed = baseUrl.trim().replace(/\/+$/, '');
   if (!trimmed) return { kind: 'idle' };
 
   let url: string;
   try {
-    url = new URL(HEALTH_PATH, trimmed).toString();
+    url = new URL(path, trimmed).toString();
   } catch {
     return { kind: 'network', message: 'Invalid URL' };
   }

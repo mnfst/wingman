@@ -4,8 +4,21 @@ import Sidebar from './components/Sidebar.jsx';
 import Conversation from './components/Conversation.jsx';
 import Composer from './components/Composer.jsx';
 import { type HeaderEntry } from './components/HeaderEditor.jsx';
-import { PROFILES, PROFILE_BY_ID, type Profile, type ProfileLang } from './profiles';
-import { partitionHeaders, sendRequest, type SendResult } from './send';
+import {
+  PROFILES,
+  PROFILE_BY_ID,
+  profilesForFormat,
+  type Profile,
+  type ProfileLang,
+} from './profiles';
+import {
+  FORMATS,
+  FORMAT_BY_ID,
+  DEFAULT_FORMAT_ID,
+  type ApiFormat,
+  type ApiFormatId,
+} from './formats';
+import { partitionHeaders, sendRequest, sendRequestStreaming, type SendResult } from './send';
 import {
   appendHistory,
   clearHistory,
@@ -23,6 +36,8 @@ const STORAGE = {
   apiKey: 'wingman:apiKey',
   model: 'wingman:model',
   profile: 'wingman:profile',
+  format: 'wingman:format',
+  stream: 'wingman:stream',
 };
 
 // API keys are stored in sessionStorage (cleared on tab close) instead of
@@ -87,16 +102,18 @@ function defaultBaseUrl(): string {
   return '';
 }
 
-function extractAssistantText(json: unknown): string | null {
-  if (!json || typeof json !== 'object') return null;
-  const root = json as Record<string, unknown>;
-  const choices = root.choices;
-  if (Array.isArray(choices) && choices.length > 0) {
-    const first = choices[0] as { message?: { content?: unknown }; text?: unknown } | undefined;
-    if (first?.message && typeof first.message.content === 'string') return first.message.content;
-    if (typeof first?.text === 'string') return first.text;
-  }
-  return null;
+function resolveInitialFormat(): ApiFormatId {
+  const param = readQueryParam('format');
+  if (param && FORMAT_BY_ID[param]) return param as ApiFormatId;
+  const stored = readStorage(STORAGE.format, DEFAULT_FORMAT_ID);
+  return FORMAT_BY_ID[stored] ? (stored as ApiFormatId) : DEFAULT_FORMAT_ID;
+}
+
+function resolveInitialProfile(formatId: ApiFormatId): string {
+  const compatible = profilesForFormat(formatId);
+  const stored = readStorage(STORAGE.profile, '');
+  if (compatible.some((p) => p.id === stored)) return stored;
+  return compatible[0]?.id ?? PROFILES[0]!.id;
 }
 
 const App: Component = () => {
@@ -106,14 +123,19 @@ const App: Component = () => {
   const initialApiKey = apiKeyParam ?? readStorage(STORAGE.apiKey, '');
   if (baseUrlParam) writeStorage(STORAGE.baseUrl, baseUrlParam);
   if (apiKeyParam) writeStorage(STORAGE.apiKey, apiKeyParam);
+  const initialFormatId = resolveInitialFormat();
   const [baseUrl, setBaseUrl] = createSignal(initialBaseUrl);
   const [apiKey, setApiKey] = createSignal(initialApiKey);
   const [model, setModel] = createSignal(readStorage(STORAGE.model, 'auto'));
-  const [profileId, setProfileId] = createSignal(
-    readStorage(STORAGE.profile, PROFILES[0]?.id ?? 'openclaw'),
-  );
+  const [formatId, setFormatId] = createSignal<ApiFormatId>(initialFormatId);
+  const [profileId, setProfileId] = createSignal(resolveInitialProfile(initialFormatId));
+  const [stream, setStream] = createSignal(readStorage(STORAGE.stream, '0') === '1');
 
-  const profile = createMemo<Profile>(() => PROFILE_BY_ID[profileId()] ?? PROFILES[0]!);
+  const format = createMemo<ApiFormat>(() => FORMAT_BY_ID[formatId()] ?? FORMATS[0]!);
+  const availableProfiles = createMemo<Profile[]>(() => profilesForFormat(formatId()));
+  const profile = createMemo<Profile>(
+    () => PROFILE_BY_ID[profileId()] ?? availableProfiles()[0] ?? PROFILES[0]!,
+  );
 
   const [systemPrompts, setSystemPrompts] = createSignal<Record<string, string>>(
     Object.fromEntries(PROFILES.map((p) => [p.id, p.defaultSystemPrompt ?? ''])),
@@ -123,6 +145,7 @@ const App: Component = () => {
   const [lang, setLang] = createSignal<ProfileLang>(profile().defaultLang);
   const [result, setResult] = createSignal<SendResult | null>(null);
   const [loading, setLoading] = createSignal(false);
+  const [streamingText, setStreamingText] = createSignal('');
   const [hasSent, setHasSent] = createSignal(false);
   const [sentMessage, setSentMessage] = createSignal('');
   const [history, setHistory] = createSignal<HistoryEntry[]>(listHistory());
@@ -130,25 +153,26 @@ const App: Component = () => {
   const [saveStatus, setSaveStatus] = createSignal<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [gistMarkdown, setGistMarkdown] = createSignal<string>('');
   const [gistModalOpen, setGistModalOpen] = createSignal(false);
-  // Edited code per `${profileId}:${lang}` — when present, it overrides the
-  // generated snippet AND becomes the source of truth for Send (provided the
-  // profile is executable in this language).
+  // Edited code per `${formatId}:${profileId}:${lang}` — when present, it
+  // overrides the generated snippet AND becomes the source of truth for Send
+  // (provided the profile is executable in this language).
   const [scratchCode, setScratchCode] = createSignal<Record<string, string>>({});
   const [healthStatus, setHealthStatus] = createSignal<HealthStatus>({ kind: 'idle' });
 
-  // Pre-flight health check — pings `${baseUrl}/api/v1/health` whenever the
-  // base URL changes. Surfaces CORS / network / HTTP errors in the connection
-  // bar so users can tell a missing allow-list entry from a typo or 401.
+  // Pre-flight health check — only formats that expose a health path (the
+  // Manifest gateway's `/api/v1/health`) get probed; public provider APIs have
+  // no such endpoint, so we skip rather than show a misleading "unreachable".
   createEffect(() => {
     const url = baseUrl().trim();
-    if (!url) {
+    const path = format().healthPath;
+    if (!url || !path) {
       setHealthStatus({ kind: 'idle' });
       return;
     }
     const controller = new AbortController();
     const timer = window.setTimeout(() => {
       setHealthStatus({ kind: 'checking' });
-      checkHealth(url, controller.signal).then(setHealthStatus);
+      checkHealth(url, path, controller.signal).then(setHealthStatus);
     }, 400);
     onCleanup(() => {
       window.clearTimeout(timer);
@@ -156,20 +180,19 @@ const App: Component = () => {
     });
   });
 
-  const generatedSdkCode = createMemo(() =>
-    profile().code(
-      {
-        baseUrl: baseUrl().replace(/\/+$/, ''),
-        apiKey: apiKey(),
-        model: model(),
-        systemPrompt: systemPrompts()[profile().id] ?? '',
-        userMessage: userMessage(),
-      },
-      lang(),
-    ),
-  );
+  const params = () => ({
+    baseUrl: baseUrl().replace(/\/+$/, ''),
+    apiKey: apiKey(),
+    model: model(),
+    systemPrompt: systemPrompts()[profile().id] ?? '',
+    userMessage: userMessage(),
+  });
 
-  const scratchKey = () => `${profile().id}:${lang()}`;
+  const requestUrl = () => `${baseUrl().replace(/\/+$/, '')}${format().path}`;
+
+  const generatedSdkCode = createMemo(() => profile().code(params(), lang(), format()));
+
+  const scratchKey = () => `${formatId()}:${profile().id}:${lang()}`;
   const sdkCodeIsEdited = () => {
     const v = scratchCode()[scratchKey()];
     return v !== undefined && v !== generatedSdkCode();
@@ -187,30 +210,25 @@ const App: Component = () => {
     setScratchCode(next);
   };
 
-  const params = () => ({
-    baseUrl: baseUrl().replace(/\/+$/, ''),
-    apiKey: apiKey(),
-    model: model(),
-    systemPrompt: systemPrompts()[profile().id] ?? '',
-    userMessage: userMessage(),
-  });
-
+  // Default headers come from the format (e.g. anthropic-version); the profile
+  // layers its fingerprint headers on top.
+  const overrideKey = () => `${formatId()}:${profile().id}:${lang()}`;
   const headerEntries = createMemo<HeaderEntry[]>(() => {
-    const overrideKey = `${profile().id}:${lang()}`;
-    const cached = headerOverrides()[overrideKey];
+    const cached = headerOverrides()[overrideKey()];
     if (cached) return cached;
-    return entriesFromRecord(profile().headers(params()));
+    return entriesFromRecord({
+      ...(format().defaultHeaders ?? {}),
+      ...profile().headers(params()),
+    });
   });
 
   const updateHeaderEntries = (next: HeaderEntry[]) => {
-    const overrideKey = `${profile().id}:${lang()}`;
-    setHeaderOverrides({ ...headerOverrides(), [overrideKey]: next });
+    setHeaderOverrides({ ...headerOverrides(), [overrideKey()]: next });
   };
 
   const resetHeaders = () => {
-    const overrideKey = `${profile().id}:${lang()}`;
     const next = { ...headerOverrides() };
-    delete next[overrideKey];
+    delete next[overrideKey()];
     setHeaderOverrides(next);
   };
 
@@ -228,6 +246,18 @@ const App: Component = () => {
     }
   };
 
+  const setFormatSafely = (id: string) => {
+    if (!FORMAT_BY_ID[id]) return;
+    setFormatId(id as ApiFormatId);
+    writeStorage(STORAGE.format, id);
+    // Keep the selected profile compatible with the new format.
+    const compatible = profilesForFormat(id as ApiFormatId);
+    if (!compatible.some((p) => p.id === profileId())) {
+      const next = compatible[0];
+      if (next) setProfileSafely(next.id);
+    }
+  };
+
   const persistAndSetBase = (value: string) => {
     setBaseUrl(value);
     writeStorage(STORAGE.baseUrl, value);
@@ -240,26 +270,46 @@ const App: Component = () => {
     setModel(value);
     writeStorage(STORAGE.model, value);
   };
+  const persistAndSetStream = (value: boolean) => {
+    setStream(value);
+    writeStorage(STORAGE.stream, value ? '1' : '0');
+  };
 
   const updateSystemPrompt = (value: string) => {
     setSystemPrompts({ ...systemPrompts(), [profile().id]: value });
   };
 
+  const errorResult = (message: string): SendResult => ({
+    url: requestUrl(),
+    status: 0,
+    statusText: 'Code error',
+    ok: false,
+    durationMs: 0,
+    requestHeaders: {},
+    requestBody: '',
+    responseHeaders: {},
+    responseBody: '',
+    responseJson: null,
+    error: message,
+  });
+
   const handleSend = async () => {
     setResult(null);
+    setStreamingText('');
     setActiveHistoryId(null);
     setSaveStatus('idle');
     setLoading(true);
     setHasSent(true);
     setSentMessage(userMessage());
 
+    const fmt = format();
     let next: SendResult;
     let sentHeaders: Record<string, string>;
 
     if (willRunCode()) {
-      // The user edited the SDK preview, and the profile/lang combination
-      // can actually execute it in-browser. Run the code through the stub
-      // SDK; whatever fetch the code triggers becomes the SendResult.
+      // The user edited the SDK preview, and the profile/lang combination can
+      // execute it in-browser. Run the code through the stub SDK; whatever
+      // fetch the code triggers becomes the SendResult.
       try {
         const out = await runUserCode({
           profileId: profile().id,
@@ -269,28 +319,24 @@ const App: Component = () => {
         });
         next = out.result;
       } catch (err) {
-        const message = err instanceof Error ? err.message : String(err);
-        const url = `${baseUrl().replace(/\/+$/, '')}/v1/chat/completions`;
-        next = {
-          url,
-          status: 0,
-          statusText: 'Code error',
-          ok: false,
-          durationMs: 0,
-          requestHeaders: {},
-          requestBody: '',
-          responseHeaders: {},
-          responseBody: '',
-          responseJson: null,
-          error: message,
-        };
+        next = errorResult(err instanceof Error ? err.message : String(err));
       }
       sentHeaders = next.requestHeaders;
     } else {
       sentHeaders = recordFromEntries(headerEntries());
-      const body = profile().body(params());
-      const url = `${baseUrl().replace(/\/+$/, '')}/v1/chat/completions`;
-      next = await sendRequest({ url, apiKey: apiKey(), headers: sentHeaders, body });
+      const p = params();
+      const body = {
+        ...fmt.buildBody(p, { stream: stream() }),
+        ...(profile().bodyExtras?.(p) ?? {}),
+      };
+      const url = requestUrl();
+      const input = { url, apiKey: apiKey(), auth: fmt.auth, headers: sentHeaders, body };
+      next = stream()
+        ? await sendRequestStreaming(input, {
+            createParser: fmt.createStreamParser,
+            onDelta: (t) => setStreamingText((prev) => prev + t),
+          })
+        : await sendRequest(input);
     }
 
     setResult(next);
@@ -299,6 +345,10 @@ const App: Component = () => {
     const stored = appendHistory({
       profileId: profile().id,
       profileLabel: profile().label,
+      formatId: fmt.id,
+      formatLabel: fmt.label,
+      streamed: next.isStream ?? false,
+      url: next.url,
       baseUrl: baseUrl(),
       model: model(),
       systemPrompt: systemPrompts()[profile().id] ?? '',
@@ -309,7 +359,7 @@ const App: Component = () => {
       statusText: next.statusText,
       ok: next.ok,
       durationMs: next.durationMs,
-      assistantText: extractAssistantText(next.responseJson),
+      assistantText: fmt.extractText(next.responseJson) ?? next.streamedText ?? null,
       requestBody: next.requestBody,
       requestHeaders: next.requestHeaders,
       responseBody: next.responseBody,
@@ -322,29 +372,39 @@ const App: Component = () => {
   };
 
   const restoreFromHistory = (entry: HistoryEntry) => {
+    const restoredFormatId: ApiFormatId =
+      entry.formatId && FORMAT_BY_ID[entry.formatId]
+        ? (entry.formatId as ApiFormatId)
+        : DEFAULT_FORMAT_ID;
+    setFormatId(restoredFormatId);
+    writeStorage(STORAGE.format, restoredFormatId);
     setProfileId(entry.profileId);
     writeStorage(STORAGE.profile, entry.profileId);
     persistAndSetBase(entry.baseUrl);
     persistAndSetModel(entry.model);
+    if (entry.streamed !== undefined) persistAndSetStream(entry.streamed);
     setSystemPrompts({ ...systemPrompts(), [entry.profileId]: entry.systemPrompt });
     setUserMessage(entry.userMessage);
     setSentMessage(entry.userMessage);
     setHasSent(true);
+    setStreamingText('');
     const next = PROFILE_BY_ID[entry.profileId];
     if (next) {
       const restoredLang = (
         next.langs.includes(entry.lang as ProfileLang) ? entry.lang : next.defaultLang
       ) as ProfileLang;
       setLang(restoredLang);
-      const overrideKey = `${entry.profileId}:${restoredLang}`;
       setHeaderOverrides({
         ...headerOverrides(),
-        [overrideKey]: entriesFromRecord(entry.headers),
+        [`${restoredFormatId}:${entry.profileId}:${restoredLang}`]: entriesFromRecord(
+          entry.headers,
+        ),
       });
     }
     setActiveHistoryId(entry.id);
+    const fmt = FORMAT_BY_ID[restoredFormatId] ?? FORMATS[0]!;
     setResult({
-      url: `${entry.baseUrl.replace(/\/+$/, '')}/v1/chat/completions`,
+      url: entry.url ?? `${entry.baseUrl.replace(/\/+$/, '')}${fmt.path}`,
       status: entry.status,
       statusText: entry.statusText,
       ok: entry.ok,
@@ -355,6 +415,7 @@ const App: Component = () => {
       responseBody: entry.responseBody,
       responseJson: entry.responseJson,
       error: entry.errorMessage,
+      isStream: entry.streamed,
     });
   };
 
@@ -374,6 +435,7 @@ const App: Component = () => {
 
   const handleNewRequest = () => {
     setResult(null);
+    setStreamingText('');
     setActiveHistoryId(null);
     setHasSent(false);
     setSentMessage('');
@@ -387,6 +449,8 @@ const App: Component = () => {
       {
         profileLabel: profile().label,
         profileCategory: profile().category,
+        formatLabel: format().label,
+        streamed: r.isStream ?? false,
         systemPrompt: systemPrompts()[profile().id] ?? '',
         userMessage: sentMessage() || userMessage(),
         baseUrl: baseUrl(),
@@ -394,6 +458,7 @@ const App: Component = () => {
         apiKey: apiKey(),
       },
       r,
+      format(),
     );
     setGistMarkdown(markdown);
     setGistModalOpen(true);
@@ -419,13 +484,20 @@ const App: Component = () => {
             result={result()}
             loading={loading()}
             hasSent={hasSent()}
+            format={format()}
+            streamingText={streamingText()}
           />
         </main>
         <div class="app__composer">
           <Composer
-            profiles={PROFILES}
+            formats={FORMATS}
+            activeFormatId={formatId()}
+            onSelectFormat={setFormatSafely}
+            profiles={availableProfiles()}
             activeProfileId={profile().id}
             onSelectProfile={setProfileSafely}
+            stream={stream()}
+            onStreamChange={persistAndSetStream}
             systemPrompt={systemPrompts()[profile().id] ?? ''}
             onSystemPromptChange={updateSystemPrompt}
             showSystemPrompt={profile().mode !== 'raw'}
@@ -436,6 +508,7 @@ const App: Component = () => {
             onResetHeaders={resetHeaders}
             blockedHeaders={blockedHeaderNames()}
             baseUrl={baseUrl()}
+            baseUrlPlaceholder={format().placeholderBaseUrl ?? 'https://your-manifest.example.com'}
             apiKey={apiKey()}
             model={model()}
             onBaseUrlChange={persistAndSetBase}

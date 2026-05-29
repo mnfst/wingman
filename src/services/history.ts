@@ -6,6 +6,12 @@ export interface HistoryEntry {
   timestamp: number;
   profileId: string;
   profileLabel: string;
+  // Optional so entries saved before the multi-format feature still read back.
+  formatId?: string;
+  formatLabel?: string;
+  streamed?: boolean;
+  /** Full endpoint URL the request hit (path varies by format). */
+  url?: string;
   baseUrl: string;
   model: string;
   systemPrompt: string;

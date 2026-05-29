@@ -1,8 +1,11 @@
 import type { SendResult } from '../send';
+import type { ApiFormat } from '../formats';
 
 export interface GistContext {
   profileLabel: string;
   profileCategory: string;
+  formatLabel: string;
+  streamed: boolean;
   systemPrompt: string;
   userMessage: string;
   baseUrl: string;
@@ -22,15 +25,19 @@ function redactAuthHeader(value: string): string {
   return value.replace(/(Bearer\s+)([^\s]+)/i, (_, p1, token: string) => p1 + redactApiKey(token));
 }
 
+// Auth lands in Authorization (Bearer) or x-api-key (Anthropic) depending on
+// the format — redact both so a shared gist never leaks a key.
+function redactHeaderValue(key: string, value: string): string {
+  const lower = key.toLowerCase();
+  if (lower === 'authorization') return redactAuthHeader(value);
+  if (lower === 'x-api-key') return redactApiKey(value);
+  return value;
+}
+
 function formatHeaders(headers: Record<string, string>): string {
   const entries = Object.entries(headers);
   if (entries.length === 0) return '(none)';
-  return entries
-    .map(([k, v]) => {
-      const value = k.toLowerCase() === 'authorization' ? redactAuthHeader(v) : v;
-      return `${k}: ${value}`;
-    })
-    .join('\n');
+  return entries.map(([k, v]) => `${k}: ${redactHeaderValue(k, v)}`).join('\n');
 }
 
 function prettyJson(raw: string, parsed: unknown): string {
@@ -40,36 +47,6 @@ function prettyJson(raw: string, parsed: unknown): string {
   return raw || '(empty)';
 }
 
-function extractAssistantText(json: unknown): string | null {
-  if (!json || typeof json !== 'object') return null;
-  const choices = (json as Record<string, unknown>).choices;
-  if (Array.isArray(choices) && choices.length > 0) {
-    const first = choices[0] as { message?: { content?: unknown }; text?: unknown } | undefined;
-    if (first?.message && typeof first.message.content === 'string') return first.message.content;
-    if (typeof first?.text === 'string') return first.text;
-  }
-  return null;
-}
-
-function extractUsage(json: unknown): { in?: number; out?: number; total?: number } | null {
-  if (!json || typeof json !== 'object') return null;
-  const usage = (json as Record<string, unknown>).usage;
-  if (!usage || typeof usage !== 'object') return null;
-  const u = usage as Record<string, unknown>;
-  const num = (v: unknown) => (typeof v === 'number' ? v : undefined);
-  return {
-    in: num(u.prompt_tokens) ?? num(u.input_tokens),
-    out: num(u.completion_tokens) ?? num(u.output_tokens),
-    total: num(u.total_tokens),
-  };
-}
-
-function extractModel(json: unknown): string | null {
-  if (!json || typeof json !== 'object') return null;
-  const m = (json as Record<string, unknown>).model;
-  return typeof m === 'string' ? m : null;
-}
-
 function statusEmoji(result: SendResult): string {
   if (result.status === 0) return '🌐';
   if (result.ok) return '✅';
@@ -77,10 +54,14 @@ function statusEmoji(result: SendResult): string {
   return '⚠️';
 }
 
-export function buildMarkdownReport(ctx: GistContext, result: SendResult): string {
-  const usage = extractUsage(result.responseJson);
-  const model = extractModel(result.responseJson);
-  const assistant = extractAssistantText(result.responseJson);
+export function buildMarkdownReport(
+  ctx: GistContext,
+  result: SendResult,
+  format: ApiFormat,
+): string {
+  const usage = format.extractUsage(result.responseJson);
+  const model = format.extractModel(result.responseJson);
+  const assistant = format.extractText(result.responseJson) ?? result.streamedText ?? null;
   const statusLine =
     result.status === 0
       ? '`NETWORK` — request did not reach the server'
@@ -89,10 +70,6 @@ export function buildMarkdownReport(ctx: GistContext, result: SendResult): strin
     usage && (usage.in !== undefined || usage.out !== undefined || usage.total !== undefined)
       ? `${usage.total ?? '—'} total · ${usage.in ?? '—'} in / ${usage.out ?? '—'} out`
       : '—';
-  const requestHeadersRedacted: Record<string, string> = {};
-  for (const [k, v] of Object.entries(result.requestHeaders)) {
-    requestHeadersRedacted[k] = k.toLowerCase() === 'authorization' ? redactAuthHeader(v) : v;
-  }
 
   const lines: string[] = [];
   lines.push(`# Manifest Wingman — request report`);
@@ -101,9 +78,13 @@ export function buildMarkdownReport(ctx: GistContext, result: SendResult): strin
   lines.push('');
   lines.push('| | |');
   lines.push('|---|---|');
+  lines.push(`| **Format** | ${ctx.formatLabel}${ctx.streamed ? ' · streamed' : ''} |`);
   lines.push(`| **Profile** | ${ctx.profileLabel} _(${ctx.profileCategory})_ |`);
   lines.push(`| **Status** | ${statusLine} |`);
   lines.push(`| **Latency** | ${result.durationMs.toFixed(0)} ms |`);
+  if (result.ttftMs !== undefined) {
+    lines.push(`| **Time to first token** | ${result.ttftMs.toFixed(0)} ms |`);
+  }
   lines.push(`| **Model returned** | ${model ? `\`${model}\`` : '—'} |`);
   lines.push(`| **Tokens** | ${tokens} |`);
   lines.push(`| **Base URL** | \`${ctx.baseUrl}\` |`);
@@ -154,7 +135,7 @@ export function buildMarkdownReport(ctx: GistContext, result: SendResult): strin
   lines.push('### Headers');
   lines.push('');
   lines.push('```http');
-  lines.push(formatHeaders(requestHeadersRedacted));
+  lines.push(formatHeaders(result.requestHeaders));
   lines.push('```');
   lines.push('');
   lines.push('### Body');
@@ -172,10 +153,14 @@ export function buildMarkdownReport(ctx: GistContext, result: SendResult): strin
   lines.push(formatHeaders(result.responseHeaders));
   lines.push('```');
   lines.push('');
-  lines.push('### Body');
+  lines.push(`### Body${ctx.streamed ? ' (raw SSE)' : ''}`);
   lines.push('');
-  lines.push('```json');
-  lines.push(prettyJson(result.responseBody, result.responseJson));
+  lines.push(ctx.streamed ? '```' : '```json');
+  lines.push(
+    ctx.streamed
+      ? result.responseBody || '(empty)'
+      : prettyJson(result.responseBody, result.responseJson),
+  );
   lines.push('```');
   lines.push('');
 
