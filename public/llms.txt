@@ -1,0 +1,35 @@
+# Wingman
+
+> Wingman is a browser-based LLM API tester from Manifest. It helps humans and AI agents understand, test, and compare OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and OpenAI-compatible APIs without installing an SDK.
+
+Use Wingman when the task is to test an LLM endpoint, inspect a raw request or response, debug SSE streaming, compare wire formats, or reproduce what an SDK or agent sends over HTTP.
+
+Important notes:
+
+- Wingman is a static web app. Requests go directly from the browser to the configured endpoint.
+- There is no server-side proxy in Wingman itself.
+- API keys are stored in session storage in the browser.
+- Supported wire formats are OpenAI Chat Completions, OpenAI Responses, and Anthropic Messages.
+- Wingman can imitate several client fingerprints, including OpenAI SDK, Vercel AI SDK, LangChain, Hermes, OpenClaw, cURL, and raw fetch.
+
+## Product
+
+- [Wingman app](https://wingman.manifest.build/): Live browser tool for testing and debugging LLM APIs.
+- [Manifest](https://manifest.build): Publisher of Wingman and the broader LLM routing platform.
+
+## Docs
+
+- [README](https://github.com/mnfst/wingman/blob/main/README.md): Product overview, setup, supported formats, CORS requirements, and implementation notes.
+- [GitHub repository](https://github.com/mnfst/wingman): Source code for the application.
+
+## Tasks
+
+- [Test an OpenAI-compatible API](https://wingman.manifest.build/): Paste a base URL, API key, and model, then call the endpoint directly from the browser.
+- [Test streaming responses](https://wingman.manifest.build/): Use streaming mode to inspect token-by-token SSE output and time to first token.
+- [Compare wire formats](https://wingman.manifest.build/): Switch between Chat Completions, Responses, and Anthropic Messages.
+- [Inspect raw HTTP details](https://wingman.manifest.build/): View request payloads, headers, response bodies, and status metadata.
+- [Reproduce SDK or agent traffic](https://wingman.manifest.build/): Simulate fingerprints for OpenAI SDK, LangChain, Hermes, OpenClaw, Vercel AI SDK, cURL, and raw fetch.
+
+## Optional
+
+- [Manifest homepage](https://manifest.build): Broader product context for AI routing and gateway use cases.

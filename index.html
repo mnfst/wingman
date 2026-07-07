@@ -3,7 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Manifest Wingman — LLM API Tester</title>
+    <title>Test Any LLM API in Your Browser — Wingman</title>
+    <link rel="canonical" href="https://wingman.manifest.build/" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -11,11 +12,72 @@
     <meta name="theme-color" content="#faf8f5" />
     <meta
       name="description"
-      content="Test any LLM API from the browser — OpenAI Chat Completions & Responses, Anthropic Messages, and every OpenAI-compatible provider. Streaming or buffered, with full request/response inspection."
+      content="Wingman is the Postman for LLMs: call any OpenAI-compatible, OpenAI Responses, or Anthropic API from your browser. Stream token by token and inspect the raw request and response."
     />
+    <meta
+      name="keywords"
+      content="LLM API tester, OpenAI-compatible API tester, Anthropic API tester, Responses API tester, streaming API tester, Postman for LLMs"
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://wingman.manifest.build/" />
+    <meta property="og:title" content="Wingman — Test Any LLM API in Your Browser" />
+    <meta
+      property="og:description"
+      content="The Postman for LLMs. Call any OpenAI-compatible or Anthropic API, stream the reply, and inspect the raw request and response."
+    />
+    <meta property="og:image" content="https://wingman.manifest.build/wingman.svg" />
+    <meta property="og:image:alt" content="Wingman, a browser-based LLM API tester from Manifest" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Wingman — Test Any LLM API in Your Browser" />
+    <meta
+      name="twitter:description"
+      content="The Postman for LLMs. Call any OpenAI-compatible or Anthropic API from the browser, stream token by token, and inspect the wire."
+    />
+    <meta name="twitter:image" content="https://wingman.manifest.build/wingman.svg" />
+    <meta name="twitter:image:alt" content="Wingman, a browser-based LLM API tester from Manifest" />
+    <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Wingman",
+        "url": "https://wingman.manifest.build/",
+        "applicationCategory": "DeveloperApplication",
+        "operatingSystem": "Any (web browser)",
+        "description": "A browser-based tester for LLM APIs, including OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and OpenAI-compatible providers. Supports streaming and raw request and response inspection.",
+        "featureList": [
+          "Test OpenAI Chat Completions, OpenAI Responses, and Anthropic Messages APIs",
+          "Call any OpenAI-compatible endpoint from the browser",
+          "Stream token-by-token responses over Server-Sent Events",
+          "Inspect raw request and response payloads and headers",
+          "Compare SDK and agent fingerprints such as OpenAI SDK, LangChain, Hermes, and OpenClaw"
+        ],
+        "isAccessibleForFree": true,
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "publisher": {
+          "@type": "Organization",
+          "name": "Manifest",
+          "url": "https://manifest.build"
+        }
+      }
+    </script>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <noscript>
+        <h1>Test any LLM API from your browser</h1>
+        <p>
+          Wingman is the Postman for LLMs. Call OpenAI Chat Completions, OpenAI Responses,
+          Anthropic Messages, or any OpenAI-compatible provider. Stream replies token by token
+          and inspect the exact request and response without installing an SDK.
+        </p>
+        <p>
+          Use it to test LLM gateways, debug streaming, compare Chat Completions vs Responses,
+          reproduce SDK traffic, and inspect headers sent by agents like OpenAI SDK, LangChain,
+          Hermes, and OpenClaw.
+        </p>
+      </noscript>
+    </div>
     <script type="module" src="/src/index.tsx"></script>
   </body>
 </html>
