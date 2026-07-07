@@ -427,22 +427,9 @@ textarea {
 }
 
 .topbar__logo {
-  height: 22px;
-  width: auto;
+  height: 28px;
+  width: 28px;
   display: block;
-}
-
-.topbar__logo--dark {
-  display: none;
-}
-
-@media (prefers-color-scheme: dark) {
-  .topbar__logo--light {
-    display: none;
-  }
-  .topbar__logo--dark {
-    display: block;
-  }
 }
 
 .topbar__divider {

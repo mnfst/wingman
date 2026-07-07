@@ -13,17 +13,11 @@ const TopBar: Component = () => {
           title="manifest.build"
         >
           <img
-            src="/logo.svg"
-            alt="Manifest"
-            class="topbar__logo topbar__logo--light"
-            width="120"
-          />
-          <img
-            src="/logo-white.svg"
-            alt=""
-            class="topbar__logo topbar__logo--dark"
-            width="120"
-            aria-hidden="true"
+            src="/wingman.svg"
+            alt="Wingman"
+            class="topbar__logo"
+            width="28"
+            height="28"
           />
         </a>
         <span class="topbar__divider" aria-hidden="true">
