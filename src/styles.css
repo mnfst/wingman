@@ -1003,6 +1003,60 @@ textarea {
   margin-top: 4px;
 }
 
+/* Provider preset picker — a full-width control on the Base URL field. Reuses
+   the .profile-dd skin; the button shows the provider name over its base URL,
+   and each menu row lists the logo, name, and base URL. */
+.composer__provider-field {
+  margin-bottom: 10px;
+}
+
+.provider-dd {
+  display: block;
+  width: 100%;
+}
+
+.provider-dd__btn {
+  width: 100%;
+  height: auto;
+  min-height: 42px;
+  justify-content: flex-start;
+  padding: 6px 12px 6px 8px;
+  gap: 10px;
+}
+
+.provider-dd__btn-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+  text-align: left;
+}
+
+.provider-dd__btn-url {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+  color: var(--text-faint);
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Portaled to <body> and positioned via inline left/bottom/width computed from
+   the button, so it escapes the composer wrap's overflow clipping. */
+.provider-dd__menu {
+  position: fixed;
+  min-width: 280px;
+  max-width: none;
+  z-index: 200;
+}
+
+.provider-dd__item-url {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10.5px;
+}
+
 .composer__wrap {
   background: var(--bg-elev);
   border: 1px solid var(--border);

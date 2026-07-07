@@ -3,11 +3,16 @@ import HeaderEditor, { type HeaderEntry } from './HeaderEditor.jsx';
 import CodeView from './CodeView.jsx';
 import ProfileDropdown from './ProfileDropdown.jsx';
 import FormatDropdown from './FormatDropdown.jsx';
+import ProviderDropdown from './ProviderDropdown.jsx';
 import type { Profile, ProfileLang } from '../profiles';
 import type { ApiFormat } from '../formats';
+import type { Provider } from '../providers';
 import type { HealthStatus } from '../services/healthCheck';
 
 interface Props {
+  providers: readonly Provider[];
+  activeProviderId: string;
+  onSelectProvider: (id: string) => void;
   formats: readonly ApiFormat[];
   activeFormatId: string;
   onSelectFormat: (id: string) => void;
@@ -29,6 +34,7 @@ interface Props {
   apiKey: string;
   model: string;
   baseUrlPlaceholder: string;
+  apiKeyPlaceholder: string;
   onBaseUrlChange: (value: string) => void;
   onApiKeyChange: (value: string) => void;
   onModelChange: (value: string) => void;
@@ -235,6 +241,14 @@ const Composer: Component<Props> = (props) => {
         {/* Expanded panels appear above the textarea */}
         <Show when={connOpen()}>
           <div class="composer__panel">
+            <div class="composer-field composer__provider-field">
+              <span>Provider preset</span>
+              <ProviderDropdown
+                providers={props.providers}
+                activeId={props.activeProviderId}
+                onSelect={props.onSelectProvider}
+              />
+            </div>
             <div class="composer__panel-grid">
               <label class="composer-field">
                 <span class="composer-field__label-row">
@@ -279,7 +293,7 @@ const Composer: Component<Props> = (props) => {
                     type={apiKeyRevealed() ? 'text' : 'password'}
                     value={props.apiKey}
                     onInput={(e) => props.onApiKeyChange(e.currentTarget.value)}
-                    placeholder="mnfst_..."
+                    placeholder={props.apiKeyPlaceholder}
                     spellcheck={false}
                     autocomplete="off"
                   />

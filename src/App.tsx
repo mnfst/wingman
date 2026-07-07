@@ -18,6 +18,13 @@ import {
   type ApiFormat,
   type ApiFormatId,
 } from './formats';
+import {
+  PROVIDERS,
+  PROVIDER_BY_ID,
+  DEFAULT_PROVIDER_ID,
+  CUSTOM_PROVIDER,
+  type Provider,
+} from './providers';
 import { partitionHeaders, sendRequest, sendRequestStreaming, type SendResult } from './send';
 import {
   appendHistory,
@@ -38,6 +45,7 @@ const STORAGE = {
   profile: 'wingman:profile',
   format: 'wingman:format',
   stream: 'wingman:stream',
+  provider: 'wingman:provider',
 };
 
 // API keys are stored in sessionStorage (cleared on tab close) instead of
@@ -102,11 +110,30 @@ function defaultBaseUrl(): string {
   return '';
 }
 
-function resolveInitialFormat(): ApiFormatId {
+// An external embed (?baseUrl=…, e.g. the Manifest dashboard drawer) is always
+// the Custom/Manifest preset. Otherwise restore the last-picked preset.
+function resolveInitialProvider(baseUrlParam: string | null): string {
+  if (baseUrlParam) return DEFAULT_PROVIDER_ID;
+  const stored = readStorage(STORAGE.provider, DEFAULT_PROVIDER_ID);
+  return PROVIDER_BY_ID[stored] ? stored : DEFAULT_PROVIDER_ID;
+}
+
+function resolveInitialFormat(providerId: string): ApiFormatId {
   const param = readQueryParam('format');
   if (param && FORMAT_BY_ID[param]) return param as ApiFormatId;
+  // A concrete provider preset dictates its own wire format.
+  const preset = PROVIDER_BY_ID[providerId];
+  if (preset && preset.id !== DEFAULT_PROVIDER_ID) return preset.formatId;
   const stored = readStorage(STORAGE.format, DEFAULT_FORMAT_ID);
   return FORMAT_BY_ID[stored] ? (stored as ApiFormatId) : DEFAULT_FORMAT_ID;
+}
+
+// Match a base URL back to a preset (used when restoring history) so the
+// provider pill stays in sync; anything unrecognised is "Custom".
+function providerForBaseUrl(url: string): string {
+  const trimmed = url.replace(/\/+$/, '');
+  const match = PROVIDERS.find((p) => p.baseUrl && p.baseUrl === trimmed);
+  return match ? match.id : DEFAULT_PROVIDER_ID;
 }
 
 function resolveInitialProfile(formatId: ApiFormatId): string {
@@ -119,11 +146,21 @@ function resolveInitialProfile(formatId: ApiFormatId): string {
 const App: Component = () => {
   const baseUrlParam = readQueryParam('baseUrl');
   const apiKeyParam = readQueryParam('apiKey');
-  const initialBaseUrl = baseUrlParam ?? readStorage(STORAGE.baseUrl, defaultBaseUrl());
+  const initialProviderId = resolveInitialProvider(baseUrlParam);
+  const initialProvider = PROVIDER_BY_ID[initialProviderId] ?? CUSTOM_PROVIDER;
+  // For a concrete preset, the base URL comes from the catalog (the field is
+  // only free-text in Custom mode, so it can't drift). Custom falls back to the
+  // ?baseUrl= param, stored value, or the localhost dev guess.
+  const initialBaseUrl =
+    baseUrlParam ??
+    (initialProvider.id !== DEFAULT_PROVIDER_ID
+      ? initialProvider.baseUrl
+      : readStorage(STORAGE.baseUrl, defaultBaseUrl()));
   const initialApiKey = apiKeyParam ?? readStorage(STORAGE.apiKey, '');
   if (baseUrlParam) writeStorage(STORAGE.baseUrl, baseUrlParam);
   if (apiKeyParam) writeStorage(STORAGE.apiKey, apiKeyParam);
-  const initialFormatId = resolveInitialFormat();
+  const initialFormatId = resolveInitialFormat(initialProviderId);
+  const [providerId, setProviderId] = createSignal(initialProviderId);
   const [baseUrl, setBaseUrl] = createSignal(initialBaseUrl);
   const [apiKey, setApiKey] = createSignal(initialApiKey);
   const [model, setModel] = createSignal(readStorage(STORAGE.model, 'auto'));
@@ -131,6 +168,7 @@ const App: Component = () => {
   const [profileId, setProfileId] = createSignal(resolveInitialProfile(initialFormatId));
   const [stream, setStream] = createSignal(readStorage(STORAGE.stream, '0') === '1');
 
+  const provider = createMemo<Provider>(() => PROVIDER_BY_ID[providerId()] ?? CUSTOM_PROVIDER);
   const format = createMemo<ApiFormat>(() => FORMAT_BY_ID[formatId()] ?? FORMATS[0]!);
   const availableProfiles = createMemo<Profile[]>(() => profilesForFormat(formatId()));
   const profile = createMemo<Profile>(
@@ -165,7 +203,9 @@ const App: Component = () => {
   createEffect(() => {
     const url = baseUrl().trim();
     const path = format().healthPath;
-    if (!url || !path) {
+    // Only the Manifest gateway exposes `/api/v1/health`; probing a public
+    // provider host (api.openai.com, …) would 404 and show a false "unreachable".
+    if (provider().id !== DEFAULT_PROVIDER_ID || !url || !path) {
       setHealthStatus({ kind: 'idle' });
       return;
     }
@@ -275,6 +315,34 @@ const App: Component = () => {
     writeStorage(STORAGE.stream, value ? '1' : '0');
   };
 
+  // Pick a provider preset: switch to its wire format and, for a concrete
+  // provider, fill the base URL + a usable default model. Selecting "Custom"
+  // resets to Manifest/BYO defaults so the user can type their own endpoint.
+  const selectProvider = (id: string) => {
+    const preset = PROVIDER_BY_ID[id];
+    if (!preset || id === providerId()) return;
+    setProviderId(id);
+    writeStorage(STORAGE.provider, id);
+    setFormatSafely(preset.formatId);
+    if (preset.id === DEFAULT_PROVIDER_ID) {
+      persistAndSetBase('');
+      persistAndSetModel('auto');
+    } else {
+      persistAndSetBase(preset.baseUrl);
+      persistAndSetModel(preset.defaultModel);
+    }
+  };
+
+  // Typing in the Base URL field means the user has gone off-preset — flip to
+  // Custom (keeping model/format) so the field stays fully free-text.
+  const handleBaseUrlInput = (value: string) => {
+    persistAndSetBase(value);
+    if (providerId() !== DEFAULT_PROVIDER_ID) {
+      setProviderId(DEFAULT_PROVIDER_ID);
+      writeStorage(STORAGE.provider, DEFAULT_PROVIDER_ID);
+    }
+  };
+
   const updateSystemPrompt = (value: string) => {
     setSystemPrompts({ ...systemPrompts(), [profile().id]: value });
   };
@@ -381,6 +449,9 @@ const App: Component = () => {
     setProfileId(entry.profileId);
     writeStorage(STORAGE.profile, entry.profileId);
     persistAndSetBase(entry.baseUrl);
+    const restoredProvider = providerForBaseUrl(entry.baseUrl);
+    setProviderId(restoredProvider);
+    writeStorage(STORAGE.provider, restoredProvider);
     persistAndSetModel(entry.model);
     if (entry.streamed !== undefined) persistAndSetStream(entry.streamed);
     setSystemPrompts({ ...systemPrompts(), [entry.profileId]: entry.systemPrompt });
@@ -490,6 +561,9 @@ const App: Component = () => {
         </main>
         <div class="app__composer">
           <Composer
+            providers={PROVIDERS}
+            activeProviderId={provider().id}
+            onSelectProvider={selectProvider}
             formats={FORMATS}
             activeFormatId={formatId()}
             onSelectFormat={setFormatSafely}
@@ -510,8 +584,9 @@ const App: Component = () => {
             baseUrl={baseUrl()}
             baseUrlPlaceholder={format().placeholderBaseUrl ?? 'https://your-manifest.example.com'}
             apiKey={apiKey()}
+            apiKeyPlaceholder={provider().apiKeyPlaceholder}
             model={model()}
-            onBaseUrlChange={persistAndSetBase}
+            onBaseUrlChange={handleBaseUrlInput}
             onApiKeyChange={persistAndSetKey}
             onModelChange={persistAndSetModel}
             loading={loading()}
