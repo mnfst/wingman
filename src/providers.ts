@@ -49,6 +49,16 @@ export interface Provider {
 /** The default preset: today's behaviour (free-text base URL → Manifest). */
 export const DEFAULT_PROVIDER_ID = 'custom';
 
+/**
+ * Canonical Manifest Cloud gateway. Pre-filled as the default Base URL on the
+ * hosted app so the primary use case — testing a Manifest gateway — works
+ * without typing (or mistyping) the host. Note it's `app.manifest.build`, not
+ * `api.manifest.build`: the latter has no TLS cert. This host speaks the
+ * OpenAI/Anthropic-compatible wire format (`{host}/v1/chat/completions`,
+ * `{host}/v1/messages`). Source: manifest.build llms.txt.
+ */
+export const MANIFEST_BASE_URL = 'https://app.manifest.build';
+
 export const PROVIDERS: readonly Provider[] = [
   {
     id: 'custom',
