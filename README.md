@@ -25,6 +25,7 @@ Your API key is held in `sessionStorage` (cleared when you close the tab). Every
 
 Open <https://wingman.manifest.build>, then:
 
+- **Provider preset** — pick a provider (OpenAI, Anthropic, Mistral, Groq, …) to auto-fill its base URL and wire format, or stay on **Custom / Manifest** to point at your own gateway. Editing the Base URL by hand switches back to Custom.
 - **Format** — the wire protocol: OpenAI Chat Completions (`/v1/chat/completions`), OpenAI Responses (`/v1/responses`), or Anthropic Messages (`/v1/messages`). This sets the endpoint path, auth scheme, body shape, and how the response is parsed.
 - **Base URL** — e.g. `https://your-manifest.example.com`, `https://api.openai.com`, `https://api.anthropic.com`, or `http://localhost:3001` (more on cross-origin below). Wingman appends the format's path.
 - **API key** — `Authorization: Bearer` for OpenAI-style formats, `x-api-key` for Anthropic (attached automatically per format).
