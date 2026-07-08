@@ -23,6 +23,7 @@ import {
   PROVIDER_BY_ID,
   DEFAULT_PROVIDER_ID,
   CUSTOM_PROVIDER,
+  MANIFEST_BASE_URL,
   type Provider,
 } from './providers';
 import { partitionHeaders, sendRequest, sendRequestStreaming, type SendResult } from './send';
@@ -97,17 +98,17 @@ function recordFromEntries(entries: HeaderEntry[]): Record<string, string> {
 }
 
 function defaultBaseUrl(): string {
-  // Hosted Wingman has no implicit backend — leave the field empty so the
-  // user must paste a URL or follow the ?baseUrl= query param. Pre-filling a
-  // localhost guess on wingman.manifest.build would only produce confusing
-  // CORS errors.
-  if (typeof window === 'undefined') return '';
+  // Wingman is a Manifest gateway tester first, so default the Base URL to the
+  // canonical Manifest Cloud gateway — the user shouldn't have to type it. On
+  // localhost we instead guess the local gateway port so `npm run dev` targets
+  // a locally-running Manifest. The health badge surfaces reachability / CORS.
+  if (typeof window === 'undefined') return MANIFEST_BASE_URL;
   const { protocol, hostname, port } = window.location;
   if (hostname === 'localhost' || hostname === '127.0.0.1') {
     if (port === '3002' || port === '3000') return `${protocol}//${hostname}:3001`;
     return `${protocol}//${hostname}:${port || '3001'}`;
   }
-  return '';
+  return MANIFEST_BASE_URL;
 }
 
 // An external embed (?baseUrl=…, e.g. the Manifest dashboard drawer) is always
@@ -316,8 +317,9 @@ const App: Component = () => {
   };
 
   // Pick a provider preset: switch to its wire format and, for a concrete
-  // provider, fill the base URL + a usable default model. Selecting "Custom"
-  // resets to Manifest/BYO defaults so the user can type their own endpoint.
+  // provider, fill the base URL + a usable default model. Selecting "Custom /
+  // Manifest" resets to the Manifest gateway defaults (base URL pre-filled, the
+  // `auto` router model) — the field stays free-text for a BYO endpoint.
   const selectProvider = (id: string) => {
     const preset = PROVIDER_BY_ID[id];
     if (!preset || id === providerId()) return;
@@ -325,7 +327,7 @@ const App: Component = () => {
     writeStorage(STORAGE.provider, id);
     setFormatSafely(preset.formatId);
     if (preset.id === DEFAULT_PROVIDER_ID) {
-      persistAndSetBase('');
+      persistAndSetBase(defaultBaseUrl());
       persistAndSetModel('auto');
     } else {
       persistAndSetBase(preset.baseUrl);
