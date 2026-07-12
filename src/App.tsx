@@ -41,7 +41,7 @@ import GistModal from './components/GistModal.jsx';
 
 const STORAGE = {
   baseUrl: 'wingman:baseUrl',
-  apiKey: 'wingman:apiKey',
+  apiKeys: 'wingman:apiKeys',
   model: 'wingman:model',
   profile: 'wingman:profile',
   format: 'wingman:format',
@@ -49,11 +49,15 @@ const STORAGE = {
   provider: 'wingman:provider',
 };
 
+// The pre-per-provider slot: a single key shared by every provider. Read once
+// on boot and folded into the map (see `readApiKeys`), then dropped.
+const LEGACY_API_KEY = 'wingman:apiKey';
+
 // API keys are stored in sessionStorage (cleared on tab close) instead of
 // localStorage so contributors don't leave a long-lived `mnfst_*` token in
 // disk-backed browser storage. Everything else (base URL, model, profile,
 // system prompts, history) stays in localStorage since it's not sensitive.
-const SENSITIVE_KEYS = new Set<string>(['wingman:apiKey']);
+const SENSITIVE_KEYS = new Set<string>([STORAGE.apiKeys, LEGACY_API_KEY]);
 
 function storageFor(key: string): Storage {
   return SENSITIVE_KEYS.has(key) ? sessionStorage : localStorage;
@@ -80,6 +84,14 @@ function readQueryParam(key: string): string | null {
 function writeStorage(key: string, value: string): void {
   try {
     storageFor(key).setItem(key, value);
+  } catch {
+    /* ignore */
+  }
+}
+
+function removeStorage(key: string): void {
+  try {
+    storageFor(key).removeItem(key);
   } catch {
     /* ignore */
   }
@@ -137,6 +149,43 @@ function providerForBaseUrl(url: string): string {
   return match ? match.id : DEFAULT_PROVIDER_ID;
 }
 
+/** API keys keyed by provider id. Only non-empty keys are kept. */
+type ApiKeyMap = Record<string, string>;
+
+function parseApiKeyMap(raw: string): ApiKeyMap {
+  if (!raw) return {};
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) return {};
+    const out: ApiKeyMap = {};
+    for (const [id, value] of Object.entries(parsed as Record<string, unknown>)) {
+      if (typeof value === 'string' && value) out[id] = value;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+// Keys are held per provider rather than globally: each provider issues its own
+// credential, so a single shared key meant switching preset silently carried an
+// `sk-…` into an Anthropic `x-api-key` header (a guaranteed 401) with no way to
+// get the previous key back short of re-pasting it.
+function readApiKeys(currentProviderId: string): ApiKeyMap {
+  const map = parseApiKeyMap(readStorage(STORAGE.apiKeys, ''));
+  // A session that predates the map still has the old shared key. Attribute it
+  // to the provider that was selected when it was typed and drop the old slot.
+  const legacy = readStorage(LEGACY_API_KEY, '');
+  if (legacy) {
+    removeStorage(LEGACY_API_KEY);
+    if (!map[currentProviderId]) {
+      map[currentProviderId] = legacy;
+      writeStorage(STORAGE.apiKeys, JSON.stringify(map));
+    }
+  }
+  return map;
+}
+
 function resolveInitialProfile(formatId: ApiFormatId): string {
   const compatible = profilesForFormat(formatId);
   const stored = readStorage(STORAGE.profile, '');
@@ -157,19 +206,23 @@ const App: Component = () => {
     (initialProvider.id !== DEFAULT_PROVIDER_ID
       ? initialProvider.baseUrl
       : readStorage(STORAGE.baseUrl, defaultBaseUrl()));
-  const initialApiKey = apiKeyParam ?? readStorage(STORAGE.apiKey, '');
+  const initialApiKeys = readApiKeys(initialProviderId);
+  if (apiKeyParam) initialApiKeys[initialProviderId] = apiKeyParam;
   if (baseUrlParam) writeStorage(STORAGE.baseUrl, baseUrlParam);
-  if (apiKeyParam) writeStorage(STORAGE.apiKey, apiKeyParam);
+  if (apiKeyParam) writeStorage(STORAGE.apiKeys, JSON.stringify(initialApiKeys));
   const initialFormatId = resolveInitialFormat(initialProviderId);
   const [providerId, setProviderId] = createSignal(initialProviderId);
   const [baseUrl, setBaseUrl] = createSignal(initialBaseUrl);
-  const [apiKey, setApiKey] = createSignal(initialApiKey);
+  const [apiKeys, setApiKeys] = createSignal<ApiKeyMap>(initialApiKeys);
   const [model, setModel] = createSignal(readStorage(STORAGE.model, 'auto'));
   const [formatId, setFormatId] = createSignal<ApiFormatId>(initialFormatId);
   const [profileId, setProfileId] = createSignal(resolveInitialProfile(initialFormatId));
   const [stream, setStream] = createSignal(readStorage(STORAGE.stream, '0') === '1');
 
   const provider = createMemo<Provider>(() => PROVIDER_BY_ID[providerId()] ?? CUSTOM_PROVIDER);
+  // The key field shows whatever belongs to the active provider — so switching
+  // preset blanks it (until that provider is keyed) and switching back fills it.
+  const apiKey = createMemo(() => apiKeys()[providerId()] ?? '');
   const format = createMemo<ApiFormat>(() => FORMAT_BY_ID[formatId()] ?? FORMATS[0]!);
   const availableProfiles = createMemo<Profile[]>(() => profilesForFormat(formatId()));
   const profile = createMemo<Profile>(
@@ -303,10 +356,14 @@ const App: Component = () => {
     setBaseUrl(value);
     writeStorage(STORAGE.baseUrl, value);
   };
-  const persistAndSetKey = (value: string) => {
-    setApiKey(value);
-    writeStorage(STORAGE.apiKey, value);
+  const setKeyFor = (id: string, value: string) => {
+    const next = { ...apiKeys() };
+    if (value) next[id] = value;
+    else delete next[id];
+    setApiKeys(next);
+    writeStorage(STORAGE.apiKeys, JSON.stringify(next));
   };
+  const persistAndSetKey = (value: string) => setKeyFor(providerId(), value);
   const persistAndSetModel = (value: string) => {
     setModel(value);
     writeStorage(STORAGE.model, value);
@@ -319,7 +376,8 @@ const App: Component = () => {
   // Pick a provider preset: switch to its wire format and, for a concrete
   // provider, fill the base URL + a usable default model. Selecting "Custom /
   // Manifest" resets to the Manifest gateway defaults (base URL pre-filled, the
-  // `auto` router model) — the field stays free-text for a BYO endpoint.
+  // `auto` router model) — the field stays free-text for a BYO endpoint. The
+  // API key needs no handling here: it's derived from the active provider.
   const selectProvider = (id: string) => {
     const preset = PROVIDER_BY_ID[id];
     if (!preset || id === providerId()) return;
@@ -336,12 +394,16 @@ const App: Component = () => {
   };
 
   // Typing in the Base URL field means the user has gone off-preset — flip to
-  // Custom (keeping model/format) so the field stays fully free-text.
+  // Custom (keeping model/format) so the field stays fully free-text. Retargeting
+  // the URL isn't a deliberate provider switch, so the key already typed follows
+  // the user across (unless Custom is already keyed — never clobber that one).
   const handleBaseUrlInput = (value: string) => {
     persistAndSetBase(value);
     if (providerId() !== DEFAULT_PROVIDER_ID) {
+      const carried = apiKey();
       setProviderId(DEFAULT_PROVIDER_ID);
       writeStorage(STORAGE.provider, DEFAULT_PROVIDER_ID);
+      if (carried && !apiKeys()[DEFAULT_PROVIDER_ID]) setKeyFor(DEFAULT_PROVIDER_ID, carried);
     }
   };
 

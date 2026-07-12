@@ -28,7 +28,7 @@ Open <https://wingman.manifest.build>, then:
 - **Provider preset** — pick a provider (OpenAI, Anthropic, Mistral, Groq, …) to auto-fill its base URL and wire format. The default, **Custom / Manifest**, pre-fills the Manifest Cloud gateway (`https://app.manifest.build`) — edit the Base URL by hand to point at your own gateway (which switches the pill back to Custom).
 - **Format** — the wire protocol: OpenAI Chat Completions (`/v1/chat/completions`), OpenAI Responses (`/v1/responses`), or Anthropic Messages (`/v1/messages`). This sets the endpoint path, auth scheme, body shape, and how the response is parsed.
 - **Base URL** — e.g. `https://your-manifest.example.com`, `https://api.openai.com`, `https://api.anthropic.com`, or `http://localhost:3001` (more on cross-origin below). Wingman appends the format's path.
-- **API key** — `Authorization: Bearer` for OpenAI-style formats, `x-api-key` for Anthropic (attached automatically per format).
+- **API key** — `Authorization: Bearer` for OpenAI-style formats, `x-api-key` for Anthropic (attached automatically per format). Keys are kept per provider: switching preset shows that provider's own key (blank until you set one), and switching back restores it.
 - **Model** — `auto` or a specific model id.
 - **Stream** — toggle in the composer toolbar to read the reply as it's generated (Server-Sent Events).
 
