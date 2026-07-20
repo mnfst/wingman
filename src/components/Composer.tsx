@@ -1,4 +1,4 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
+import { createEffect, createSignal, For, on, Show, type Component } from 'solid-js';
 import HeaderEditor, { type HeaderEntry } from './HeaderEditor.jsx';
 import CodeView from './CodeView.jsx';
 import ProfileDropdown from './ProfileDropdown.jsx';
@@ -206,6 +206,16 @@ const Composer: Component<Props> = (props) => {
   // paste their key.
   const [connOpen, setConnOpen] = createSignal(true);
   const [sdkOpen, setSdkOpen] = createSignal(false);
+
+  // The key field holds a different secret per provider, so leaving it revealed
+  // across a switch would show the next provider's key unasked. Re-mask it.
+  createEffect(
+    on(
+      () => props.activeProviderId,
+      () => setApiKeyRevealed(false),
+      { defer: true },
+    ),
+  );
 
   const headersCount = () => props.headers.filter((h) => h.key.trim()).length;
   const sysLen = () => props.systemPrompt.trim().length;
