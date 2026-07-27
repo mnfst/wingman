@@ -17,6 +17,7 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest run",
     "lint": "eslint src/",
     "format": "prettier --write 'src/**/*.{ts,tsx,css}'",
     "typecheck": "tsc --noEmit"
@@ -31,9 +32,11 @@
     "@typescript-eslint/parser": "^8.56.0",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
+    "jsdom": "^26.1.0",
     "prettier": "^3.8.1",
     "typescript": "^5.7.0",
     "vite": "^6.1.0",
-    "vite-plugin-solid": "^2.11.0"
+    "vite-plugin-solid": "^2.11.0",
+    "vitest": "^3.2.7"
   }
 }

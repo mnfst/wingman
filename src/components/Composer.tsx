@@ -31,6 +31,12 @@ interface Props {
   onResetHeaders: () => void;
   blockedHeaders: string[];
   baseUrl: string;
+  /** Where a send actually POSTs, after normalising the base URL. */
+  requestUrl: string;
+  /** What normalising changed (a stripped `/v1`, an added scheme), if anything. */
+  baseUrlNote?: string;
+  /** Why the typed base URL is unusable, if it is. */
+  baseUrlProblem?: string;
   apiKey: string;
   model: string;
   baseUrlPlaceholder: string;
@@ -143,6 +149,10 @@ const EyeOffIcon: Component = () => (
 
 const HealthBadge: Component<{ status: HealthStatus }> = (p) => {
   const status = () => p.status;
+  const isError = () =>
+    status().kind === 'failed' ||
+    status().kind === 'invalid' ||
+    status().kind === 'http-error';
   return (
     <Show when={status().kind !== 'idle'}>
       <span
@@ -150,10 +160,7 @@ const HealthBadge: Component<{ status: HealthStatus }> = (p) => {
         classList={{
           'health-badge--ok': status().kind === 'ok',
           'health-badge--warn': status().kind === 'checking',
-          'health-badge--err':
-            status().kind === 'cors' ||
-            status().kind === 'network' ||
-            status().kind === 'http-error',
+          'health-badge--err': isError(),
         }}
         title={healthTitle(status())}
       >
@@ -169,10 +176,10 @@ function healthLabel(s: HealthStatus): string {
       return `reachable · ${s.latencyMs}ms`;
     case 'checking':
       return 'checking…';
-    case 'cors':
-      return 'CORS blocked';
-    case 'network':
-      return 'unreachable';
+    case 'invalid':
+      return 'invalid URL';
+    case 'failed':
+      return s.label;
     case 'http-error':
       return `HTTP ${s.status}`;
     default:
@@ -180,18 +187,21 @@ function healthLabel(s: HealthStatus): string {
   }
 }
 
+// The badge only ever proves the health endpoint answered — it says nothing
+// about the endpoint a send targets. Naming the probed URL keeps a green badge
+// from being read as "your request will work".
 function healthTitle(s: HealthStatus): string {
   switch (s.kind) {
     case 'ok':
-      return 'Health check succeeded';
+      return `Health check succeeded — probed ${s.probedUrl}`;
     case 'checking':
-      return 'Pinging /api/v1/health…';
-    case 'cors':
+      return 'Checking the gateway health endpoint…';
+    case 'invalid':
       return s.message;
-    case 'network':
-      return `Network error: ${s.message}`;
+    case 'failed':
+      return s.message;
     case 'http-error':
-      return `Health endpoint returned ${s.status} ${s.statusText}`;
+      return `${s.probedUrl} returned ${s.status} ${s.statusText}`;
     default:
       return '';
   }
@@ -273,6 +283,21 @@ const Composer: Component<Props> = (props) => {
                   spellcheck={false}
                   autocomplete="off"
                 />
+                {/* The endpoint the base URL resolves to. Pasting a full
+                    endpoint or a base ending in `/v1` is the single most
+                    common way to get a 404 out of a healthy gateway, so show
+                    the result before the user hits Send rather than after. */}
+                <Show
+                  when={!props.baseUrlProblem}
+                  fallback={<span class="composer-field__hint composer-field__hint--err">{props.baseUrlProblem}</span>}
+                >
+                  <span class="composer-field__hint">
+                    POST <code>{props.requestUrl}</code>
+                    <Show when={props.baseUrlNote}>
+                      {(note) => <em class="composer-field__hint-note">{note()}</em>}
+                    </Show>
+                  </span>
+                </Show>
               </label>
               <label class="composer-field">
                 <span>Model</span>
