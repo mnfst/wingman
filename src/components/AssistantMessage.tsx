@@ -1,6 +1,7 @@
 import { createSignal, For, Show, type Component } from 'solid-js';
 import type { SendResult } from '../send';
 import type { ApiFormat } from '../formats';
+import { describeFailure } from '../services/diagnostics';
 import CodeView from './CodeView.jsx';
 
 interface Props {
@@ -39,8 +40,11 @@ const StatusPill: Component<{ status: number; ok: boolean; statusText: string }>
     if (props.status >= 500) return 'error';
     return 'warn';
   };
+  // Status 0 means the request never reached a server, so there's no code to
+  // show — but the reason varies (rejected before sending, blocked, refused),
+  // and `statusText` carries it.
   const label = () => {
-    if (props.status === 0) return 'Network error';
+    if (props.status === 0) return props.statusText || 'Network error';
     return `${props.status} ${props.statusText}`.trim();
   };
   return (
@@ -96,6 +100,11 @@ const AssistantMessage: Component<Props> = (props) => {
   };
   const usage = () => (props.result ? props.format.extractUsage(props.result.responseJson) : null);
   const model = () => (props.result ? props.format.extractModel(props.result.responseJson) : null);
+  // A user-cancelled request needs no explanation.
+  const failureKind = () => {
+    const kind = props.result?.errorKind;
+    return kind && kind !== 'aborted' ? kind : null;
+  };
 
   return (
     <div class="assistant-msg">
@@ -155,6 +164,17 @@ const AssistantMessage: Component<Props> = (props) => {
 
             <Show when={r.error}>
               <div class="assistant-msg__error">{r.error}</div>
+            </Show>
+
+            {/* `Failed to fetch` on its own tells the user nothing — and the
+                two failures a browser-only tool hits most (an HTTPS page
+                reaching a local gateway, plain-HTTP mixed content) are not
+                fixable on the server, which is where an unqualified "CORS"
+                guess used to send people. */}
+            <Show when={failureKind()}>
+              {(kind) => (
+                <div class="assistant-msg__hint">{describeFailure(kind(), r.url).detail}</div>
+              )}
             </Show>
 
             <div class="tab-strip" role="tablist" aria-label="Response panes">

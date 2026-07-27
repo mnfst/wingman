@@ -27,7 +27,7 @@ Open <https://wingman.manifest.build>, then:
 
 - **Provider preset** — pick a provider (OpenAI, Anthropic, Mistral, Groq, …) to auto-fill its base URL and wire format. The default, **Custom / Manifest**, pre-fills the Manifest Cloud gateway (`https://app.manifest.build`) — edit the Base URL by hand to point at your own gateway (which switches the pill back to Custom).
 - **Format** — the wire protocol: OpenAI Chat Completions (`/v1/chat/completions`), OpenAI Responses (`/v1/responses`), or Anthropic Messages (`/v1/messages`). This sets the endpoint path, auth scheme, body shape, and how the response is parsed.
-- **Base URL** — e.g. `https://your-manifest.example.com`, `https://api.openai.com`, `https://api.anthropic.com`, or `http://localhost:3001` (more on cross-origin below). Wingman appends the format's path.
+- **Base URL** — e.g. `https://your-manifest.example.com`, `https://api.openai.com`, `https://api.anthropic.com`, or `http://localhost:3001` (more on cross-origin below). Wingman appends the format's path, and shows the resolved endpoint under the field. Pasting a full endpoint or a base ending in `/v1` is fine — the duplicate is stripped rather than producing `/v1/v1/chat/completions`. A missing scheme is filled in (`http://` for loopback hosts, `https://` otherwise).
 - **API key** — `Authorization: Bearer` for OpenAI-style formats, `x-api-key` for Anthropic (attached automatically per format). Keys are kept per provider: switching preset shows that provider's own key (blank until you set one), and switching back restores it.
 - **Model** — `auto` or a specific model id.
 - **Stream** — toggle in the composer toolbar to read the reply as it's generated (Server-Sent Events).
@@ -47,7 +47,21 @@ Access-Control-Allow-Headers: Authorization, Content-Type, X-API-Key, X-Stainles
 
 The `X-Stainless-*` headers matter: the OpenClaw, Hermes, and OpenAI SDK profiles replay them to mimic the real SDK fingerprint, so an allow-list that omits them fails the preflight and the request never leaves the browser. Hermes sends a couple more (`X-Stainless-Async`, `X-Stainless-Read-Timeout`), so the robust option is to reflect the request's `Access-Control-Request-Headers` instead of hard-coding a list.
 
-If the gateway is on a loopback address (`localhost` / `127.0.0.1`) and you load Wingman over HTTPS, Chrome's Private Network Access also wants `Access-Control-Allow-Private-Network: true` on the preflight.
+### Reaching a gateway on localhost
+
+CORS is not the obstacle here, and this is worth being precise about because the symptom looks identical.
+
+If your gateway is on a loopback or private address (`localhost`, `127.0.0.1`, `192.168.x.x`) and you load Wingman over HTTPS, **the browser blocks the request before CORS is even consulted**. Chrome ≥ 138 gates public-page → local-network requests behind the **Local Network Access** permission; it replaced Private Network Access, so the `Access-Control-Allow-Private-Network: true` preflight header that used to satisfy it no longer does anything. Safari refuses the call outright as mixed content. In a cross-origin iframe the permission is denied by permissions policy unless the embedder adds `allow="local-network-access"`, which means no prompt ever appears.
+
+No change to the gateway can lift this — it's a property of the two origins. To test a local gateway, serve Wingman from the local network too:
+
+```bash
+git clone https://github.com/mnfst/wingman && cd wingman
+npm install && npm run dev
+# → http://localhost:3002, same address space as your gateway
+```
+
+Wingman reports this case as **local network blocked** rather than "CORS blocked", so you don't go editing an allow-list that was already correct.
 
 Calling **Anthropic** directly: its API blocks browser origins by default, so Wingman sends the `anthropic-dangerous-direct-browser-access: true` header (alongside `anthropic-version`) automatically when you pick the Anthropic Messages format.
 

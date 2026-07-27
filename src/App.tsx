@@ -35,6 +35,7 @@ import {
   type HistoryEntry,
 } from './services/history';
 import { checkHealth, type HealthStatus } from './services/healthCheck';
+import { normalizeBaseUrl } from './services/baseUrl';
 import { isExecutable, runUserCode } from './runners';
 import { buildMarkdownReport } from './services/gist';
 import GistModal from './components/GistModal.jsx';
@@ -264,9 +265,10 @@ const App: Component = () => {
       return;
     }
     const controller = new AbortController();
+    const formatPath = format().path;
     const timer = window.setTimeout(() => {
       setHealthStatus({ kind: 'checking' });
-      checkHealth(url, path, controller.signal).then(setHealthStatus);
+      checkHealth(url, path, formatPath, controller.signal).then(setHealthStatus);
     }, 400);
     onCleanup(() => {
       window.clearTimeout(timer);
@@ -274,15 +276,20 @@ const App: Component = () => {
     });
   });
 
+  // One normalisation for the whole app: the SDK snippet, the health probe and
+  // the request itself all read from here, so the code Wingman shows you is the
+  // code that would reproduce the call it just made.
+  const normalized = createMemo(() => normalizeBaseUrl(baseUrl(), format().path));
+
   const params = () => ({
-    baseUrl: baseUrl().replace(/\/+$/, ''),
+    baseUrl: normalized().base,
     apiKey: apiKey(),
     model: model(),
     systemPrompt: systemPrompts()[profile().id] ?? '',
     userMessage: userMessage(),
   });
 
-  const requestUrl = () => `${baseUrl().replace(/\/+$/, '')}${format().path}`;
+  const requestUrl = () => normalized().requestUrl;
 
   const generatedSdkCode = createMemo(() => profile().code(params(), lang(), format()));
 
@@ -411,10 +418,10 @@ const App: Component = () => {
     setSystemPrompts({ ...systemPrompts(), [profile().id]: value });
   };
 
-  const errorResult = (message: string): SendResult => ({
+  const errorResult = (message: string, statusText = 'Code error'): SendResult => ({
     url: requestUrl(),
     status: 0,
-    statusText: 'Code error',
+    statusText,
     ok: false,
     durationMs: 0,
     requestHeaders: {},
@@ -438,6 +445,16 @@ const App: Component = () => {
     let next: SendResult;
     let sentHeaders: Record<string, string>;
 
+    // Stop before `fetch` does. An unusable base URL used to surface either a
+    // raw "Failed to parse URL" TypeError or — worse, for a schemeless value —
+    // a request resolved against Wingman's own origin, quietly shipping the
+    // user's API key somewhere they never pointed at.
+    if (!normalized().valid) {
+      setResult(errorResult(normalized().problem ?? 'Invalid base URL.', 'Invalid base URL'));
+      setLoading(false);
+      return;
+    }
+
     if (willRunCode()) {
       // The user edited the SDK preview, and the profile/lang combination can
       // execute it in-browser. Run the code through the stub SDK; whatever
@@ -446,7 +463,7 @@ const App: Component = () => {
         const out = await runUserCode({
           profileId: profile().id,
           code: sdkCode(),
-          baseUrl: baseUrl().replace(/\/+$/, ''),
+          baseUrl: normalized().base,
           apiKey: apiKey(),
         });
         next = out.result;
@@ -539,7 +556,7 @@ const App: Component = () => {
     setActiveHistoryId(entry.id);
     const fmt = FORMAT_BY_ID[restoredFormatId] ?? FORMATS[0]!;
     setResult({
-      url: entry.url ?? `${entry.baseUrl.replace(/\/+$/, '')}${fmt.path}`,
+      url: entry.url ?? normalizeBaseUrl(entry.baseUrl, fmt.path).requestUrl,
       status: entry.status,
       statusText: entry.statusText,
       ok: entry.ok,
@@ -646,6 +663,9 @@ const App: Component = () => {
             onResetHeaders={resetHeaders}
             blockedHeaders={blockedHeaderNames()}
             baseUrl={baseUrl()}
+            requestUrl={normalized().requestUrl}
+            baseUrlNote={normalized().note}
+            baseUrlProblem={normalized().problem}
             baseUrlPlaceholder={format().placeholderBaseUrl ?? 'https://your-manifest.example.com'}
             apiKey={apiKey()}
             apiKeyPlaceholder={provider().apiKeyPlaceholder}

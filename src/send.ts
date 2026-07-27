@@ -1,5 +1,6 @@
 import type { AuthScheme, StreamParser } from './formats/types';
 import { readSse } from './services/sse';
+import { classifyFetchFailure, type FailureKind } from './services/diagnostics';
 
 export interface SendInput {
   url: string;
@@ -22,7 +23,7 @@ export interface SendResult {
   responseBody: string;
   responseJson: unknown | null;
   error?: string;
-  errorKind?: 'network' | 'cors' | 'mixed-content' | 'aborted' | 'unknown';
+  errorKind?: FailureKind;
   /** True when the request was sent with stream:true and read as SSE. */
   isStream?: boolean;
   /** Assistant text assembled from the stream (streamed requests only). */
@@ -241,25 +242,6 @@ function errorResult(
     responseBody: '',
     responseJson: null,
     error: err instanceof Error ? err.message : String(err),
-    errorKind: classifyError(err, input.url),
+    errorKind: classifyFetchFailure(err, input.url),
   };
-}
-
-function classifyError(err: unknown, url: string): SendResult['errorKind'] {
-  if (err instanceof DOMException && err.name === 'AbortError') return 'aborted';
-  const msg = err instanceof Error ? err.message : String(err);
-  // Mixed content: page is HTTPS but the target URL is HTTP
-  try {
-    if (typeof window !== 'undefined' && window.location.protocol === 'https:') {
-      const target = new URL(url);
-      if (target.protocol === 'http:') return 'mixed-content';
-    }
-  } catch {
-    /* malformed URL handled below */
-  }
-  // `TypeError: Failed to fetch` covers DNS, connection refused, AND CORS
-  // preflight rejection. We can't distinguish them from JS, so default to
-  // "network" — the UI explains both possibilities.
-  if (/fetch/i.test(msg) || err instanceof TypeError) return 'network';
-  return 'unknown';
 }
