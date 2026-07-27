@@ -23,7 +23,6 @@ import {
   PROVIDER_BY_ID,
   DEFAULT_PROVIDER_ID,
   CUSTOM_PROVIDER,
-  MANIFEST_BASE_URL,
   type Provider,
 } from './providers';
 import { partitionHeaders, sendRequest, sendRequestStreaming, type SendResult } from './send';
@@ -35,7 +34,7 @@ import {
   type HistoryEntry,
 } from './services/history';
 import { checkHealth, type HealthStatus } from './services/healthCheck';
-import { normalizeBaseUrl } from './services/baseUrl';
+import { defaultBaseUrl, normalizeBaseUrl } from './services/baseUrl';
 import { isExecutable, runUserCode } from './runners';
 import { buildMarkdownReport } from './services/gist';
 import GistModal from './components/GistModal.jsx';
@@ -108,20 +107,6 @@ function recordFromEntries(entries: HeaderEntry[]): Record<string, string> {
     if (key.trim()) out[key.trim()] = value;
   }
   return out;
-}
-
-function defaultBaseUrl(): string {
-  // Wingman is a Manifest gateway tester first, so default the Base URL to the
-  // canonical Manifest Cloud gateway — the user shouldn't have to type it. On
-  // localhost we instead guess the local gateway port so `npm run dev` targets
-  // a locally-running Manifest. The health badge surfaces reachability / CORS.
-  if (typeof window === 'undefined') return MANIFEST_BASE_URL;
-  const { protocol, hostname, port } = window.location;
-  if (hostname === 'localhost' || hostname === '127.0.0.1') {
-    if (port === '3002' || port === '3000') return `${protocol}//${hostname}:3001`;
-    return `${protocol}//${hostname}:${port || '3001'}`;
-  }
-  return MANIFEST_BASE_URL;
 }
 
 // An external embed (?baseUrl=…, e.g. the Manifest dashboard drawer) is always
