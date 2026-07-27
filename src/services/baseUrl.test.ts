@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { hasValidHostname, isLoopbackHost, isPrivateHost, normalizeBaseUrl } from './baseUrl';
+import {
+  defaultBaseUrl,
+  hasValidHostname,
+  isLoopbackHost,
+  isPrivateHost,
+  normalizeBaseUrl,
+} from './baseUrl';
+import { MANIFEST_BASE_URL } from '../providers';
 
 const CHAT = '/v1/chat/completions';
 const MESSAGES = '/v1/messages';
@@ -133,6 +140,37 @@ describe('hasValidHostname', () => {
     'rejects %s',
     (h) => expect(hasValidHostname(h)).toBe(false),
   );
+});
+
+describe('defaultBaseUrl', () => {
+  const at = (hostname: string, port: string, protocol = 'http:') =>
+    defaultBaseUrl({ protocol, hostname, port });
+
+  it('points at the Manifest dev gateway from a loopback host', () => {
+    expect(at('localhost', '3002')).toBe('http://localhost:3001');
+    expect(at('127.0.0.1', '3000')).toBe('http://127.0.0.1:3001');
+  });
+
+  // The bug: any port outside 3000/3002 was passed straight through, so Wingman
+  // defaulted to its *own* origin. Its SPA fallback then answers the health
+  // probe with 200 HTML and the badge goes green while pointing at nothing.
+  it.each(['44321', '38173', '41999', ''])('never returns its own origin (port %s)', (port) => {
+    const result = at('localhost', port);
+    expect(result).not.toBe(`http://localhost:${port}`);
+    expect(result).toBe('http://localhost:3001');
+  });
+
+  it('has nothing to guess when Wingman is itself on the gateway port', () => {
+    expect(at('localhost', '3001')).toBe(MANIFEST_BASE_URL);
+  });
+
+  it('uses Manifest Cloud from a public host', () => {
+    expect(at('wingman.manifest.build', '', 'https:')).toBe(MANIFEST_BASE_URL);
+  });
+
+  it('preserves the page protocol on loopback', () => {
+    expect(at('localhost', '8443', 'https:')).toBe('https://localhost:3001');
+  });
 });
 
 describe('isLoopbackHost', () => {

@@ -152,6 +152,7 @@ const HealthBadge: Component<{ status: HealthStatus }> = (p) => {
   const isError = () =>
     status().kind === 'failed' ||
     status().kind === 'invalid' ||
+    status().kind === 'not-a-gateway' ||
     status().kind === 'http-error';
   return (
     <Show when={status().kind !== 'idle'}>
@@ -180,6 +181,8 @@ function healthLabel(s: HealthStatus): string {
       return 'invalid URL';
     case 'failed':
       return s.label;
+    case 'not-a-gateway':
+      return 'not a gateway';
     case 'http-error':
       return `HTTP ${s.status}`;
     default:
@@ -199,6 +202,8 @@ function healthTitle(s: HealthStatus): string {
     case 'invalid':
       return s.message;
     case 'failed':
+      return s.message;
+    case 'not-a-gateway':
       return s.message;
     case 'http-error':
       return `${s.probedUrl} returned ${s.status} ${s.statusText}`;

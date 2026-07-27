@@ -8,8 +8,13 @@
 // reads like the gateway is broken. Normalising here means the common pastes
 // all resolve to the same request.
 
+import { MANIFEST_BASE_URL } from '../providers';
+
 /** Hosts the browser treats as the local machine (loopback address space). */
 const LOOPBACK_HOSTS = new Set(['localhost', '127.0.0.1', '0.0.0.0', '::1', '[::1]']);
+
+/** Port a `npm run dev` Manifest backend listens on. */
+const MANIFEST_DEV_GATEWAY_PORT = '3001';
 
 /** Every endpoint path a format may append, longest first so the greedy match wins. */
 const FORMAT_PATHS = ['/v1/chat/completions', '/v1/messages', '/v1/responses'] as const;
@@ -92,6 +97,28 @@ function stripEndpointPath(pathname: string, formatPath: string): { path: string
     return { path: path.slice(0, -3), note: 'Removed a duplicate "/v1" segment.' };
   }
   return { path };
+}
+
+/**
+ * The Base URL to start from when the user hasn't picked one.
+ *
+ * On a loopback host, guess the Manifest dev backend on :3001 — Wingman is a
+ * Manifest gateway tester first, so that's the useful default for `npm run
+ * dev`. What it must never do is return Wingman's *own* origin, which the
+ * previous port-passthrough did for any port other than 3000/3002. That was
+ * worse than an unhelpful default: Wingman's SPA fallback answers the health
+ * probe with `200 index.html`, so the badge went green while pointing at
+ * Wingman itself. Serving Wingman on an arbitrary loopback port is now normal
+ * (the Manifest dashboard's dev drawer proxies it onto one), so the passthrough
+ * had become the common case rather than the edge.
+ */
+export function defaultBaseUrl(location?: { protocol: string; hostname: string; port: string }): string {
+  const loc = location ?? (typeof window === 'undefined' ? null : window.location);
+  if (!loc) return MANIFEST_BASE_URL;
+  if (!isLoopbackHost(loc.hostname)) return MANIFEST_BASE_URL;
+  // Wingman is itself on the gateway's port — there's nothing left to guess.
+  if (loc.port === MANIFEST_DEV_GATEWAY_PORT) return MANIFEST_BASE_URL;
+  return `${loc.protocol}//${loc.hostname}:${MANIFEST_DEV_GATEWAY_PORT}`;
 }
 
 /**
