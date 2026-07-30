@@ -19,7 +19,7 @@ Live at **<https://wingman.manifest.build>**.
 
 Wingman is a **static SPA**. It has no backend of its own — every request goes straight from your browser to whatever endpoint you configure in the connection bar. There is no telemetry, no server-side logging, no proxy in between. Streaming responses are read directly from the `fetch` body as Server-Sent Events.
 
-Your API key is held in `sessionStorage` (cleared when you close the tab). Everything else — base URL, model, history, system prompts — is in `localStorage` and never leaves the browser. The full source is in this repo if you want to audit it.
+Nothing Wingman holds outlives the tab. API keys, base URL, model, request history and system prompts all live in `sessionStorage`, so they survive switching provider or reloading the page and are gone the moment you close the tab. Nothing is written to `localStorage`, and nothing leaves the browser. The full source is in this repo if you want to audit it.
 
 ## Connecting to a gateway
 

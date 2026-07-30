@@ -14,26 +14,21 @@ export const STORAGE = {
   format: 'wingman:format',
   stream: 'wingman:stream',
   provider: 'wingman:provider',
+  history: 'wingman:history',
 };
 
 // The pre-per-provider slot: a single key shared by every provider. Read once
 // on boot and folded into the map (see `readApiKeys`), then dropped.
 const LEGACY_API_KEY = 'wingman:apiKey';
 
-// API keys are stored in sessionStorage (cleared on tab close) instead of
-// localStorage so contributors don't leave a long-lived `mnfst_*` token in
-// disk-backed browser storage. Everything else (base URL, model, profile,
-// system prompts, history) stays in localStorage since it's not sensitive.
-const SENSITIVE_KEYS = new Set<string>([STORAGE.apiKeys, LEGACY_API_KEY]);
-
-function storageFor(key: string): Storage {
-  return SENSITIVE_KEYS.has(key) ? sessionStorage : localStorage;
-}
-
+// Everything Wingman holds lives in sessionStorage, which the browser drops
+// when the tab closes. Within a session the values persist, so switching
+// provider keeps your key, preset and prompt — but a closed tab takes the lot:
+// no key, no history, no base URL left behind on a shared machine. Nothing here
+// writes localStorage; `purgeLegacyStorage` clears what older builds left in it.
 export function readStorage(key: string, fallback: string): string {
   try {
-    const value = storageFor(key).getItem(key);
-    return value ?? fallback;
+    return sessionStorage.getItem(key) ?? fallback;
   } catch {
     return fallback;
   }
@@ -41,7 +36,7 @@ export function readStorage(key: string, fallback: string): string {
 
 export function writeStorage(key: string, value: string): void {
   try {
-    storageFor(key).setItem(key, value);
+    sessionStorage.setItem(key, value);
   } catch {
     /* ignore */
   }
@@ -49,7 +44,24 @@ export function writeStorage(key: string, value: string): void {
 
 export function removeStorage(key: string): void {
   try {
-    storageFor(key).removeItem(key);
+    sessionStorage.removeItem(key);
+  } catch {
+    /* ignore */
+  }
+}
+
+/**
+ * Older builds kept the base URL, model, preset and request history in
+ * localStorage, which outlived the tab. Those writes are gone, but a returning
+ * visitor still has the values sitting on disk — clear them on boot so the
+ * "nothing persists between sessions" promise holds for the browser too, not
+ * just for code written from here on.
+ */
+export function purgeLegacyStorage(): void {
+  try {
+    for (const key of [...Object.values(STORAGE), LEGACY_API_KEY]) {
+      localStorage.removeItem(key);
+    }
   } catch {
     /* ignore */
   }
@@ -164,6 +176,7 @@ export interface BootState {
  * defaults. Query-param values are persisted so a reload keeps them.
  */
 export function resolveBootState(): BootState {
+  purgeLegacyStorage();
   const baseUrlParam = readQueryParam('baseUrl');
   const apiKeyParam = readQueryParam('apiKey');
   const providerId = resolveInitialProvider(baseUrlParam);
