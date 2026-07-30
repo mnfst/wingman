@@ -1,0 +1,396 @@
+/* ── URL bar (Postman-style request line) ────────────────────────────── */
+
+.urlbar {
+  background: var(--bg-elev);
+  border-bottom: 1px solid var(--border);
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.urlbar__row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+/* Method/format selector */
+.format-dd {
+  position: relative;
+  display: flex;
+}
+
+.format-dd__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.format-dd__btn:hover {
+  border-color: var(--border-strong);
+}
+
+.format-dd__btn[aria-expanded='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.format-dd__method {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--method-post);
+}
+
+.format-dd__path {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+/* URL field with embedded provider preset + health badge */
+.urlbar__url {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  height: 36px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  padding-right: 8px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.urlbar__url:focus-within {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.urlbar__url--invalid {
+  border-color: var(--err);
+}
+
+.urlbar__url-input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  padding: 0 10px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+}
+
+.urlbar__url-input:focus {
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.provider-dd {
+  position: relative;
+  height: 100%;
+  display: flex;
+}
+
+.provider-dd__btn {
+  height: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 7px 0 9px;
+  border: none;
+  border-right: 1px solid var(--border);
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  background: transparent;
+  color: var(--text-faint);
+  transition: background 0.12s;
+}
+
+.provider-dd__btn:hover {
+  background: var(--bg-mute);
+}
+
+.provider-dd__icon {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+}
+
+/* API key: right next to the address it authenticates, Postman-Auth-in-the-
+   bar style. Masked by default; green tint once a key is stored. */
+.urlbar__key {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 180px;
+  flex-shrink: 0;
+}
+
+.urlbar__key-input {
+  width: 100%;
+  height: 36px;
+  background: var(--bg);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 0 30px 0 10px;
+}
+
+.urlbar__key--set .urlbar__key-input {
+  border-color: color-mix(in srgb, var(--ok) 40%, var(--border));
+  background: color-mix(in srgb, var(--ok-bg) 40%, var(--bg));
+}
+
+.urlbar__key-toggle {
+  position: absolute;
+  right: 4px;
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: var(--text-faint);
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+
+.urlbar__key-toggle:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--bg-mute);
+}
+
+.urlbar__key-toggle:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Model combobox */
+.model-select {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 190px;
+  flex-shrink: 0;
+}
+
+.model-select__input {
+  width: 100%;
+  height: 36px;
+  background: var(--bg);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 0 10px;
+}
+
+.model-select--listed .model-select__input {
+  padding-right: 28px;
+}
+
+.model-select__toggle {
+  position: absolute;
+  right: 4px;
+  width: 24px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: var(--text-faint);
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+
+.model-select__toggle:hover {
+  color: var(--text);
+  background: var(--bg-mute);
+}
+
+.model-select__menu {
+  right: 0;
+  left: auto;
+  min-width: 260px;
+  max-height: 46vh;
+}
+
+.model-select__item {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 10px;
+}
+
+.urlbar__send {
+  height: 36px;
+  min-width: 78px;
+  padding: 0 18px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: linear-gradient(135deg, var(--pink), var(--pink-strong));
+  color: white;
+  font-size: 13px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px var(--pink-soft);
+  transition:
+    filter 0.15s,
+    transform 0.05s,
+    opacity 0.15s;
+}
+
+.urlbar__send:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.urlbar__send:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.urlbar__send:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Send will execute the edited SDK snippet — violet, IDE "run" semantics. */
+.urlbar__send--code {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35);
+}
+
+.urlbar__save {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 600;
+  transition:
+    color 0.12s,
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.urlbar__save:hover:not(:disabled) {
+  color: var(--text);
+  background: var(--bg-soft);
+}
+
+.urlbar__save:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.urlbar__save--saved {
+  background: var(--ok-bg);
+  border-color: color-mix(in srgb, var(--ok) 50%, var(--border));
+  color: var(--ok);
+}
+
+.urlbar__save--error {
+  background: var(--err-bg);
+  border-color: color-mix(in srgb, var(--err) 50%, var(--border));
+  color: var(--err);
+}
+
+/* `</>` — jump to the generated code, like Postman's code icon by the URL. */
+.urlbar__code {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg-elev);
+  color: var(--text-muted);
+  transition:
+    color 0.12s,
+    background 0.12s,
+    border-color 0.12s;
+}
+
+.urlbar__code:hover {
+  color: var(--text);
+  background: var(--bg-soft);
+  border-color: var(--border-strong);
+}
+
+.urlbar__hint {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-faint);
+  overflow-wrap: anywhere;
+}
+
+.urlbar__hint code {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.urlbar__hint em {
+  font-style: normal;
+  color: var(--accent);
+}
+
+.urlbar__hint--err {
+  color: var(--err);
+}
+
+@media (max-width: 1180px) {
+  /* Shrink, never hide: the path is the only readout of the selected format. */
+  .format-dd__path {
+    max-width: 90px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .urlbar__key,
+  .model-select {
+    width: 140px;
+  }
+}
+
+@media (max-width: 720px) {
+  .urlbar__row {
+    flex-wrap: wrap;
+  }
+  .urlbar__url {
+    flex-basis: 100%;
+    order: -1;
+  }
+  .urlbar__key,
+  .model-select {
+    flex: 1;
+    width: auto;
+    min-width: 120px;
+  }
+  .urlbar__send {
+    margin-left: auto;
+  }
+}

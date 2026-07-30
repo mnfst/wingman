@@ -1,0 +1,292 @@
+/* ── App shell: everything config lives up top, chat fills the rest ──── */
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+}
+
+/* Bruno-style split below the URL bar: request configuration on the left,
+   the conversation (this app's "response pane") on the right. */
+.main {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
+.pane {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.pane--config {
+  width: clamp(360px, 42%, 620px);
+  flex-shrink: 0;
+  border-right: 1px solid var(--border);
+  background: var(--bg-elev);
+}
+
+.pane--chat {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+}
+
+.app__thread {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 24px 24px 16px;
+}
+
+/* ── Title bar: brand · request tabs · community ─────────────────────── */
+
+.titlebar {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  height: 42px;
+  padding: 0 10px 0 12px;
+  background: var(--bg-mute);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.titlebar__brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  align-self: center;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  color: inherit;
+  text-decoration: none;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.titlebar__brand:hover {
+  background: var(--bg-soft);
+}
+
+.titlebar__brand strong {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.titlebar__tabs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+.titlebar__links {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  align-self: center;
+}
+
+.titlebar__link {
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+
+.titlebar__link:hover {
+  color: var(--pink-strong);
+  background: var(--pink-soft);
+}
+
+/* ── Request tabs (Postman/browser-style history) ────────────────────── */
+
+.reqtabs {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: stretch;
+}
+
+/* Thin (not hidden) scrollbar: with many tabs it's the only visual cue that
+   more exist off-screen, and the only mouse affordance to reach them. */
+.reqtabs__scroll {
+  display: flex;
+  align-items: stretch;
+  overflow-x: auto;
+  min-width: 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+  border-left: 1px solid var(--border);
+}
+
+.reqtabs__scroll::-webkit-scrollbar {
+  height: 4px;
+}
+
+.reqtabs__scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 2px;
+}
+
+.reqtab {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  max-width: 190px;
+  border-right: 1px solid var(--border);
+  position: relative;
+  color: var(--text-muted);
+  transition: background 0.12s;
+}
+
+.reqtab:hover {
+  background: var(--bg-soft);
+}
+
+/* Active tab reads as part of the white request bar below, Postman-style:
+   same surface + a pink overline. */
+.reqtab--active {
+  background: var(--bg-elev);
+  box-shadow: inset 0 2px 0 var(--pink-strong);
+  color: var(--text);
+}
+
+.reqtab--active:hover {
+  background: var(--bg-elev);
+}
+
+.reqtab__main {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  height: 100%;
+  padding: 0 4px 0 11px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 12px;
+}
+
+.reqtab--draft .reqtab__main {
+  padding-right: 12px;
+  font-style: italic;
+}
+
+.reqtab__icon {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.reqtab__label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.reqtab__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.reqtab__dot--ok {
+  background: var(--ok);
+}
+.reqtab__dot--warn {
+  background: var(--warn);
+}
+.reqtab__dot--err {
+  background: var(--err);
+}
+
+.reqtab__close {
+  width: 24px;
+  height: 24px;
+  margin-right: 3px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: var(--text-faint);
+  font-size: 13px;
+  line-height: 1;
+  opacity: 0;
+  transition:
+    opacity 0.1s,
+    color 0.1s,
+    background 0.1s;
+}
+
+.reqtab:hover .reqtab__close,
+.reqtab--active .reqtab__close,
+.reqtab__close:focus-visible {
+  opacity: 1;
+}
+
+.reqtab__close:hover {
+  color: var(--err);
+  background: var(--err-bg);
+}
+
+.reqtabs__action {
+  width: 26px;
+  height: 26px;
+  align-self: center;
+  margin-left: 6px;
+  display: grid;
+  place-items: center;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+
+.reqtabs__action:hover {
+  color: var(--text);
+  background: var(--bg-soft);
+}
+
+.reqtabs__action--danger:hover {
+  color: var(--err);
+  background: var(--err-bg);
+}
+
+/* Narrow: stack the panes — config on top (capped), chat below. */
+@media (max-width: 900px) {
+  .main {
+    flex-direction: column;
+  }
+  .pane--config {
+    width: auto;
+    flex-shrink: 1;
+    border-right: none;
+    border-bottom: 1px solid var(--border);
+  }
+}
+
+@media (max-width: 720px) {
+  .titlebar__brand strong {
+    display: none;
+  }
+  .app__thread {
+    padding: 16px 14px 12px;
+  }
+}

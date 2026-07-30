@@ -39,6 +39,11 @@ const CheckIcon: Component = () => (
   </svg>
 );
 
+/**
+ * The "method selector" slot of the URL bar. Every LLM call is a POST, so the
+ * verb is a fixed Postman-orange label and the dropdown picks the wire format
+ * (the endpoint path) instead — the closest thing an LLM API has to a method.
+ */
 const FormatDropdown: Component<Props> = (props) => {
   const [open, setOpen] = createSignal(false);
 
@@ -73,41 +78,41 @@ const FormatDropdown: Component<Props> = (props) => {
   };
 
   return (
-    <div class="profile-dd format-dd">
+    <div class="format-dd">
       <button
         type="button"
-        class="profile-dd__btn"
+        class="format-dd__btn"
         onClick={toggle}
         aria-haspopup="listbox"
         aria-expanded={open()}
+        title={`${active().label} — ${active().blurb}`}
       >
-        <img class="profile-dd__icon" src={active().icon} alt="" width="22" height="22" />
-        <span class="profile-dd__label">{active().label}</span>
-        <span class="profile-dd__category format-dd__path">{active().path}</span>
+        <span class="format-dd__method">POST</span>
+        <span class="format-dd__path">{active().path}</span>
         <ChevronIcon />
       </button>
       <Show when={open()}>
-        <div class="profile-dd__menu" role="listbox" aria-label="Choose API format">
+        <div class="dd-menu format-dd__menu" role="listbox" aria-label="Choose API format">
           <For each={props.formats}>
             {(f) => (
               <button
                 type="button"
-                class="profile-dd__item"
-                classList={{ 'profile-dd__item--active': f.id === props.activeId }}
+                class="dd-menu__item"
+                classList={{ 'dd-menu__item--active': f.id === props.activeId }}
                 role="option"
                 aria-selected={f.id === props.activeId}
                 onClick={() => handleSelect(f.id)}
               >
-                <img class="profile-dd__item-icon" src={f.icon} alt="" width="22" height="22" />
-                <span class="profile-dd__item-body">
-                  <span class="profile-dd__item-line">
-                    <span class="profile-dd__item-label">{f.label}</span>
-                    <span class="profile-dd__item-tag format-dd__path">{f.path}</span>
+                <img class="dd-menu__icon" src={f.icon} alt="" width="22" height="22" />
+                <span class="dd-menu__body">
+                  <span class="dd-menu__line">
+                    <span class="dd-menu__label">{f.label}</span>
+                    <span class="dd-menu__mono">{f.path}</span>
                   </span>
-                  <span class="profile-dd__item-blurb">{f.blurb}</span>
+                  <span class="dd-menu__blurb">{f.blurb}</span>
                 </span>
                 <Show when={f.id === props.activeId}>
-                  <span class="profile-dd__item-check" aria-hidden="true">
+                  <span class="dd-menu__check" aria-hidden="true">
                     <CheckIcon />
                   </span>
                 </Show>

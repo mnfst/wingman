@@ -1,0 +1,205 @@
+/* ── Code view ───────────────────────────────────────────────────────── */
+
+.code-view {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--code-bg);
+}
+
+.code-view__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: color-mix(in srgb, var(--code-bg) 80%, white);
+  border-bottom: 1px solid color-mix(in srgb, var(--code-bg) 60%, white);
+}
+
+.code-view__lang {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--code-muted);
+}
+
+.code-view__copy {
+  background: transparent;
+  border: 1px solid color-mix(in srgb, var(--code-bg) 60%, white);
+  border-radius: 4px;
+  color: var(--code-muted);
+  font-size: 11px;
+  padding: 3px 10px;
+}
+
+.code-view__copy:hover {
+  color: var(--code-text);
+  border-color: var(--code-text);
+}
+
+.code-view__pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  color: var(--code-text);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  max-height: 380px;
+  overflow-y: auto;
+  white-space: pre;
+  tab-size: 2;
+}
+
+/* Editable mode: transparent textarea overlaid on a highlighted <pre>. The
+   font, padding, and line-height MUST match the <pre> exactly or the caret
+   drifts off the tokens beneath it. */
+.code-view__editor {
+  position: relative;
+  background: var(--code-bg);
+}
+
+.code-view__pre--bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  margin: 0;
+  z-index: 0;
+}
+
+.code-view__textarea {
+  width: 100%;
+  border: none;
+  border-radius: 0;
+  background: var(--code-bg);
+  color: var(--code-text);
+  padding: 12px 14px;
+  font-family: var(--mono);
+  font-size: 12.5px;
+  line-height: 1.55;
+  min-height: 160px;
+  tab-size: 2;
+  white-space: pre;
+  overflow-wrap: normal;
+  overflow-x: auto;
+}
+
+.code-view__textarea:focus {
+  box-shadow: none;
+  outline: none;
+}
+
+/* Overlay variant: transparent text so the <pre> shows through, but keep the
+   caret visible via `caret-color`. */
+.code-view__textarea--overlay {
+  position: relative;
+  z-index: 1;
+  background: transparent;
+  color: transparent;
+  caret-color: var(--code-text);
+  resize: vertical;
+  max-height: 380px;
+}
+
+.code-view__textarea--overlay::selection {
+  background: rgba(99, 102, 241, 0.35);
+  color: transparent;
+}
+
+/* ── Syntax highlighting (highlight.js) ──────────────────────────────── */
+/* Tuned for the dark code view background. Single theme — code views are
+   always dark, regardless of light/dark page mode. */
+
+.hljs {
+  color: var(--code-text);
+  background: transparent;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: #6c7682;
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-meta .hljs-keyword {
+  color: #c084fc;
+  font-weight: 500;
+}
+
+.hljs-string,
+.hljs-template-tag,
+.hljs-template-variable {
+  color: #86efac;
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-symbol {
+  color: #fbbf24;
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-property,
+.hljs-name {
+  color: #93c5fd;
+}
+
+.hljs-built_in,
+.hljs-type,
+.hljs-class .hljs-title,
+.hljs-title.class_ {
+  color: #67e8f9;
+}
+
+.hljs-title,
+.hljs-title.function_ {
+  color: #fcd34d;
+}
+
+.hljs-variable,
+.hljs-params,
+.hljs-selector-attr,
+.hljs-selector-pseudo {
+  color: var(--code-text);
+}
+
+.hljs-punctuation,
+.hljs-operator {
+  color: var(--code-muted);
+}
+
+.hljs-regexp {
+  color: #fda4af;
+}
+
+.hljs-meta {
+  color: #c084fc;
+}
+
+.hljs-section {
+  color: #fcd34d;
+  font-weight: 600;
+}
+
+.hljs-bullet,
+.hljs-link {
+  color: #fda4af;
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
+}
+
+/* HTTP-specific tokens */
+.hljs-status,
+.hljs-keyword.hljs-meta {
+  color: #fcd34d;
+}

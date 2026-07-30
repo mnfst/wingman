@@ -1,0 +1,145 @@
+:root {
+  --bg: #faf8f5;
+  --bg-elev: #ffffff;
+  --bg-mute: #f3efe8;
+  --bg-soft: #f8f4ec;
+  --text: #1a1d23;
+  --text-muted: #5b6470;
+  /* Faint but still AA: ~4.6:1 against --bg-mute, the worst-case backdrop. */
+  --text-faint: #646c78;
+  --border: #e3ddd2;
+  --border-strong: #cdc4b3;
+  --accent: #1f7a8c;
+  --accent-strong: #155563;
+  --accent-soft: rgba(31, 122, 140, 0.1);
+  --pink: #ec4899;
+  --pink-strong: #db2777;
+  --pink-soft: rgba(236, 72, 153, 0.12);
+  /* Postman paints POST amber — reuse that muscle memory for the verb chip. */
+  --method-post: #b45309;
+  --ok: #15803d;
+  --ok-bg: #dcfce7;
+  --warn: #b45309;
+  --warn-bg: #fef3c7;
+  --err: #b91c1c;
+  --err-bg: #fee2e2;
+  --code-bg: #1d2027;
+  --code-text: #e6e8eb;
+  --code-muted: #98a3b3;
+  --violet: #7c3aed;
+  --shadow-xs: 0 1px 2px rgba(20, 23, 28, 0.04);
+  --shadow-sm: 0 1px 2px rgba(20, 23, 28, 0.05), 0 1px 3px rgba(20, 23, 28, 0.05);
+  --shadow-md: 0 4px 12px rgba(20, 23, 28, 0.06), 0 2px 4px rgba(20, 23, 28, 0.05);
+  --shadow-lg: 0 8px 24px rgba(20, 23, 28, 0.08);
+  --radius: 10px;
+  --radius-sm: 6px;
+  --radius-lg: 14px;
+  --radius-pill: 999px;
+  --thread-max: 860px;
+  --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1115;
+    --bg-elev: #161a20;
+    --bg-mute: #1c2128;
+    --bg-soft: #131720;
+    --text: #ecedee;
+    --text-muted: #8a929c;
+    --text-faint: #838d9b;
+    --border: #262b33;
+    --border-strong: #3a414b;
+    --accent: #4fb3c7;
+    --accent-strong: #7dd0e0;
+    --accent-soft: rgba(79, 179, 199, 0.16);
+    --pink: #f472b6;
+    --pink-strong: #ec4899;
+    --pink-soft: rgba(244, 114, 182, 0.16);
+    --method-post: #fbbf24;
+    --ok: #4ade80;
+    --ok-bg: rgba(74, 222, 128, 0.12);
+    --warn: #f59e0b;
+    --warn-bg: rgba(245, 158, 11, 0.12);
+    --err: #f87171;
+    --err-bg: rgba(248, 113, 113, 0.12);
+    --code-bg: #0b0d11;
+    --code-text: #e6e8eb;
+    --code-muted: #6c7682;
+    --violet: #8b5cf6;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family:
+    'DM Sans',
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+#root {
+  height: 100vh;
+}
+
+button {
+  font-family: inherit;
+  font-size: inherit;
+  cursor: pointer;
+}
+
+/* Keyboard focus is always visible, in brand pink. Text fields opt out — they
+   carry their own border + ring treatment that fires on any focus. */
+:focus-visible {
+  outline: 2px solid var(--pink-strong);
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+textarea:focus-visible {
+  outline: none;
+}
+
+input,
+textarea {
+  font-family: inherit;
+  font-size: inherit;
+  color: inherit;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  outline: none;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+input:focus,
+textarea:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+textarea {
+  resize: none;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1.55;
+}
