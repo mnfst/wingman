@@ -56,16 +56,16 @@ export interface Profile {
   headers: (params: RequestParams) => Record<string, string>;
   /**
    * Fingerprint-only body fields merged on top of the format's body (e.g.
-   * OpenClaw's `store:false`). Optional — most profiles add nothing.
+   * OpenClaw's `max_completion_tokens`). Optional — most profiles add nothing.
    */
   bodyExtras?: (params: RequestParams) => Record<string, unknown>;
   code: (params: RequestParams, lang: ProfileLang, format: ApiFormat) => string;
 }
 
 const stainlessJs = {
-  'User-Agent': 'OpenAI/JS 6.26.0',
+  'User-Agent': 'OpenAI/JS 6.45.0',
   'X-Stainless-Lang': 'js',
-  'X-Stainless-Package-Version': '6.26.0',
+  'X-Stainless-Package-Version': '6.45.0',
   'X-Stainless-OS': 'Linux',
   'X-Stainless-Arch': 'x64',
   'X-Stainless-Runtime': 'node',
@@ -102,7 +102,9 @@ export const PROFILES: Profile[] = [
     defaultSystemPrompt: OPENCLAW_SYSTEM,
     headersLocked: true,
     headers: () => ({ ...stainlessJs }),
-    bodyExtras: () => ({ store: false, max_completion_tokens: 8192 }),
+    // `store: false` was dropped upstream in openclaw 2026.7.x — the shipped
+    // client now sends only the token cap (July 2026 capture).
+    bodyExtras: () => ({ max_completion_tokens: 8192 }),
     code: (p) => openclawSnippet(p),
   },
   {

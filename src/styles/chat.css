@@ -1,0 +1,257 @@
+/* ── Conversation thread (ChatGPT/Claude-style) ──────────────────────── */
+
+.conversation {
+  max-width: var(--thread-max);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Empty pane, Bruno-style: a big faint line drawing and the keyboard map —
+   ornament and orientation, no lecture. */
+.conversation__empty {
+  padding: 12vh 16px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 40px;
+}
+
+.conversation__empty-art {
+  color: var(--border-strong);
+}
+
+.shortcuts {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.shortcuts__row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 22px;
+  min-width: 280px;
+}
+
+.shortcuts__row dt {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  text-align: right;
+}
+
+.shortcuts__row dd {
+  margin: 0;
+  display: inline-flex;
+  gap: 4px;
+}
+
+.kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 2px 7px;
+  border: 1px solid var(--border);
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: var(--bg-elev);
+  color: var(--text-muted);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+/* User message bubble (right aligned, neutral like ChatGPT) */
+.user-msg {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.user-msg__bubble {
+  max-width: 80%;
+  padding: 11px 15px;
+  background: var(--bg-mute);
+  color: var(--text);
+  border-radius: 18px 18px 4px 18px;
+  font-size: 14px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* Assistant message (flush left, no bubble) */
+.assistant-msg {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 0;
+}
+
+.assistant-msg__loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 13px;
+  padding: 8px 0;
+}
+
+.assistant-msg__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.assistant-msg__error {
+  font-size: 12.5px;
+  color: var(--err);
+  padding: 8px 12px;
+  background: var(--err-bg);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--err);
+}
+
+.assistant-msg__hint {
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  background: var(--bg-mute);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--text-faint);
+}
+
+.assistant-msg__pane {
+  display: flex;
+  flex-direction: column;
+  min-height: 80px;
+}
+
+.assistant-msg__placeholder {
+  font-size: 13px;
+  color: var(--text-muted);
+  padding: 14px 0;
+}
+
+.assistant-msg__text {
+  font-size: 14px;
+  line-height: 1.6;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text);
+}
+
+/* Blinking caret shown at the tail of the live-streaming output. */
+.assistant-msg__cursor {
+  display: inline-block;
+  width: 7px;
+  height: 1.05em;
+  margin-left: 2px;
+  vertical-align: text-bottom;
+  background: var(--pink);
+  border-radius: 1px;
+  animation: cursor-blink 1s steps(2, start) infinite;
+}
+
+@keyframes cursor-blink {
+  to {
+    opacity: 0;
+  }
+}
+
+/* ── Chat composer (message box only — config lives above) ───────────── */
+
+.chatbox {
+  flex-shrink: 0;
+  padding: 8px 24px 10px;
+  background: var(--bg);
+}
+
+.chatbox__wrap {
+  max-width: var(--thread-max);
+  margin: 0 auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  padding: 7px 7px 7px 18px;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 26px;
+  box-shadow: var(--shadow-md);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.chatbox__wrap:focus-within {
+  border-color: color-mix(in srgb, var(--pink) 55%, var(--border));
+  box-shadow:
+    var(--shadow-md),
+    0 0 0 3px color-mix(in srgb, var(--pink) 12%, transparent);
+}
+
+.chatbox__textarea {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  border-radius: 0;
+  padding: 7px 0;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 21px;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.chatbox__textarea:focus {
+  box-shadow: none;
+  border-color: transparent;
+}
+
+.chatbox__send {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--pink), var(--pink-strong));
+  color: white;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px var(--pink-soft);
+  transition:
+    filter 0.15s,
+    transform 0.05s,
+    opacity 0.15s;
+}
+
+.chatbox__send:hover:not(:disabled) {
+  filter: brightness(0.95);
+}
+
+.chatbox__send:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.chatbox__send:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.chatbox__send--code {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+  box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35);
+}
+
+@media (max-width: 720px) {
+  .chatbox {
+    padding: 8px 14px 10px;
+  }
+}

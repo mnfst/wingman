@@ -16,9 +16,9 @@ interface ChatCompletionsCreateArgs {
 }
 
 const STAINLESS_JS = {
-  'User-Agent': 'OpenAI/JS 6.26.0',
+  'User-Agent': 'OpenAI/JS 6.45.0',
   'X-Stainless-Lang': 'js',
-  'X-Stainless-Package-Version': '6.26.0',
+  'X-Stainless-Package-Version': '6.45.0',
   'X-Stainless-OS': 'Linux',
   'X-Stainless-Arch': 'x64',
   'X-Stainless-Runtime': 'node',

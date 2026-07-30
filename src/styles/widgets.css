@@ -1,0 +1,263 @@
+/* ── Shared dropdown menu (format + provider pickers) ────────────────── */
+
+.dd-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 300px;
+  max-width: 380px;
+  max-height: 62vh;
+  overflow-y: auto;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 6px;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  animation: dropdown-in 0.12s ease-out;
+}
+
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dd-menu__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  width: 100%;
+  transition: background 0.12s;
+}
+
+.dd-menu__item:hover {
+  background: var(--bg-soft);
+}
+
+.dd-menu__item--active {
+  background: var(--pink-soft);
+}
+
+.dd-menu__icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+  background: var(--bg-mute);
+  padding: 2px;
+  object-fit: contain;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.dd-menu__body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex: 1;
+}
+
+.dd-menu__line {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dd-menu__label {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.dd-menu__mono {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--text-faint);
+}
+
+.dd-menu__blurb {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+.dd-menu__check {
+  color: var(--pink-strong);
+  flex-shrink: 0;
+  margin-top: 4px;
+}
+
+/* ── Header editor (Headers tab) ─────────────────────────────────────── */
+
+.header-editor__rows {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.header-editor__row {
+  display: grid;
+  grid-template-columns: 1fr 2fr 26px;
+  gap: 8px;
+  align-items: center;
+}
+
+.header-editor__row--blocked .header-editor__input {
+  opacity: 0.7;
+  text-decoration: line-through;
+}
+
+.header-editor__input {
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 6px 8px;
+  background: var(--bg);
+}
+
+.header-editor__remove {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  width: 26px;
+  height: 26px;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1;
+}
+
+.header-editor__remove:hover {
+  border-color: var(--err);
+  color: var(--err);
+  background: var(--err-bg);
+}
+
+.header-editor__add {
+  margin-top: 8px;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  color: var(--text-muted);
+  font-size: 12px;
+  width: 100%;
+}
+
+.header-editor__add:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.header-editor__warning {
+  margin-top: 10px;
+  padding: 8px 10px;
+  background: var(--warn-bg);
+  border-left: 3px solid var(--warn);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.header-editor__warning code {
+  font-size: 11.5px;
+  background: rgba(0, 0, 0, 0.05);
+  padding: 1px 4px;
+  border-radius: 3px;
+}
+
+/* ── Lang toggle (ts / python) ───────────────────────────────────────── */
+
+.lang-toggle {
+  display: inline-flex;
+  background: var(--bg-mute);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  gap: 2px;
+}
+
+.lang-toggle__btn {
+  background: transparent;
+  border: none;
+  padding: 4px 12px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  border-radius: 4px;
+  text-transform: lowercase;
+}
+
+.lang-toggle__btn--active {
+  background: var(--bg-elev);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── Health badge (inside the URL field) ─────────────────────────────── */
+
+.health-badge {
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-mute);
+  color: var(--text-faint);
+  line-height: 1.3;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.health-badge--ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.health-badge--warn {
+  background: var(--warn-bg);
+  color: var(--warn);
+}
+
+.health-badge--err {
+  background: var(--err-bg);
+  color: var(--err);
+}
+
+/* ── Spinner ─────────────────────────────────────────────────────────── */
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid color-mix(in srgb, var(--accent) 25%, transparent);
+  border-top-color: var(--accent);
+  animation: spin 0.7s linear infinite;
+}
+
+.spinner--white {
+  border-color: rgba(255, 255, 255, 0.35);
+  border-top-color: white;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

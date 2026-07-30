@@ -13,11 +13,16 @@ const NEW_GIST_URL = 'https://gist.github.com/';
 const GistModal: Component<Props> = (props) => {
   const [copied, setCopied] = createSignal(false);
   const [copyError, setCopyError] = createSignal<string | null>(null);
+  let closeBtnRef: HTMLButtonElement | undefined;
+  let previousFocus: HTMLElement | null = null;
 
   const close = () => {
     setCopied(false);
     setCopyError(null);
     props.onClose();
+    // Hand focus back to whatever opened the dialog (the Save button).
+    previousFocus?.focus();
+    previousFocus = null;
   };
 
   const onKey = (e: KeyboardEvent) => {
@@ -47,6 +52,9 @@ const GistModal: Component<Props> = (props) => {
     if (props.open && !attached) {
       document.addEventListener('keydown', onKey);
       attached = true;
+      // Move focus into the dialog once it exists in the DOM.
+      previousFocus = document.activeElement as HTMLElement | null;
+      queueMicrotask(() => closeBtnRef?.focus());
     } else if (!props.open && attached) {
       document.removeEventListener('keydown', onKey);
       attached = false;
@@ -92,6 +100,7 @@ const GistModal: Component<Props> = (props) => {
             <button
               type="button"
               class="gist-modal__close"
+              ref={closeBtnRef}
               onClick={close}
               aria-label="Close"
               title="Close (Esc)"

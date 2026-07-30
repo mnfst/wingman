@@ -1,0 +1,99 @@
+/* ── Client (impersonation) selector — Postman "auth type" idiom ─────── */
+
+.client-select {
+  position: relative;
+  display: block;
+  max-width: 420px;
+}
+
+.client-select__btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12.5px;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.client-select__btn:hover {
+  border-color: var(--border-strong);
+}
+
+.client-select__btn[aria-expanded='true'] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+.client-select__btn > svg {
+  margin-left: auto;
+  color: var(--text-faint);
+}
+
+.client-select__icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  object-fit: contain;
+}
+
+.client-select__label {
+  font-weight: 600;
+}
+
+.client-select__tag,
+.client-select__item-tag {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  padding: 1px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-mute);
+  color: var(--text-faint);
+}
+
+.client-select__menu {
+  width: 100%;
+  min-width: 320px;
+}
+
+/* ── Locked (fingerprint) headers — read-only listing ────────────────── */
+
+.headers-locked__list {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.headers-locked__row {
+  display: grid;
+  grid-template-columns: minmax(130px, 220px) 1fr;
+  gap: 14px;
+  padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  font-family: var(--mono);
+  font-size: 11.5px;
+}
+
+.headers-locked__row:last-child {
+  border-bottom: none;
+}
+
+.headers-locked__row dt {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+.headers-locked__row dd {
+  margin: 0;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}

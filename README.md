@@ -27,10 +27,10 @@ Open <https://wingman.manifest.build>, then:
 
 - **Provider preset** — pick a provider (OpenAI, Anthropic, Mistral, Groq, …) to auto-fill its base URL and wire format. The default, **Custom / Manifest**, pre-fills the Manifest Cloud gateway (`https://app.manifest.build`) — edit the Base URL by hand to point at your own gateway (which switches the pill back to Custom).
 - **Format** — the wire protocol: OpenAI Chat Completions (`/v1/chat/completions`), OpenAI Responses (`/v1/responses`), or Anthropic Messages (`/v1/messages`). This sets the endpoint path, auth scheme, body shape, and how the response is parsed.
-- **Base URL** — e.g. `https://your-manifest.example.com`, `https://api.openai.com`, `https://api.anthropic.com`, or `http://localhost:3001` (more on cross-origin below). Wingman appends the format's path, and shows the resolved endpoint under the field. Pasting a full endpoint or a base ending in `/v1` is fine — the duplicate is stripped rather than producing `/v1/v1/chat/completions`. A missing scheme is filled in (`http://` for loopback hosts, `https://` otherwise).
+- **Base URL** — e.g. `https://your-manifest.example.com`, `https://api.openai.com`, `https://api.anthropic.com`, or `http://localhost:3001` (more on cross-origin below). Wingman appends the format's path shown in the method selector, and surfaces the resolved endpoint under the URL bar whenever normalisation changed what you typed. Pasting a full endpoint or a base ending in `/v1` is fine — the duplicate is stripped rather than producing `/v1/v1/chat/completions`. A missing scheme is filled in (`http://` for loopback hosts, `https://` otherwise).
 - **API key** — `Authorization: Bearer` for OpenAI-style formats, `x-api-key` for Anthropic (attached automatically per format). Keys are kept per provider: switching preset shows that provider's own key (blank until you set one), and switching back restores it.
-- **Model** — `auto` or a specific model id.
-- **Stream** — toggle in the composer toolbar to read the reply as it's generated (Server-Sent Events).
+- **Model** — `auto` or a specific model id. When the endpoint answers `GET /v1/models` (Manifest, OpenAI-compatible providers, Anthropic), the field becomes a dropdown listing that catalog; otherwise it stays free-text.
+- **Stream** — toggle at the right of the config tab strip to read the reply as it's generated (Server-Sent Events).
 
 You can pre-fill via query string: `?baseUrl=https://your.gateway&apiKey=mnfst_...`. The Manifest dashboard's Wingman drawer does this automatically.
 
@@ -97,7 +97,7 @@ Scripts:
 - **`src/snippets.ts`** — format-aware SDK / cURL code-snippet builders for the preview panel.
 - **`src/send.ts`** — fetch wrapper that captures status, latency, request/response headers, and parses JSON. `sendRequestStreaming` reads the SSE body and assembles the text via the format's stream parser. Filters out forbidden headers (`User-Agent`, `Sec-*`, `Cookie`, …) that browsers refuse to set on fetch and surfaces them in the UI.
 - **`src/services/sse.ts`** — generic Server-Sent Events reader (decodes the stream, splits events).
-- **`src/App.tsx`** — composes the layout: format + client pickers → connection bar → form → header editor → SDK code preview → response panel.
+- **`src/App.tsx`** — composes the layout, Postman-style config on top (request tabs → URL bar → Client / Auth / Headers / System Prompt / Code tabs) with the chat thread + message box below. State lives in `src/state/appState.ts`, network/history actions in `src/state/appActions.ts`.
 
 ## Caveats
 

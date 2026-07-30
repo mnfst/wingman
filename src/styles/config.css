@@ -1,0 +1,263 @@
+/* ── Config tabs (Postman's Params/Auth/Headers/Body slot) ───────────── */
+
+/* Fills the left pane top to bottom; the panel scrolls, the strip doesn't. */
+.config {
+  background: var(--bg-elev);
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.config__strip {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.config__tablist {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.config__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 11px;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  white-space: nowrap;
+  transition:
+    color 0.12s,
+    border-color 0.12s;
+}
+
+.config__tab:hover {
+  color: var(--text);
+}
+
+.config__tab--active {
+  color: var(--text);
+  border-bottom-color: var(--pink-strong);
+  font-weight: 600;
+}
+
+.config__tab-count {
+  color: var(--text-faint);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+
+.config__tab-warn {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--warn-bg);
+  color: var(--warn);
+  font-size: 10px;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
+}
+
+.config__tab-ok {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ok);
+}
+
+.config__tab-edited {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--violet);
+}
+
+.config__stream {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.switch {
+  width: 32px;
+  height: 18px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: var(--bg-mute);
+  position: relative;
+  padding: 0;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.switch--on {
+  background: var(--pink-strong);
+  border-color: var(--pink-strong);
+}
+
+.switch__thumb {
+  position: absolute;
+  top: 1px;
+  left: 1px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.15s;
+}
+
+.switch--on .switch__thumb {
+  transform: translateX(14px);
+}
+
+.config__panel {
+  padding: 12px 14px 14px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+/* Stacked (narrow) layout: the pane no longer owns the viewport height, so
+   cap the panel to keep the chat reachable. */
+@media (max-width: 900px) {
+  .config__panel {
+    max-height: 40vh;
+  }
+}
+
+.config__panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.config__panel-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.config__label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.config__status {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-mute);
+  color: var(--text-faint);
+  line-height: 1;
+}
+
+.config__status--set {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.config__badge {
+  font-size: 9.5px;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  padding: 2px 7px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-mute);
+  color: var(--text-faint);
+  line-height: 1.1;
+  text-transform: uppercase;
+}
+
+.config__badge--ok {
+  background: var(--ok-bg);
+  color: var(--ok);
+}
+
+.config__badge--accent {
+  background: var(--pink-soft);
+  color: var(--pink-strong);
+}
+
+.config__link {
+  background: transparent;
+  border: none;
+  color: var(--pink-strong);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.config__link:hover {
+  background: var(--pink-soft);
+}
+
+.config__note {
+  margin: 0 0 10px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.config__note a {
+  color: var(--text);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 2px;
+}
+
+.config__note a:hover {
+  text-decoration-color: var(--text);
+}
+
+.config__system {
+  width: 100%;
+  height: 100%;
+  min-height: 180px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.config__note--client {
+  margin-top: 10px;
+}
+
+.config__note--dim {
+  color: var(--text-faint);
+  margin-bottom: 0;
+}
