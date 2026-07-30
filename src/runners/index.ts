@@ -147,8 +147,13 @@ export async function runUserCode(opts: RunOptions): Promise<RunOutput> {
   const consoleStub = makeConsoleStub(logs);
   const stripped = stripModuleSyntax(opts.code);
 
-  const argNames = ['console', ...Object.keys(globals)];
-  const argValues: unknown[] = [consoleStub, ...Object.values(globals)];
+  // Snippets read the key from `process.env` so the panel can be shared, and
+  // there's no `process` in a browser. An empty env is the honest stand-in:
+  // every stub falls back to the key from the URL bar when it reads undefined.
+  const processStub = { env: {} as Record<string, string | undefined> };
+
+  const argNames = ['console', 'process', ...Object.keys(globals)];
+  const argValues: unknown[] = [consoleStub, processStub, ...Object.values(globals)];
 
   let fn: (...args: unknown[]) => Promise<unknown>;
   try {

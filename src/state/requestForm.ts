@@ -8,6 +8,7 @@ import type { ApiFormat, ApiFormatId, RequestParams } from '../formats';
 import type { Profile, ProfileLang } from '../profiles';
 import { partitionHeaders } from '../send';
 import { isExecutable } from '../runners';
+import type { KeyRef, SnippetContext } from '../snippets';
 import { entriesFromRecord, recordFromEntries } from '../services/settings';
 
 interface Deps {
@@ -16,6 +17,7 @@ interface Deps {
   profile: Accessor<Profile>;
   lang: Accessor<ProfileLang>;
   params: () => RequestParams;
+  keyRef: Accessor<KeyRef>;
 }
 
 /**
@@ -27,12 +29,53 @@ interface Deps {
 export function createRequestForm(d: Deps) {
   const key = () => `${d.formatId()}:${d.profile().id}:${d.lang()}`;
 
+  // ── Request headers ─────────────────────────────────────────────────────
+  // Defaults come from the format (e.g. anthropic-version); the client layers
+  // its fingerprint headers on top. An override replaces both.
+  const [headerOverrides, setHeaderOverrides] = createSignal<Record<string, HeaderEntry[]>>({});
+
+  /** What the client and format put on the wire without being asked. */
+  const clientHeaders = createMemo<Record<string, string>>(() => ({
+    ...(d.format().defaultHeaders ?? {}),
+    ...d.profile().headers(d.params()),
+  }));
+
+  const headerEntries = createMemo<HeaderEntry[]>(() => {
+    const cached = headerOverrides()[key()];
+    if (cached) return cached;
+    return entriesFromRecord(clientHeaders());
+  });
+
+  const updateHeaderEntries = (next: HeaderEntry[]) => {
+    setHeaderOverrides({ ...headerOverrides(), [key()]: next });
+  };
+
+  const resetHeaders = () => {
+    const next = { ...headerOverrides() };
+    delete next[key()];
+    setHeaderOverrides(next);
+  };
+
+  /** Header names the browser will drop before the request goes out. */
+  const blockedHeaderNames = () => partitionHeaders(recordFromEntries(headerEntries())).blocked;
+
   // ── SDK snippet ─────────────────────────────────────────────────────────
   // An entry here overrides the generated snippet AND becomes the source of
   // truth for Send, provided the client can execute it in this language.
   const [scratchCode, setScratchCode] = createSignal<Record<string, string>>({});
 
-  const generatedSdkCode = createMemo(() => d.profile().code(d.params(), d.lang(), d.format()));
+  // Everything a snippet renders, in one object — and the same one handed to
+  // the parser when the snippet is edited, so the two directions stay symmetric.
+  const snippetContext = createMemo<SnippetContext>(() => ({
+    params: d.params(),
+    lang: d.lang(),
+    format: d.format(),
+    headers: recordFromEntries(headerEntries()),
+    clientHeaders: clientHeaders(),
+    key: d.keyRef(),
+  }));
+
+  const generatedSdkCode = createMemo(() => d.profile().code(snippetContext()));
 
   const sdkCodeIsEdited = () => {
     const edited = scratchCode()[key()];
@@ -52,33 +95,6 @@ export function createRequestForm(d: Deps) {
     setScratchCode(next);
   };
 
-  // ── Request headers ─────────────────────────────────────────────────────
-  // Defaults come from the format (e.g. anthropic-version); the client layers
-  // its fingerprint headers on top. An override replaces both.
-  const [headerOverrides, setHeaderOverrides] = createSignal<Record<string, HeaderEntry[]>>({});
-
-  const headerEntries = createMemo<HeaderEntry[]>(() => {
-    const cached = headerOverrides()[key()];
-    if (cached) return cached;
-    return entriesFromRecord({
-      ...(d.format().defaultHeaders ?? {}),
-      ...d.profile().headers(d.params()),
-    });
-  });
-
-  const updateHeaderEntries = (next: HeaderEntry[]) => {
-    setHeaderOverrides({ ...headerOverrides(), [key()]: next });
-  };
-
-  const resetHeaders = () => {
-    const next = { ...headerOverrides() };
-    delete next[key()];
-    setHeaderOverrides(next);
-  };
-
-  /** Header names the browser will drop before the request goes out. */
-  const blockedHeaderNames = () => partitionHeaders(recordFromEntries(headerEntries())).blocked;
-
   return {
     sdkCode,
     sdkCodeIsEdited,
@@ -86,8 +102,10 @@ export function createRequestForm(d: Deps) {
     willRunCode,
     onSdkCodeChange,
     resetSdkCode,
+    snippetContext,
     headerOverrides,
     setHeaderOverrides,
+    clientHeaders,
     headerEntries,
     updateHeaderEntries,
     resetHeaders,
