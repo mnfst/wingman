@@ -8,6 +8,13 @@
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <!-- Installable as an app; the worker is registered from src/index.tsx. -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="application-name" content="Wingman" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Wingman" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="preload" href="/fonts/dm-sans-latin.woff2" as="font" type="font/woff2" crossorigin />
     <link
       rel="preload"
@@ -114,10 +121,17 @@
         community by the community. If you think that it deserves more highlight, share it with your
         peers and <a href="https://github.com/mnfst/wingman">give us a star on GitHub</a>.
       </p>
+      <p>
+        <a href="https://github.com/mnfst/wingman/issues/new">Report an issue</a> ·
+        <a href="https://github.com/mnfst/wingman/discussions">Start a discussion</a>
+      </p>
       <h2>The Manifest ecosystem</h2>
-      <p>Wingman is part of the Manifest ecosystem, checkout our other open source repositories:</p>
+      <p>
+        Wingman is part of the <a href="https://manifest.build">Manifest</a> ecosystem, checkout our
+        other open source repositories:
+      </p>
       <ul>
-        <li><a href="https://manifest.build">Manifest</a> — Open-source LLM gateway</li>
+        <li><a href="https://github.com/mnfst/manifest">Manifest</a> — Open-source LLM gateway</li>
         <li>
           <a href="https://github.com/mnfst/awesome-free-llm-apis">Free LLM APIs</a> — Awesome list
           of LLM APIs with permanent free tiers

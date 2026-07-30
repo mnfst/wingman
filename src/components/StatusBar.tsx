@@ -1,5 +1,6 @@
 import type { Component } from 'solid-js';
 import { GitHubIcon } from './icons.jsx';
+import InstallButton from './InstallButton.jsx';
 import { WINGMAN_REPO } from '../content/about';
 
 interface Props {
@@ -72,6 +73,7 @@ const StatusBar: Component<Props> = (props) => {
           <InfoIcon />
           <span>About</span>
         </button>
+        <InstallButton />
       </div>
 
       <div class="statusbar__group">

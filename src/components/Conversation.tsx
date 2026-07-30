@@ -14,15 +14,17 @@ interface Props {
 }
 
 /* Thin-line magic wand with sparkles — the empty pane's only ornament, drawn
-   in border-grey so it reads as texture, not content (Bruno's paper plane). */
+   in border-grey so it reads as texture, not content (Bruno's paper plane).
+   Rendered at 1.5× the viewBox, so the stroke widths are divided by the same
+   factor to keep the line hairline-thin at the larger size. */
 const WandIcon: Component = () => (
   <svg
-    width="120"
-    height="120"
+    width="180"
+    height="180"
     viewBox="0 0 120 120"
     fill="none"
     stroke="currentColor"
-    stroke-width="3.5"
+    stroke-width="2.6"
     stroke-linecap="round"
     stroke-linejoin="round"
     aria-hidden="true"
@@ -34,10 +36,10 @@ const WandIcon: Component = () => (
     {/* large 4-point sparkle */}
     <path d="M92 18v16M84 26h16" />
     {/* small sparkles */}
-    <path d="M62 24v9M57.5 28.5h9" stroke-width="2.5" />
-    <path d="M100 58v9M95.5 62.5h9" stroke-width="2.5" />
-    <circle cx="46" cy="42" r="1.4" fill="currentColor" stroke="none" />
-    <circle cx="104" cy="34" r="1.4" fill="currentColor" stroke="none" />
+    <path d="M62 24v9M57.5 28.5h9" stroke-width="1.8" />
+    <path d="M100 58v9M95.5 62.5h9" stroke-width="1.8" />
+    <circle cx="46" cy="42" r="0.95" fill="currentColor" stroke="none" />
+    <circle cx="104" cy="34" r="0.95" fill="currentColor" stroke="none" />
   </svg>
 );
 
