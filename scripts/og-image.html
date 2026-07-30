@@ -1,0 +1,256 @@
+<!doctype html>
+<!--
+  Source for public/og.png (the 1200x630 social card). Edit here, then re-render:
+
+    google-chrome --headless=new --disable-gpu --hide-scrollbars \
+      --force-device-scale-factor=2 --window-size=1200,630 \
+      --screenshot=/tmp/og-2x.png --virtual-time-budget=4000 \
+      file://$PWD/scripts/og-image.html
+    magick /tmp/og-2x.png -resize 1200x630 -strip public/og.png
+
+  Rendered at 2x and downscaled so the text stays crisp. Fonts come from
+  public/fonts/, the same faces the app serves, so no network access is needed.
+  Colours are copied from src/styles/tokens.css (light theme).
+-->
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      /* The app's own faces (see src/styles/fonts.css): Bricolage Grotesque for
+         the wordmark and headline, DM Sans for body, JetBrains Mono for the wire. */
+      @font-face {
+        font-family: 'Bricolage Grotesque';
+        font-weight: 400 700;
+        src: url('../public/fonts/bricolage-grotesque-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'DM Sans';
+        font-weight: 400 700;
+        src: url('../public/fonts/dm-sans-latin.woff2') format('woff2');
+      }
+      @font-face {
+        font-family: 'JetBrains Mono';
+        font-weight: 400 500;
+        src: url('../public/fonts/jetbrains-mono-latin.woff2') format('woff2');
+      }
+
+      :root {
+        --bg: #faf8f5;
+        --bg-elev: #ffffff;
+        --text: #1a1d23;
+        --text-muted: #5b6470;
+        --border: #e3ddd2;
+        --border-strong: #cdc4b3;
+        --pink: #ec4899;
+        --pink-strong: #db2777;
+        --post: #b45309;
+        --ok: #15803d;
+        --ok-bg: #dcfce7;
+        --code-bg: #1d2027;
+        --code-text: #e6e8eb;
+        --code-muted: #98a3b3;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html,
+      body {
+        width: 1200px;
+        height: 630px;
+      }
+
+      body {
+        font-family: 'DM Sans', sans-serif;
+        color: var(--text);
+        background:
+          radial-gradient(920px 520px at 92% -14%, rgba(236, 72, 153, 0.16), transparent 62%),
+          radial-gradient(700px 420px at -8% 108%, rgba(31, 122, 140, 0.09), transparent 62%),
+          var(--bg);
+        -webkit-font-smoothing: antialiased;
+        display: flex;
+        flex-direction: column;
+        padding: 60px 64px 56px;
+        overflow: hidden;
+      }
+
+      .top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+      .brand img {
+        width: 58px;
+        height: 58px;
+      }
+      .brand strong {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        font-size: 34px;
+        font-weight: 700;
+        letter-spacing: -0.6px;
+      }
+
+      .host {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 20px;
+        color: var(--text-muted);
+      }
+
+      h1 {
+        font-family: 'Bricolage Grotesque', sans-serif;
+        margin-top: 44px;
+        font-size: 82px;
+        font-weight: 700;
+        letter-spacing: -2.6px;
+        line-height: 1;
+      }
+      h1 em {
+        font-style: normal;
+        color: var(--pink-strong);
+      }
+
+      .sub {
+        margin-top: 20px;
+        font-size: 29px;
+        color: var(--text-muted);
+        letter-spacing: -0.3px;
+      }
+
+      .card {
+        margin-top: 36px;
+        background: var(--bg-elev);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        box-shadow:
+          0 10px 30px rgba(20, 23, 28, 0.07),
+          0 2px 6px rgba(20, 23, 28, 0.04);
+        padding: 20px 22px;
+      }
+
+      .urlrow {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .method {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 19px;
+        font-weight: 500;
+        color: var(--post);
+        background: #fef3c7;
+        border-radius: 8px;
+        padding: 7px 12px;
+        letter-spacing: 0.4px;
+      }
+
+      .url {
+        flex: 1;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 21px;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .url .dim {
+        color: var(--text-muted);
+      }
+
+      .status {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 18px;
+        font-weight: 500;
+        color: var(--ok);
+        background: var(--ok-bg);
+        border-radius: 999px;
+        padding: 7px 14px;
+      }
+
+      .wire {
+        margin-top: 16px;
+        background: var(--code-bg);
+        border-radius: 10px;
+        padding: 16px 20px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 19px;
+        line-height: 1.6;
+        color: var(--code-text);
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .wire .k {
+        color: var(--code-muted);
+      }
+      .wire .s {
+        color: #f472b6;
+      }
+      .wire .caret {
+        display: inline-block;
+        width: 10px;
+        height: 20px;
+        background: var(--pink);
+        vertical-align: -3px;
+        margin-left: 4px;
+      }
+
+      .pills {
+        margin-top: auto;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+      }
+      .pill {
+        font-size: 20px;
+        font-weight: 500;
+        color: var(--text-muted);
+        border: 1px solid var(--border-strong);
+        border-radius: 999px;
+        padding: 9px 18px;
+      }
+      .pill.hot {
+        color: var(--pink-strong);
+        border-color: rgba(219, 39, 119, 0.35);
+        background: rgba(236, 72, 153, 0.08);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="top">
+      <div class="brand">
+        <img src="../public/wingman.svg" alt="" />
+        <strong>Wingman</strong>
+      </div>
+      <div class="host">wingman.manifest.build</div>
+    </div>
+
+    <h1>Postman for <em>LLM APIs</em></h1>
+    <div class="sub">Test any LLM API from your browser. No install, no account.</div>
+
+    <div class="card">
+      <div class="urlrow">
+        <div class="method">POST</div>
+        <div class="url"><span class="dim">https://api.openai.com</span>/v1/chat/completions</div>
+        <div class="status">200 OK &middot; 312 ms</div>
+      </div>
+      <div class="wire">
+        <span class="k">data:</span> {"choices":[{"delta":{"content":<span class="s">"Hello"</span>}}]}<span
+          class="caret"
+        ></span>
+      </div>
+    </div>
+
+    <div class="pills">
+      <div class="pill hot">Free &amp; open source</div>
+      <div class="pill">MIT licensed</div>
+      <div class="pill">No server in between</div>
+    </div>
+  </body>
+</html>

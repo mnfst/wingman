@@ -31,6 +31,7 @@ CI runs those four on every pull request, so a red one won't get merged.
 - Adding a wire format is one file in `src/formats/` listed in its `index.ts`. Adding a client to impersonate is one entry in `src/profiles.ts`.
 - Logic in `src/services/` should come with tests. They sit next to the code as `*.test.ts` and run under Vitest.
 - Prettier owns formatting. Run `npm run format` and don't argue with it.
+- The social card at `public/og.png` is generated, not hand-drawn. Edit `scripts/og-image.html` and re-render with the command in its header comment.
 
 ## Commit messages
 
