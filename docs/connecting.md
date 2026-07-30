@@ -64,7 +64,8 @@ Scripts: `npm run dev`, `npm run build`, `npm run preview`, `npm run lint`, `npm
 
 - **`src/formats/`** has one module per wire format (`openai-chat`, `openai-responses`, `anthropic-messages`). Each owns its endpoint path, auth scheme, body builder, response parsers, and streaming parser. Adding a format means adding one file and listing it in `index.ts`.
 - **`src/profiles.ts`** is the catalog of agent and SDK fingerprints layered on a format: headers, system prompt, optional body extras, code snippet. Each profile declares which formats it is compatible with, and the UI filters the list to the selected format.
-- **`src/snippets.ts`** builds the format-aware SDK and cURL snippets for the Code tab.
+- **`src/snippets.ts`** builds the format-aware SDK and cURL snippets shown under the Client tab.
 - **`src/send.ts`** is the fetch wrapper that captures status, latency, request and response headers, and parses JSON. `sendRequestStreaming` reads the SSE body and assembles the text via the format's stream parser. It filters out forbidden headers (`User-Agent`, `Sec-*`, `Cookie`, …) that browsers refuse to set on fetch and surfaces them in the UI.
 - **`src/services/sse.ts`** is a generic Server-Sent Events reader.
-- **`src/App.tsx`** composes the layout: Postman-style config on top (request tabs, URL bar, then Client / Headers / System Prompt / Code) with the chat thread and message box below. State lives in `src/state/appState.ts`, network and history actions in `src/state/appActions.ts`.
+- **`src/App.tsx`** composes the layout: Postman-style config on top (request tabs, URL bar, then Client / Headers / System Prompt) with the chat thread and message box below. It is wiring only.
+- **`src/state/`** holds everything else: `appState.ts` the signals and derived values, `appActions.ts` the tab, history and sharing actions, `sendAction.ts` the request itself, `requestForm.ts` the snippet and header overrides (keyed per format, client and language), `probes.ts` the health and model lookups, `drafts.ts` the open draft tabs.

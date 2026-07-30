@@ -81,7 +81,7 @@ export function describeFailure(kind: FailureKind, targetUrl: string): FailureAd
         detail:
           `The browser blocked this request: ${pageOrigin()} is a public page and ${host} is on ` +
           'your local network. Chrome gates that behind the Local Network Access permission and ' +
-          'Safari refuses it outright — no CORS or server-side change will lift it. Run Wingman ' +
+          'Safari refuses it outright. No CORS or server-side change will lift it. Run Wingman ' +
           'on localhost (or open it from your dashboard\'s own origin) to reach a local gateway.',
       };
     case 'mixed-content':

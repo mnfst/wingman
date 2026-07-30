@@ -12,7 +12,7 @@
 
 Wingman is an API client for LLMs. Pick a wire format (OpenAI Chat Completions, OpenAI Responses, Anthropic Messages), paste a base URL and a key, and call anything that speaks it: OpenAI, Anthropic, Groq, Together, DeepSeek, your own gateway.
 
-Configure the request like Postman, read the reply like ChatGPT, then flip a tab to see the exact bytes that went over the wire. It can also impersonate the clients a proxy sees in the wild (OpenClaw, Hermes, the OpenAI SDK, LangChain, cURL) by replaying their real headers and system prompts.
+Configure the request like Postman, read the reply like ChatGPT, then flip a tab to see the exact bytes that went over the wire. It can also impersonate the clients a proxy sees in the wild (OpenClaw, Hermes, the OpenAI SDK, LangChain) by replaying their real headers and system prompts.
 
 No backend. Requests go from your tab straight to the endpoint you typed, so nothing is proxied and nothing is logged. Nothing is kept either: your key, base URL, history and prompts all sit in `sessionStorage` and die with the tab.
 

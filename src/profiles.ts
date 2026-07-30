@@ -42,9 +42,8 @@ export interface Profile {
   defaultSystemPrompt?: string;
   /**
    * When true, the Headers panel is hidden — the profile simulates a real
-   * SDK/agent fingerprint and arbitrary header editing would defeat that.
-   * cURL and Raw set this to false because their whole point is hand-crafted
-   * requests.
+   * SDK/agent fingerprint and arbitrary header editing would defeat that. The
+   * Default client leaves this false because hand-crafting is its whole point.
    */
   headersLocked?: boolean;
   /**
@@ -94,7 +93,7 @@ export const PROFILES: Profile[] = [
     label: 'OpenClaw',
     mode: 'agent',
     category: 'personal',
-    blurb: 'Personal AI agent — stainless JS headers + OpenClaw system prompt.',
+    blurb: "Personal AI agent. Sends OpenClaw's system prompt behind stainless JS headers.",
     icon: '/icons/openclaw.png',
     langs: ['bash'],
     defaultLang: 'bash',
@@ -112,7 +111,7 @@ export const PROFILES: Profile[] = [
     label: 'Hermes Agent',
     mode: 'agent',
     category: 'personal',
-    blurb: 'Personal AI agent — stainless Python headers + Hermes system prompt.',
+    blurb: "Personal AI agent. Sends Hermes' system prompt behind stainless Python headers.",
     icon: '/icons/hermes.png',
     langs: ['bash'],
     defaultLang: 'bash',
@@ -127,7 +126,7 @@ export const PROFILES: Profile[] = [
     label: 'OpenAI SDK',
     mode: 'sdk',
     category: 'app',
-    blurb: 'Official OpenAI client (Chat Completions).',
+    blurb: 'The official OpenAI client, calling Chat Completions.',
     icon: '/icons/providers/openai.svg',
     langs: ['typescript', 'python'],
     defaultLang: 'typescript',
@@ -142,7 +141,7 @@ export const PROFILES: Profile[] = [
     label: 'Vercel AI SDK',
     mode: 'sdk',
     category: 'app',
-    blurb: 'Vercel AI SDK with the OpenAI provider.',
+    blurb: 'The Vercel AI SDK, set up with its OpenAI provider.',
     icon: '/icons/vercel.svg',
     langs: ['typescript'],
     defaultLang: 'typescript',
@@ -157,7 +156,7 @@ export const PROFILES: Profile[] = [
     label: 'LangChain',
     mode: 'sdk',
     category: 'app',
-    blurb: 'LangChain with the OpenAI-compatible chat model.',
+    blurb: 'LangChain, using its OpenAI-compatible chat model.',
     icon: '/icons/langchain.png',
     langs: ['python', 'typescript'],
     defaultLang: 'python',
@@ -172,7 +171,7 @@ export const PROFILES: Profile[] = [
     label: 'OpenAI SDK',
     mode: 'sdk',
     category: 'app',
-    blurb: 'Official OpenAI client via the Responses API.',
+    blurb: 'The official OpenAI client, calling the Responses API.',
     icon: '/icons/providers/openai.svg',
     langs: ['typescript', 'python'],
     defaultLang: 'typescript',
@@ -185,7 +184,7 @@ export const PROFILES: Profile[] = [
     label: 'Anthropic SDK',
     mode: 'sdk',
     category: 'app',
-    blurb: 'Official Anthropic client (Messages API).',
+    blurb: 'The official Anthropic client, calling the Messages API.',
     icon: '/icons/providers/anthropic.svg',
     langs: ['typescript', 'python'],
     defaultLang: 'typescript',
@@ -193,37 +192,44 @@ export const PROFILES: Profile[] = [
     headers: () => ({}),
     code: (p, lang) => anthropicSdkSnippet(p, lang),
   },
+  // Was two entries, "cURL" and "Raw / None". They were indistinguishable on
+  // the wire: the only thing separating them was cURL's `User-Agent`, and the
+  // browser strips that from every fetch (see FORBIDDEN_HEADERS in send.ts), so
+  // both sent byte-identical requests. Now one client, with cURL and fetch as
+  // two renderings of the same call.
   {
-    id: 'curl',
-    label: 'cURL',
-    mode: 'sdk',
-    category: 'app',
-    blurb: 'Raw HTTP via cURL — no SDK fingerprint.',
-    icon: '/icons/other.svg',
-    langs: ['bash'],
-    defaultLang: 'bash',
-    formats: ['openai-chat', 'openai-responses', 'anthropic-messages'],
-    headers: () => ({ 'User-Agent': 'curl/8.6.0' }),
-    code: (p, _lang, format) => curlSnippet(p, format),
-  },
-  {
-    id: 'raw',
-    label: 'Raw / None',
+    id: 'default',
+    label: 'Default',
     mode: 'raw',
     category: 'raw',
-    blurb: 'Minimal fetch — no SDK headers. Useful for baseline measurements.',
-    icon: '/icons/other-agent.svg',
-    langs: ['bash'],
+    blurb: 'No client fingerprint. Just the request, the way your own code would send it.',
+    icon: '/icons/other.svg',
+    langs: ['bash', 'typescript'],
     defaultLang: 'bash',
     formats: ['openai-chat', 'openai-responses', 'anthropic-messages'],
     headers: () => ({}),
-    code: (p, _lang, format) => rawSnippet(p, format),
+    code: (p, lang, format) =>
+      lang === 'typescript' ? rawSnippet(p, format) : curlSnippet(p, format),
   },
 ];
 
 export const PROFILE_BY_ID: Record<string, Profile> = Object.fromEntries(
   PROFILES.map((p) => [p.id, p]),
 );
+
+// Clients that used to exist, mapped to the one that replaced them. Stored
+// settings and saved history outlive a catalog change, so a retired id has to
+// keep resolving to something rather than silently landing on the wrong client.
+const PROFILE_ALIASES: Record<string, string> = {
+  curl: 'default',
+  raw: 'default',
+};
+
+/** The live id for a client id read back from storage or history. */
+export function resolveProfileId(id: string): string {
+  if (PROFILE_BY_ID[id]) return id;
+  return PROFILE_ALIASES[id] ?? id;
+}
 
 /** Profiles compatible with a given format, in catalog order. */
 export function profilesForFormat(formatId: ApiFormatId): Profile[] {

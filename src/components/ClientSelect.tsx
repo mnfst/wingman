@@ -40,7 +40,7 @@ const CheckIcon: Component = () => (
 );
 
 export const categoryTag = (p: Profile) =>
-  p.category === 'personal' ? 'Agent' : p.category === 'app' ? 'SDK' : 'Raw';
+  p.category === 'personal' ? 'Agent' : p.category === 'app' ? 'SDK' : 'HTTP';
 
 /**
  * Client picker in the Postman "auth type" idiom: one compact select-looking

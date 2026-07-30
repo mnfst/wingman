@@ -1,158 +1,69 @@
-// Network + history actions, split from appState so each module stays small.
-// Everything here reads/writes through the AppState created in appState.ts.
-import { PROFILE_BY_ID, type ProfileLang } from '../profiles';
+// Tab, history and sharing actions. Sending lives in sendAction.ts; everything
+// here reads and writes through the AppState created in appState.ts.
+import { PROFILE_BY_ID, resolveProfileId, type ProfileLang } from '../profiles';
 import { FORMATS, FORMAT_BY_ID, DEFAULT_FORMAT_ID, type ApiFormatId } from '../formats';
-import { sendRequest, sendRequestStreaming, type SendResult } from '../send';
-import {
-  appendHistory,
-  clearHistory,
-  deleteHistory,
-  listHistory,
-  type HistoryEntry,
-} from '../services/history';
+import { clearHistory, deleteHistory, listHistory, type HistoryEntry } from '../services/history';
 import { normalizeBaseUrl } from '../services/baseUrl';
-import { runUserCode } from '../runners';
 import { buildMarkdownReport } from '../services/gist';
-import {
-  STORAGE,
-  entriesFromRecord,
-  providerForBaseUrl,
-  recordFromEntries,
-  writeStorage,
-} from '../services/settings';
+import { STORAGE, entriesFromRecord, providerForBaseUrl, writeStorage } from '../services/settings';
+import { newDraftId, tabAfterClosing, type TabRef } from './drafts';
+import { createSendAction } from './sendAction';
 import type { AppState } from './appState';
 
 export type AppActions = ReturnType<typeof createAppActions>;
 
 export function createAppActions(s: AppState) {
-  const errorResult = (message: string, statusText = 'Code error'): SendResult => ({
-    url: s.requestUrl(),
-    status: 0,
-    statusText,
-    ok: false,
-    durationMs: 0,
-    requestHeaders: {},
-    requestBody: '',
-    responseHeaders: {},
-    responseBody: '',
-    responseJson: null,
-    error: message,
-  });
+  // The tab strip, left to right: history entries oldest-first, then drafts.
+  // Closing a tab needs this order to pick the neighbour to fall back to.
+  const tabOrder = (): TabRef[] => [
+    ...[...s.history()].reverse().map((e): TabRef => ({ kind: 'history', id: e.id })),
+    ...s.drafts().map((d): TabRef => ({ kind: 'draft', id: d.id })),
+  ];
 
-  const handleSend = async () => {
+  /** Clear the response pane — every tab switch starts from a blank slate. */
+  const clearResponse = () => {
     s.setResult(null);
     s.setStreamingText('');
-    s.setActiveHistoryId(null);
     s.setSaveStatus('idle');
-    s.setLoading(true);
-    s.setHasSent(true);
-    s.setSentMessage(s.userMessage());
+  };
 
-    const fmt = s.format();
-    let next: SendResult;
-    let sentHeaders: Record<string, string>;
+  const handleSend = createSendAction(s, clearResponse);
 
-    // Stop before `fetch` does. An unusable base URL used to surface either a
-    // raw "Failed to parse URL" TypeError or — worse, for a schemeless value —
-    // a request resolved against Wingman's own origin, quietly shipping the
-    // user's API key somewhere they never pointed at.
-    if (!s.normalized().valid) {
-      s.setResult(errorResult(s.normalized().problem ?? 'Invalid base URL.', 'Invalid base URL'));
-      s.setLoading(false);
-      return;
-    }
-
-    if (s.willRunCode()) {
-      // The user edited the SDK preview, and the profile/lang combination can
-      // execute it in-browser. Run the code through the stub SDK; whatever
-      // fetch the code triggers becomes the SendResult.
-      try {
-        const out = await runUserCode({
-          profileId: s.profile().id,
-          code: s.sdkCode(),
-          baseUrl: s.normalized().base,
-          apiKey: s.apiKey(),
-        });
-        next = out.result;
-      } catch (err) {
-        next = errorResult(err instanceof Error ? err.message : String(err));
-      }
-      sentHeaders = next.requestHeaders;
-    } else {
-      sentHeaders = recordFromEntries(s.headerEntries());
-      const p = s.params();
-      const body = {
-        ...fmt.buildBody(p, { stream: s.stream() }),
-        ...(s.profile().bodyExtras?.(p) ?? {}),
-      };
-      const url = s.requestUrl();
-      const input = { url, apiKey: s.apiKey(), auth: fmt.auth, headers: sentHeaders, body };
-      next = s.stream()
-        ? await sendRequestStreaming(input, {
-            createParser: fmt.createStreamParser,
-            onDelta: (t) => s.setStreamingText((prev) => prev + t),
-          })
-        : await sendRequest(input);
-    }
-
-    s.setResult(next);
-    s.setLoading(false);
-    // The draft's text has shipped — the next fresh draft starts clean.
-    s.setDraftMessage('');
-
-    const stored = appendHistory({
-      profileId: s.profile().id,
-      profileLabel: s.profile().label,
-      formatId: fmt.id,
-      formatLabel: fmt.label,
-      streamed: next.isStream ?? false,
-      url: next.url,
-      baseUrl: s.baseUrl(),
-      model: s.model(),
-      systemPrompt: s.systemPrompts()[s.profile().id] ?? '',
-      userMessage: s.userMessage(),
-      lang: s.lang(),
-      headers: sentHeaders,
-      status: next.status,
-      statusText: next.statusText,
-      ok: next.ok,
-      durationMs: next.durationMs,
-      assistantText: fmt.extractText(next.responseJson) ?? next.streamedText ?? null,
-      requestBody: next.requestBody,
-      requestHeaders: next.requestHeaders,
-      responseBody: next.responseBody,
-      responseHeaders: next.responseHeaders,
-      responseJson: next.responseJson,
-      errorMessage: next.error,
-    });
-    s.setHistory(listHistory());
-    s.setActiveHistoryId(stored.id);
+  // Park the open draft's message and setup before its tab loses focus, so
+  // coming back to it restores what was being typed instead of whatever the
+  // tab you visited in between left in the form.
+  const parkActiveDraft = () => {
+    if (s.activeHistoryId() !== null) return;
+    const id = s.activeDraftId();
+    const message = s.userMessage();
+    const config = s.captureDraftConfig();
+    s.setDrafts(s.drafts().map((d) => (d.id === id ? { ...d, message, config } : d)));
   };
 
   const restoreFromHistory = (entry: HistoryEntry) => {
-    // Leaving the draft tab: park whatever was being typed so coming back to
-    // "Untitled" restores it instead of losing it to the history entry's text.
-    if (s.activeHistoryId() === null) s.setDraftMessage(s.userMessage());
+    parkActiveDraft();
+    const restoredProfileId = resolveProfileId(entry.profileId);
     const restoredFormatId: ApiFormatId =
       entry.formatId && FORMAT_BY_ID[entry.formatId]
         ? (entry.formatId as ApiFormatId)
         : DEFAULT_FORMAT_ID;
     s.setFormatId(restoredFormatId);
     writeStorage(STORAGE.format, restoredFormatId);
-    s.setProfileId(entry.profileId);
-    writeStorage(STORAGE.profile, entry.profileId);
+    s.setProfileId(restoredProfileId);
+    writeStorage(STORAGE.profile, restoredProfileId);
     s.persistAndSetBase(entry.baseUrl);
     const restoredProvider = providerForBaseUrl(entry.baseUrl);
     s.setProviderId(restoredProvider);
     writeStorage(STORAGE.provider, restoredProvider);
     s.persistAndSetModel(entry.model);
     if (entry.streamed !== undefined) s.persistAndSetStream(entry.streamed);
-    s.setSystemPrompts({ ...s.systemPrompts(), [entry.profileId]: entry.systemPrompt });
+    s.setSystemPrompts({ ...s.systemPrompts(), [restoredProfileId]: entry.systemPrompt });
     s.setUserMessage(entry.userMessage);
     s.setSentMessage(entry.userMessage);
     s.setHasSent(true);
     s.setStreamingText('');
-    const next = PROFILE_BY_ID[entry.profileId];
+    s.setSaveStatus('idle');
+    const next = PROFILE_BY_ID[restoredProfileId];
     if (next) {
       const restoredLang = (
         next.langs.includes(entry.lang as ProfileLang) ? entry.lang : next.defaultLang
@@ -160,7 +71,7 @@ export function createAppActions(s: AppState) {
       s.setLang(restoredLang);
       s.setHeaderOverrides({
         ...s.headerOverrides(),
-        [`${restoredFormatId}:${entry.profileId}:${restoredLang}`]: entriesFromRecord(
+        [`${restoredFormatId}:${restoredProfileId}:${restoredLang}`]: entriesFromRecord(
           entry.headers,
         ),
       });
@@ -187,40 +98,79 @@ export function createAppActions(s: AppState) {
     document.querySelector<HTMLTextAreaElement>('.chatbox__textarea')?.focus();
   };
 
-  // Switch to the (always-present) "Untitled" draft tab, restoring whatever
-  // unsent text it holds.
-  const selectDraft = () => {
-    s.setResult(null);
-    s.setStreamingText('');
+  /** Open a draft tab, restoring the message and setup it was left with. */
+  const selectDraft = (id: string) => {
+    const draft = s.drafts().find((d) => d.id === id);
+    if (!draft) return;
+    parkActiveDraft();
+    clearResponse();
     s.setActiveHistoryId(null);
+    s.setActiveDraftId(id);
     s.setHasSent(false);
     s.setSentMessage('');
-    s.setSaveStatus('idle');
-    s.setUserMessage(s.draftMessage());
+    if (draft.config) s.applyDraftConfig(draft.config);
+    s.setUserMessage(draft.message);
     focusComposer();
   };
 
-  // The + button / ⌘⇧O: a genuinely fresh draft.
+  /**
+   * The + button / ⌘⇧O. A new tab inherits the setup you're looking at — the
+   * common case is firing a second request at the same endpoint — and starts
+   * with an empty message.
+   */
   const handleNewRequest = () => {
-    s.setDraftMessage('');
-    selectDraft();
+    const draft = { id: newDraftId(), message: '', config: s.captureDraftConfig() };
+    s.setDrafts([...s.drafts(), draft]);
+    selectDraft(draft.id);
+  };
+
+  /**
+   * Activate whatever tab should take over after the active one is closed.
+   * `closed` is the tab that just went away, located in the pre-close order.
+   */
+  const selectAfterClosing = (before: TabRef[], closed: TabRef) => {
+    const index = before.findIndex((t) => t.kind === closed.kind && t.id === closed.id);
+    const next = index < 0 ? undefined : tabAfterClosing(before, index);
+    if (next?.kind === 'draft' && s.drafts().some((d) => d.id === next.id)) {
+      selectDraft(next.id);
+      return;
+    }
+    const entry = next?.kind === 'history' ? s.history().find((e) => e.id === next.id) : undefined;
+    if (entry) {
+      restoreFromHistory(entry);
+      return;
+    }
+    // Nothing left to fall back to — open an empty tab rather than show a
+    // dead response with no tab selected.
+    handleNewRequest();
+  };
+
+  const closeDraft = (id: string) => {
+    const before = tabOrder();
+    const wasActive = s.activeHistoryId() === null && s.activeDraftId() === id;
+    s.setDrafts(s.drafts().filter((d) => d.id !== id));
+    if (wasActive) selectAfterClosing(before, { kind: 'draft', id });
   };
 
   const handleDelete = (id: string) => {
+    const before = tabOrder();
     const wasActive = s.activeHistoryId() === id;
     deleteHistory(id);
     s.setHistory(listHistory());
-    // Closing the tab you're looking at falls back to the draft — leaving the
-    // dead request's response on screen with no tab would be confusing.
-    if (wasActive) selectDraft();
+    if (wasActive) selectAfterClosing(before, { kind: 'history', id });
   };
 
   const handleClear = () => {
     if (s.history().length === 0) return;
     if (!confirm(`Delete all ${s.history().length} history entries?`)) return;
+    const wasOnHistory = s.activeHistoryId() !== null;
     clearHistory();
     s.setHistory([]);
-    selectDraft();
+    if (wasOnHistory) {
+      const draft = s.drafts()[0];
+      if (draft) selectDraft(draft.id);
+      else handleNewRequest();
+    }
   };
 
   const handleSaveToGist = () => {
@@ -254,6 +204,7 @@ export function createAppActions(s: AppState) {
     handleClear,
     handleNewRequest,
     selectDraft,
+    closeDraft,
     focusComposer,
     handleSaveToGist,
   };

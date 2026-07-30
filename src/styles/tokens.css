@@ -36,7 +36,13 @@
   --radius-lg: 14px;
   --radius-pill: 999px;
   --thread-max: 860px;
-  --mono: 'JetBrains Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', monospace;
+
+  /* Type — the same stacks app.manifest.build uses, loaded from styles/fonts.css.
+     Wingman is denser tool chrome than the dashboard, so the sizes stay smaller;
+     the faces and their fallbacks are identical. */
+  --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-heading: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', ui-monospace, monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -80,18 +86,19 @@ body {
   padding: 0;
   background: var(--bg);
   color: var(--text);
-  font-family:
-    'DM Sans',
-    -apple-system,
-    BlinkMacSystemFont,
-    'Segoe UI',
-    sans-serif;
+  font-family: var(--font-sans);
+  /* Matches the dashboard's rendering: ligatures and contextual alternates on,
+     both smoothing hints set. */
+  font-feature-settings:
+    'rlig' 1,
+    'calt' 1;
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.55;
   min-height: 100vh;
   height: 100vh;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
