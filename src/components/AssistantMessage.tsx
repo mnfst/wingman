@@ -10,6 +10,8 @@ interface Props {
   format: ApiFormat;
   /** Live assistant text accumulating during a streamed request. */
   streamingText: string;
+  /** Dev Tools off hides the raw wire panes, leaving just the model's reply. */
+  devTools: boolean;
 }
 
 type Tab = 'output' | 'response-body' | 'response-headers' | 'request-body' | 'request-headers';
@@ -91,6 +93,9 @@ const TokenIcon: Component = () => (
 
 const AssistantMessage: Component<Props> = (props) => {
   const [tab, setTab] = createSignal<Tab>('output');
+  // With Dev Tools off there is no tab strip to change the pane, so the reply
+  // is the only thing that can sensibly be shown.
+  const visibleTab = (): Tab => (props.devTools ? tab() : 'output');
 
   // Prefer the parsed/assembled response text; fall back to streamed text.
   const assistantText = () => {
@@ -177,25 +182,27 @@ const AssistantMessage: Component<Props> = (props) => {
               )}
             </Show>
 
-            <div class="tab-strip" role="tablist" aria-label="Response panes">
-              <For each={TABS}>
-                {(t) => (
-                  <button
-                    type="button"
-                    class="tab-strip__btn"
-                    classList={{ 'tab-strip__btn--active': tab() === t.id }}
-                    onClick={() => setTab(t.id)}
-                    role="tab"
-                    aria-selected={tab() === t.id}
-                  >
-                    {t.label}
-                  </button>
-                )}
-              </For>
-            </div>
+            <Show when={props.devTools}>
+              <div class="tab-strip" role="tablist" aria-label="Response panes">
+                <For each={TABS}>
+                  {(t) => (
+                    <button
+                      type="button"
+                      class="tab-strip__btn"
+                      classList={{ 'tab-strip__btn--active': tab() === t.id }}
+                      onClick={() => setTab(t.id)}
+                      role="tab"
+                      aria-selected={tab() === t.id}
+                    >
+                      {t.label}
+                    </button>
+                  )}
+                </For>
+              </div>
+            </Show>
 
             <div class="assistant-msg__pane" role="tabpanel">
-              <Show when={tab() === 'output'}>
+              <Show when={visibleTab() === 'output'}>
                 <Show
                   when={assistantText()}
                   fallback={
@@ -208,7 +215,7 @@ const AssistantMessage: Component<Props> = (props) => {
                   {(text) => <div class="assistant-msg__text">{text()}</div>}
                 </Show>
               </Show>
-              <Show when={tab() === 'response-body'}>
+              <Show when={visibleTab() === 'response-body'}>
                 <Show
                   when={r.isStream}
                   fallback={
@@ -218,13 +225,13 @@ const AssistantMessage: Component<Props> = (props) => {
                   <CodeView code={r.responseBody || '(empty stream)'} language="text" />
                 </Show>
               </Show>
-              <Show when={tab() === 'response-headers'}>
+              <Show when={visibleTab() === 'response-headers'}>
                 <CodeView code={formatHeaders(r.responseHeaders)} language="http" />
               </Show>
-              <Show when={tab() === 'request-body'}>
+              <Show when={visibleTab() === 'request-body'}>
                 <CodeView code={r.requestBody} language="json" />
               </Show>
-              <Show when={tab() === 'request-headers'}>
+              <Show when={visibleTab() === 'request-headers'}>
                 <CodeView code={formatHeaders(r.requestHeaders)} language="http" />
               </Show>
             </div>

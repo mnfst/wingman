@@ -1,5 +1,6 @@
-/* ── Gist modal ──────────────────────────────────────────────────────── */
+/* ── Modals ──────────────────────────────────────────────────────────── */
 
+.modal-overlay,
 .gist-modal__overlay {
   position: fixed;
   inset: 0;
@@ -30,10 +31,10 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  animation: gist-modal-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: modal-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-@keyframes gist-modal-in {
+@keyframes modal-in {
   from {
     transform: translateY(8px) scale(0.985);
     opacity: 0;
@@ -162,4 +163,214 @@
 .gist-modal__btn-primary:active,
 .gist-modal__btn-secondary:active {
   transform: translateY(1px);
+}
+
+/* ── About modal ─────────────────────────────────────────────────────── */
+
+.about-modal {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  width: min(620px, 100%);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: modal-in 0.16s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.about-modal__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 22px 22px 0;
+}
+
+.about-modal__brand {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.about-modal__logo {
+  width: 32px;
+  height: 32px;
+  display: block;
+  flex-shrink: 0;
+}
+
+.about-modal__name {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.about-modal__tagline {
+  margin: 4px 0 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-muted);
+  text-wrap: pretty;
+}
+
+.about-modal__close {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  transition:
+    background 0.12s ease,
+    color 0.12s ease;
+}
+
+.about-modal__close:hover {
+  background: var(--bg-mute);
+  color: var(--text);
+}
+
+.about-modal__body {
+  padding: 20px 22px 24px;
+  overflow-y: auto;
+}
+
+.about-modal__cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px 28px;
+}
+
+.about-modal__label {
+  margin: 0 0 10px;
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.about-modal__list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.about-modal__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.about-modal__item svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.about-modal__item--yes svg {
+  color: var(--ok);
+}
+
+.about-modal__item--no svg {
+  color: var(--err);
+}
+
+.about-modal__rule {
+  height: 0;
+  border: 0;
+  border-top: 1px solid var(--border);
+  margin: 20px 0;
+}
+
+.about-modal__note {
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.6;
+  color: var(--text-muted);
+}
+
+.about-modal__label + .about-modal__note {
+  margin-top: -2px;
+}
+
+.about-modal__star {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 14px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  background: var(--pink-strong);
+  border: 1px solid var(--pink-strong);
+  box-shadow: 0 2px 6px var(--pink-soft);
+  color: white;
+  font-size: 12.5px;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  transition:
+    filter 0.15s ease,
+    transform 0.05s ease;
+}
+
+.about-modal__star:hover {
+  filter: brightness(0.95);
+}
+
+.about-modal__star:active {
+  transform: translateY(1px);
+}
+
+/* The ecosystem block is a footnote, not a feature: small type, plain links,
+   no cards competing with the two lists above. */
+.about-modal__eco-intro {
+  margin: 0 0 6px;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-faint);
+}
+
+.about-modal__eco-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+
+.about-modal__eco-link {
+  color: var(--text-muted);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.about-modal__eco-link:hover {
+  color: var(--pink-strong);
+  text-decoration: underline;
+}
+
+.about-modal__eco-desc {
+  color: var(--text-faint);
+}
+
+@media (max-width: 620px) {
+  .about-modal__cols {
+    grid-template-columns: 1fr;
+  }
 }

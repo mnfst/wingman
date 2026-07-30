@@ -1,4 +1,4 @@
-import { onCleanup, onMount, type Component } from 'solid-js';
+import { createSignal, onCleanup, onMount, type Component } from 'solid-js';
 import TitleBar from './components/TitleBar.jsx';
 import RequestTabs from './components/RequestTabs.jsx';
 import UrlBar from './components/UrlBar.jsx';
@@ -6,6 +6,8 @@ import ConfigTabs from './components/ConfigTabs.jsx';
 import Conversation from './components/Conversation.jsx';
 import ChatComposer from './components/ChatComposer.jsx';
 import GistModal from './components/GistModal.jsx';
+import AboutModal from './components/AboutModal.jsx';
+import StatusBar from './components/StatusBar.jsx';
 import { PROVIDERS } from './providers';
 import { FORMATS } from './formats';
 import { createAppState } from './state/appState';
@@ -21,6 +23,11 @@ import { createAppActions } from './state/appActions';
 const App: Component = () => {
   const s = createAppState();
   const a = createAppActions(s);
+
+  const [aboutOpen, setAboutOpen] = createSignal(false);
+  // Dev Tools on by default: inspecting the wire is the point of the tool.
+  // Turning it off leaves a plain chat transcript.
+  const [devTools, setDevTools] = createSignal(true);
 
   const canSend = () => !s.loading() && s.userMessage().trim().length > 0;
 
@@ -125,6 +132,7 @@ const App: Component = () => {
               hasSent={s.hasSent()}
               format={s.format()}
               streamingText={s.streamingText()}
+              devTools={devTools()}
             />
           </main>
           <ChatComposer
@@ -137,11 +145,18 @@ const App: Component = () => {
         </section>
       </div>
 
+      <StatusBar
+        devTools={devTools()}
+        onToggleDevTools={() => setDevTools(!devTools())}
+        onOpenAbout={() => setAboutOpen(true)}
+      />
+
       <GistModal
         open={s.gistModalOpen()}
         markdown={s.gistMarkdown()}
         onClose={() => s.setGistModalOpen(false)}
       />
+      <AboutModal open={aboutOpen()} onClose={() => setAboutOpen(false)} />
     </div>
   );
 };

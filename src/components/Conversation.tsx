@@ -10,6 +10,7 @@ interface Props {
   hasSent: boolean;
   format: ApiFormat;
   streamingText: string;
+  devTools: boolean;
 }
 
 /* Thin-line magic wand with sparkles — the empty pane's only ornament, drawn
@@ -86,6 +87,7 @@ const Conversation: Component<Props> = (props) => {
           loading={props.loading}
           format={props.format}
           streamingText={props.streamingText}
+          devTools={props.devTools}
         />
       </Show>
     </div>

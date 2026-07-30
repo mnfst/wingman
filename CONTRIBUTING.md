@@ -27,7 +27,7 @@ CI runs those four on every pull request, so a red one won't get merged.
 - One thing per PR. A fix and a refactor in the same diff take three times as long to review.
 - Open an issue first for anything large, so you don't spend a weekend on something we would turn down.
 - No backend, ever. Wingman is a static SPA and every request goes browser to provider. Anything needing a server of ours belongs elsewhere.
-- API keys stay in `sessionStorage`. That is on purpose, so contributors don't leave a live token on disk. Don't move them to `localStorage`.
+- Everything stays in `sessionStorage` — keys, base URL, model, prompts, history. That is on purpose: nothing Wingman holds should outlive the tab. Don't move any of it to `localStorage`.
 - Adding a wire format is one file in `src/formats/` listed in its `index.ts`. Adding a client to impersonate is one entry in `src/profiles.ts`.
 - Logic in `src/services/` should come with tests. They sit next to the code as `*.test.ts` and run under Vitest.
 - Prettier owns formatting. Run `npm run format` and don't argue with it.

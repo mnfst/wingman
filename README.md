@@ -14,7 +14,7 @@ Wingman is an API client for LLMs. Pick a wire format (OpenAI Chat Completions, 
 
 Configure the request like Postman, read the reply like ChatGPT, then flip a tab to see the exact bytes that went over the wire. It can also impersonate the clients a proxy sees in the wild (OpenClaw, Hermes, the OpenAI SDK, LangChain, cURL) by replaying their real headers and system prompts.
 
-No backend. Requests go from your tab straight to the endpoint you typed, so nothing is proxied and nothing is logged. Your API key sits in `sessionStorage` and dies with the tab.
+No backend. Requests go from your tab straight to the endpoint you typed, so nothing is proxied and nothing is logged. Nothing is kept either: your key, base URL, history and prompts all sit in `sessionStorage` and die with the tab.
 
 Open it at **[wingman.manifest.build](https://wingman.manifest.build)**, or run it locally if your gateway is on localhost. Pointing it at a gateway, CORS rules, and why localhost is a problem of its own: [docs/connecting.md](docs/connecting.md).
 
