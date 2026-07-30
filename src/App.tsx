@@ -53,7 +53,10 @@ const App: Component = () => {
           onSelect={a.restoreFromHistory}
           onDelete={a.handleDelete}
           onClear={a.handleClear}
+          drafts={s.draftTabs()}
+          activeDraftId={s.activeDraftId()}
           onSelectDraft={a.selectDraft}
+          onCloseDraft={a.closeDraft}
           onNewRequest={a.handleNewRequest}
         />
       </TitleBar>
@@ -85,7 +88,7 @@ const App: Component = () => {
         canSave={s.result() !== null && !s.loading()}
         onSaveToGist={a.handleSaveToGist}
         saveStatus={s.saveStatus()}
-        onOpenCode={() => s.setConfigTab('code')}
+        onOpenCode={() => s.setConfigTab('client')}
       />
 
       <div class="main">

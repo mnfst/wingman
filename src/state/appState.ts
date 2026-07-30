@@ -1,8 +1,8 @@
 // All reactive state for the app, created once from App. Actions that involve
-// the network/history live in appActions.ts; boot-time resolution helpers in
-// services/settings.ts.
-import { createEffect, createMemo, createSignal, onCleanup } from 'solid-js';
-import type { HeaderEntry } from '../components/HeaderEditor.jsx';
+// the network/history live in appActions.ts; the per-client snippet and header
+// overrides in requestForm.ts; the health/model lookups in probes.ts; and
+// boot-time resolution helpers in services/settings.ts.
+import { createMemo, createSignal } from 'solid-js';
 import {
   PROFILES,
   PROFILE_BY_ID,
@@ -12,27 +12,28 @@ import {
 } from '../profiles';
 import { FORMATS, FORMAT_BY_ID, type ApiFormat, type ApiFormatId } from '../formats';
 import { PROVIDER_BY_ID, DEFAULT_PROVIDER_ID, CUSTOM_PROVIDER, type Provider } from '../providers';
-import { partitionHeaders, type SendResult } from '../send';
+import { type SendResult } from '../send';
 import { listHistory, type HistoryEntry } from '../services/history';
-import { checkHealth, type HealthStatus } from '../services/healthCheck';
 import { defaultBaseUrl, normalizeBaseUrl } from '../services/baseUrl';
-import { fetchModels } from '../services/models';
-import { isExecutable } from '../runners';
 import {
   STORAGE,
-  entriesFromRecord,
-  recordFromEntries,
   readStorage,
   resolveBootState,
   resolveInitialProfile,
   writeStorage,
   type ApiKeyMap,
 } from '../services/settings';
+import { newDraftId, type DraftConfig, type DraftTab } from './drafts';
+import { createRequestForm } from './requestForm';
+import { createProbes } from './probes';
 
 export type AppState = ReturnType<typeof createAppState>;
 
 /** Config tabs under the URL bar (the Postman Params/Auth/Headers/Body slot). */
-export type ConfigTabId = 'client' | 'headers' | 'system' | 'code';
+export type ConfigTabId = 'client' | 'headers' | 'system';
+
+/** What the message box starts with, and what a brand-new draft tab carries. */
+const STARTER_MESSAGE = 'Say hello in one short sentence.';
 
 export function createAppState() {
   const boot = resolveBootState();
@@ -58,13 +59,15 @@ export function createAppState() {
   const [systemPrompts, setSystemPrompts] = createSignal<Record<string, string>>(
     Object.fromEntries(PROFILES.map((p) => [p.id, p.defaultSystemPrompt ?? ''])),
   );
-  const [userMessage, setUserMessage] = createSignal('Say hello in one short sentence.');
-  // The draft tab's unsent text, parked while a history tab is open so
-  // switching back to "Untitled" restores what was being typed.
-  const [draftMessage, setDraftMessage] = createSignal('');
+  const [userMessage, setUserMessage] = createSignal(STARTER_MESSAGE);
+  // Open draft tabs, in creation order. There's always at least one on boot;
+  // after that the strip is whatever the user has opened and not closed.
+  const firstDraftId = newDraftId();
+  const [drafts, setDrafts] = createSignal<DraftTab[]>([
+    { id: firstDraftId, message: STARTER_MESSAGE },
+  ]);
+  const [activeDraftId, setActiveDraftId] = createSignal(firstDraftId);
   const [configTab, setConfigTab] = createSignal<ConfigTabId>('client');
-  const [modelList, setModelList] = createSignal<string[]>([]);
-  const [headerOverrides, setHeaderOverrides] = createSignal<Record<string, HeaderEntry[]>>({});
   const [lang, setLang] = createSignal<ProfileLang>(profile().defaultLang);
   const [result, setResult] = createSignal<SendResult | null>(null);
   const [loading, setLoading] = createSignal(false);
@@ -76,60 +79,18 @@ export function createAppState() {
   const [saveStatus, setSaveStatus] = createSignal<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [gistMarkdown, setGistMarkdown] = createSignal<string>('');
   const [gistModalOpen, setGistModalOpen] = createSignal(false);
-  // Edited code per `${formatId}:${profileId}:${lang}` — when present, it
-  // overrides the generated snippet AND becomes the source of truth for Send
-  // (provided the profile is executable in this language).
-  const [scratchCode, setScratchCode] = createSignal<Record<string, string>>({});
-  const [healthStatus, setHealthStatus] = createSignal<HealthStatus>({ kind: 'idle' });
-
-  // Pre-flight health check — only formats that expose a health path (the
-  // Manifest gateway's `/api/v1/health`) get probed; public provider APIs have
-  // no such endpoint, so we skip rather than show a misleading "unreachable".
-  createEffect(() => {
-    const url = baseUrl().trim();
-    const path = format().healthPath;
-    if (provider().id !== DEFAULT_PROVIDER_ID || !url || !path) {
-      setHealthStatus({ kind: 'idle' });
-      return;
-    }
-    const controller = new AbortController();
-    const formatPath = format().path;
-    const timer = window.setTimeout(() => {
-      setHealthStatus({ kind: 'checking' });
-      checkHealth(url, path, formatPath, controller.signal).then(setHealthStatus);
-    }, 400);
-    onCleanup(() => {
-      window.clearTimeout(timer);
-      controller.abort();
-    });
-  });
 
   // One normalisation for the whole app: the SDK snippet, the health probe and
   // the request itself all read from here, so the code Wingman shows you is the
   // code that would reproduce the call it just made.
   const normalized = createMemo(() => normalizeBaseUrl(baseUrl(), format().path));
 
-  // Populate the model dropdown from the endpoint's own catalog whenever the
-  // target changes. Debounced past typing; failures just leave the field
-  // free-text (many providers don't allow browser CORS on GET /v1/models).
-  createEffect(() => {
-    const n = normalized();
-    const key = apiKey();
-    const fmt = format();
-    if (!n.valid || !n.base) {
-      setModelList([]);
-      return;
-    }
-    const controller = new AbortController();
-    const timer = window.setTimeout(() => {
-      fetchModels(n.base, key, fmt, controller.signal).then((models) => {
-        if (!controller.signal.aborted) setModelList(models);
-      });
-    }, 500);
-    onCleanup(() => {
-      window.clearTimeout(timer);
-      controller.abort();
-    });
+  const { healthStatus, modelList } = createProbes({
+    baseUrl,
+    apiKey,
+    format,
+    provider,
+    normalized,
   });
 
   const params = () => ({
@@ -142,52 +103,7 @@ export function createAppState() {
 
   const requestUrl = () => normalized().requestUrl;
 
-  const generatedSdkCode = createMemo(() => profile().code(params(), lang(), format()));
-
-  const scratchKey = () => `${formatId()}:${profile().id}:${lang()}`;
-  const sdkCodeIsEdited = () => {
-    const v = scratchCode()[scratchKey()];
-    return v !== undefined && v !== generatedSdkCode();
-  };
-  const sdkCode = () => scratchCode()[scratchKey()] ?? generatedSdkCode();
-  const sdkExecutable = () => (profile().executable ?? false) && isExecutable(profile().id, lang());
-  const willRunCode = () => sdkCodeIsEdited() && sdkExecutable();
-
-  const onSdkCodeChange = (next: string) => {
-    setScratchCode({ ...scratchCode(), [scratchKey()]: next });
-  };
-  const resetSdkCode = () => {
-    const next = { ...scratchCode() };
-    delete next[scratchKey()];
-    setScratchCode(next);
-  };
-
-  // Default headers come from the format (e.g. anthropic-version); the profile
-  // layers its fingerprint headers on top.
-  const overrideKey = () => `${formatId()}:${profile().id}:${lang()}`;
-  const headerEntries = createMemo<HeaderEntry[]>(() => {
-    const cached = headerOverrides()[overrideKey()];
-    if (cached) return cached;
-    return entriesFromRecord({
-      ...(format().defaultHeaders ?? {}),
-      ...profile().headers(params()),
-    });
-  });
-
-  const updateHeaderEntries = (next: HeaderEntry[]) => {
-    setHeaderOverrides({ ...headerOverrides(), [overrideKey()]: next });
-  };
-
-  const resetHeaders = () => {
-    const next = { ...headerOverrides() };
-    delete next[overrideKey()];
-    setHeaderOverrides(next);
-  };
-
-  const blockedHeaderNames = () => {
-    const { blocked } = partitionHeaders(recordFromEntries(headerEntries()));
-    return blocked;
-  };
+  const form = createRequestForm({ formatId, format, profile, lang, params });
 
   const setProfileSafely = (id: string) => {
     setProfileId(id);
@@ -269,7 +185,47 @@ export function createAppState() {
     setSystemPrompts({ ...systemPrompts(), [profile().id]: value });
   };
 
+  /**
+   * Draft tabs as the strip should render them. The open draft's text lives in
+   * `userMessage` while its tab has focus and only lands back on the record
+   * when the tab is parked, so overlay the live value — otherwise the tab you
+   * are typing into is the one tab whose label never changes.
+   */
+  const draftTabs = createMemo<DraftTab[]>(() => {
+    if (activeHistoryId() !== null) return drafts();
+    const id = activeDraftId();
+    const message = userMessage();
+    return drafts().map((d) => (d.id === id ? { ...d, message } : d));
+  });
+
+  /** Snapshot the request setup so a draft tab can carry it while it's inactive. */
+  const captureDraftConfig = (): DraftConfig => ({
+    providerId: providerId(),
+    baseUrl: baseUrl(),
+    model: model(),
+    formatId: formatId(),
+    profileId: profileId(),
+    stream: stream(),
+    lang: lang(),
+  });
+
+  /** Put a draft's parked setup back into the form when its tab is reopened. */
+  const applyDraftConfig = (config: DraftConfig) => {
+    setFormatId(config.formatId);
+    writeStorage(STORAGE.format, config.formatId);
+    setProfileId(config.profileId);
+    writeStorage(STORAGE.profile, config.profileId);
+    setProviderId(config.providerId);
+    writeStorage(STORAGE.provider, config.providerId);
+    persistAndSetBase(config.baseUrl);
+    persistAndSetModel(config.model);
+    persistAndSetStream(config.stream);
+    setLang(config.lang);
+  };
+
   return {
+    // per-client snippet + header overrides
+    ...form,
     // signals
     providerId,
     setProviderId,
@@ -285,13 +241,14 @@ export function createAppState() {
     setSystemPrompts,
     userMessage,
     setUserMessage,
-    draftMessage,
-    setDraftMessage,
+    drafts,
+    setDrafts,
+    draftTabs,
+    activeDraftId,
+    setActiveDraftId,
     configTab,
     setConfigTab,
     modelList,
-    headerOverrides,
-    setHeaderOverrides,
     lang,
     setLang,
     result,
@@ -324,17 +281,7 @@ export function createAppState() {
     normalized,
     params,
     requestUrl,
-    sdkCode,
-    sdkCodeIsEdited,
-    sdkExecutable,
-    willRunCode,
-    headerEntries,
-    blockedHeaderNames,
     // actions
-    onSdkCodeChange,
-    resetSdkCode,
-    updateHeaderEntries,
-    resetHeaders,
     setProfileSafely,
     setFormatSafely,
     persistAndSetBase,
@@ -344,5 +291,7 @@ export function createAppState() {
     selectProvider,
     handleBaseUrlInput,
     updateSystemPrompt,
+    captureDraftConfig,
+    applyDraftConfig,
   };
 }

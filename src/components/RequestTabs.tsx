@@ -1,16 +1,20 @@
 import { createEffect, createMemo, For, Show, type Component } from 'solid-js';
 import { PROFILE_BY_ID } from '../profiles';
 import { formatRelativeTime, type HistoryEntry } from '../services/history';
+import type { DraftTab } from '../state/drafts';
 
 interface Props {
   entries: HistoryEntry[];
+  /** Active history entry, or null when a draft tab is open. */
   activeId: string | null;
   onSelect: (entry: HistoryEntry) => void;
   onDelete: (id: string) => void;
   onClear: () => void;
-  /** Switch to the draft tab, keeping its unsent text. */
-  onSelectDraft: () => void;
-  /** Start a fresh draft (+ button). */
+  drafts: DraftTab[];
+  activeDraftId: string;
+  onSelectDraft: (id: string) => void;
+  onCloseDraft: (id: string) => void;
+  /** Open a new draft tab (+ button). */
   onNewRequest: () => void;
 }
 
@@ -55,21 +59,30 @@ function statusTone(entry: HistoryEntry): 'ok' | 'warn' | 'err' {
   return 'err';
 }
 
+/** First line of the draft's message, or a placeholder while it's empty. */
+function draftLabel(draft: DraftTab): string {
+  const text = draft.message.trim().split('\n')[0] ?? '';
+  return text || 'Untitled';
+}
+
 /**
  * Postman/browser-style horizontal request tabs: every history entry is a tab
- * (oldest → newest, left → right), plus an "Untitled" draft tab while nothing
- * is restored. Replaces the old vertical history sidebar.
+ * (oldest → newest, left → right), then the draft tabs you've opened. Replaces
+ * the old vertical history sidebar.
  */
 const RequestTabs: Component<Props> = (props) => {
   let scrollRef: HTMLDivElement | undefined;
 
   // Oldest first so a fresh send appears at the right edge, like a new browser tab.
   const ordered = createMemo(() => [...props.entries].reverse());
+  const draftIsActive = (id: string) => props.activeId === null && props.activeDraftId === id;
 
   // Keep the active tab visible when it changes (a send appends at the far right).
   createEffect(() => {
     void props.activeId;
+    void props.activeDraftId;
     void props.entries.length;
+    void props.drafts.length;
     queueMicrotask(() => {
       scrollRef
         ?.querySelector('.reqtab--active')
@@ -79,7 +92,7 @@ const RequestTabs: Component<Props> = (props) => {
 
   return (
     <div class="reqtabs">
-      <div class="reqtabs__scroll" role="tablist" aria-label="Request history" ref={scrollRef}>
+      <div class="reqtabs__scroll" role="tablist" aria-label="Open requests" ref={scrollRef}>
         <For each={ordered()}>
           {(entry) => (
             <div
@@ -124,30 +137,46 @@ const RequestTabs: Component<Props> = (props) => {
             </div>
           )}
         </For>
-        {/* The draft tab is always present, like Postman's Untitled Request —
-            it's where + and ⌘⇧O land, and where unsent text lives. */}
-        <div
-          class="reqtab reqtab--draft"
-          classList={{ 'reqtab--active': props.activeId === null }}
-          role="presentation"
-        >
-          <button
-            type="button"
-            class="reqtab__main"
-            role="tab"
-            aria-selected={props.activeId === null}
-            onClick={props.onSelectDraft}
-            title="Draft request"
-          >
-            <span class="reqtab__label">Untitled</span>
-          </button>
-        </div>
+        {/* Drafts sit to the right of the sent requests, in the order they were
+            opened — a sent draft leaves the strip as the history tab it became. */}
+        <For each={props.drafts}>
+          {(draft) => (
+            <div
+              class="reqtab reqtab--draft"
+              classList={{ 'reqtab--active': draftIsActive(draft.id) }}
+              role="presentation"
+            >
+              <button
+                type="button"
+                class="reqtab__main"
+                role="tab"
+                aria-selected={draftIsActive(draft.id)}
+                onClick={() => props.onSelectDraft(draft.id)}
+                title={draft.message || 'Draft request'}
+              >
+                <span class="reqtab__label">{draftLabel(draft)}</span>
+              </button>
+              <button
+                type="button"
+                class="reqtab__close"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  props.onCloseDraft(draft.id);
+                }}
+                aria-label="Close this draft"
+                title="Close draft"
+              >
+                ×
+              </button>
+            </div>
+          )}
+        </For>
       </div>
       <button
         type="button"
         class="reqtabs__action"
         onClick={props.onNewRequest}
-        title="New request"
+        title="New request (⌘/Ctrl + Shift + O)"
         aria-label="New request"
       >
         <PlusIcon />

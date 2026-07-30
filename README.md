@@ -2,7 +2,7 @@
 
 Hosted single-page playground for testing LLM APIs straight from the browser. Pick a **wire format** — OpenAI **Chat Completions**, OpenAI **Responses**, or **Anthropic Messages** — paste a base URL + key, and call any provider that speaks it (Manifest, OpenAI, Anthropic, Together, Fireworks, Groq, DeepSeek, Z.AI, MiniMax, …). Stream the reply token by token or fetch it whole, and inspect the exact request / response on the wire.
 
-It started as a [Manifest](https://manifest.build) gateway tester, so it also impersonates the agents Manifest tracks — **OpenClaw**, **Hermes**, **OpenAI SDK**, **Vercel AI SDK**, **LangChain**, plain **cURL**, or a raw fetch — to show how the proxy classifies each client.
+It started as a [Manifest](https://manifest.build) gateway tester, so it also impersonates the agents Manifest tracks: **OpenClaw**, **Hermes**, **OpenAI SDK**, **Vercel AI SDK** and **LangChain**. Pick one to see how the proxy classifies that client, or stay on **Default** to send a plain request with no fingerprint at all.
 
 Live at **<https://wingman.manifest.build>**.
 
@@ -94,16 +94,17 @@ Scripts:
 
 - **`src/formats/`** — one module per wire format (`openai-chat`, `openai-responses`, `anthropic-messages`). Each owns its endpoint path, auth scheme, body builder, response parsers, and streaming parser. Adding a provider format means adding one file and listing it in `index.ts`.
 - **`src/profiles.ts`** — catalog of agent/SDK fingerprints layered on a format: headers, system prompt, optional body extras, code snippet. Each profile declares which formats it's compatible with; the UI filters the list to the selected format.
-- **`src/snippets.ts`** — format-aware SDK / cURL code-snippet builders for the preview panel.
+- **`src/snippets.ts`** — format-aware SDK / cURL code-snippet builders for the code panel.
 - **`src/send.ts`** — fetch wrapper that captures status, latency, request/response headers, and parses JSON. `sendRequestStreaming` reads the SSE body and assembles the text via the format's stream parser. Filters out forbidden headers (`User-Agent`, `Sec-*`, `Cookie`, …) that browsers refuse to set on fetch and surfaces them in the UI.
 - **`src/services/sse.ts`** — generic Server-Sent Events reader (decodes the stream, splits events).
-- **`src/App.tsx`** — composes the layout, Postman-style config on top (request tabs → URL bar → Client / Auth / Headers / System Prompt / Code tabs) with the chat thread + message box below. State lives in `src/state/appState.ts`, network/history actions in `src/state/appActions.ts`.
+- **`src/App.tsx`** — composes the layout, Postman-style config on top (request tabs → URL bar → Client / Headers / System Prompt tabs) with the chat thread + message box below. It's wiring only; everything else lives in `src/state/`.
+- **`src/state/`** — `appState.ts` holds the signals and derived values; `appActions.ts` the tab, history and sharing actions; `sendAction.ts` the request itself; `requestForm.ts` the snippet and header overrides (keyed per format/client/language); `probes.ts` the health and model lookups; `drafts.ts` the open draft tabs.
 
 ## Caveats
 
 Browsers don't let JavaScript override `User-Agent`, `Cookie`, or any `Sec-*` header on `fetch`. That means impersonating SDK fingerprints from the browser is partial — Manifest will still see the browser's real User-Agent. The header editor flags which entries got dropped so you know.
 
-For a full-fidelity impersonation, copy the `curl` snippet shown in the SDK preview panel and run it from your terminal.
+For a full-fidelity impersonation, copy the `curl` snippet from the Client tab and run it from your terminal.
 
 ## License
 

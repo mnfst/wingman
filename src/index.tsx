@@ -1,6 +1,7 @@
 /* @refresh reload */
 import { render } from 'solid-js/web';
 import App from './App.jsx';
+import './styles/fonts.css';
 import './styles/tokens.css';
 import './styles/shell.css';
 import './styles/urlbar.css';

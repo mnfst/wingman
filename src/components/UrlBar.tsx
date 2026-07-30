@@ -226,7 +226,7 @@ const UrlBar: Component<Props> = (props) => {
             spellcheck={false}
             autocomplete="off"
             aria-label="API key"
-            title="API key — stored per provider, in this tab's session only. It never leaves your browser."
+            title="Stored per provider, for this tab's session only. It never leaves your browser."
           />
           <button
             type="button"
@@ -284,8 +284,8 @@ const UrlBar: Component<Props> = (props) => {
           type="button"
           class="urlbar__code"
           onClick={props.onOpenCode}
-          aria-label="View the request as code"
-          title="View the request as code"
+          aria-label="Show this request as code"
+          title="Show this request as code"
         >
           <CodeIcon />
         </button>

@@ -121,8 +121,8 @@ const GistModal: Component<Props> = (props) => {
             </button>
           </header>
           <p class="gist-modal__hint">
-            Copy this markdown report and paste it into the new gist tab. API keys are redacted for
-            safe sharing.
+            Copy this report and paste it into the gist tab that just opened. Your API key is
+            redacted.
           </p>
           <div class="gist-modal__preview">
             <pre class="code-view__pre">

@@ -1,7 +1,7 @@
 // Persistence + boot-time resolution helpers for App state. Pure functions —
 // no signals here — so App/appState stay focused on wiring.
 import type { HeaderEntry } from '../components/HeaderEditor.jsx';
-import { PROFILES, profilesForFormat } from '../profiles';
+import { PROFILES, profilesForFormat, resolveProfileId } from '../profiles';
 import { FORMAT_BY_ID, DEFAULT_FORMAT_ID, type ApiFormatId } from '../formats';
 import { PROVIDERS, PROVIDER_BY_ID, DEFAULT_PROVIDER_ID, CUSTOM_PROVIDER } from '../providers';
 import { defaultBaseUrl } from './baseUrl';
@@ -141,13 +141,13 @@ export function readApiKeys(currentProviderId: string): ApiKeyMap {
 
 export function resolveInitialProfile(formatId: ApiFormatId): string {
   const compatible = profilesForFormat(formatId);
-  const stored = readStorage(STORAGE.profile, '');
+  const stored = resolveProfileId(readStorage(STORAGE.profile, ''));
   if (compatible.some((p) => p.id === stored)) return stored;
-  // First-run default: the neutral Raw client — no fingerprint headers, no
+  // First-run default: the neutral Default client — no fingerprint headers, no
   // giant captured system prompt — mirroring the "Custom / Manifest" provider
   // default. Impersonation is opt-in, not the landing state.
-  const raw = compatible.find((p) => p.id === 'raw');
-  return raw?.id ?? compatible[0]?.id ?? PROFILES[0]!.id;
+  const plain = compatible.find((p) => p.id === 'default');
+  return plain?.id ?? compatible[0]?.id ?? PROFILES[0]!.id;
 }
 
 export interface BootState {

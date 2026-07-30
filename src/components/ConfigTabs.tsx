@@ -1,6 +1,6 @@
 import { For, Show, type Component } from 'solid-js';
 import HeaderEditor, { type HeaderEntry } from './HeaderEditor.jsx';
-import CodeView from './CodeView.jsx';
+import CodePanel from './CodePanel.jsx';
 import ClientSelect from './ClientSelect.jsx';
 import type { Profile, ProfileLang } from '../profiles';
 import type { ConfigTabId } from '../state/appState';
@@ -35,13 +35,13 @@ const TABS: ReadonlyArray<{ id: ConfigTabId; label: string }> = [
   { id: 'client', label: 'Client' },
   { id: 'headers', label: 'Headers' },
   { id: 'system', label: 'System Prompt' },
-  { id: 'code', label: 'Code' },
 ];
 
 /**
  * The left pane, Bruno-style: one facet of the request per tab — which client
- * fingerprint to impersonate, the headers, the harness system prompt, and the
- * SDK snippet. Auth lives up in the URL bar next to the address it belongs to.
+ * to send as (with the code that client would run), the headers, and the
+ * harness system prompt. Auth lives up in the URL bar next to the address it
+ * belongs to.
  */
 const ConfigTabs: Component<Props> = (props) => {
   const headersCount = () => props.headers.filter((h) => h.key.trim()).length;
@@ -97,7 +97,7 @@ const ConfigTabs: Component<Props> = (props) => {
                 <Show when={t.id === 'system' && sysLen() > 0}>
                   <span class="config__tab-count">({sysLen().toLocaleString()})</span>
                 </Show>
-                <Show when={t.id === 'code' && props.sdkCodeIsEdited}>
+                <Show when={t.id === 'client' && props.sdkCodeIsEdited}>
                   <span class="config__tab-edited" title="Code edited — Send runs the snippet" />
                 </Show>
               </button>
@@ -128,7 +128,7 @@ const ConfigTabs: Component<Props> = (props) => {
       >
         <Show when={props.tab === 'client'}>
           <div class="config__panel-head">
-            <span class="config__label">Impersonate</span>
+            <span class="config__label">Send as</span>
           </div>
           <ClientSelect
             profiles={props.profiles}
@@ -138,10 +138,20 @@ const ConfigTabs: Component<Props> = (props) => {
           <p class="config__note config__note--client">{activeProfile().blurb}</p>
           <Show when={activeProfile().headersLocked}>
             <p class="config__note config__note--dim">
-              Sends the real client's fingerprint headers and system prompt, so the gateway
-              classifies this exactly like the genuine tool.
+              Sends the real client's fingerprint headers and system prompt, so your gateway
+              classifies this the same way it would the genuine tool.
             </p>
           </Show>
+          <CodePanel
+            code={props.sdkCode}
+            lang={props.sdkLang}
+            langOptions={props.sdkLangOptions}
+            onLangChange={props.onSdkLangChange}
+            onCodeChange={props.onSdkCodeChange}
+            isEdited={props.sdkCodeIsEdited}
+            onReset={props.onResetSdkCode}
+            executable={props.sdkExecutable}
+          />
         </Show>
 
         <Show when={props.tab === 'headers'}>
@@ -150,9 +160,9 @@ const ConfigTabs: Component<Props> = (props) => {
             fallback={
               <div class="headers-locked">
                 <p class="config__note">
-                  These fingerprint headers are part of the simulation — this is exactly what the
-                  real client sends. Pick <strong>cURL</strong> or <strong>Raw</strong> in the
-                  Client tab to hand-craft headers.
+                  These fingerprint headers are part of the simulation: this is exactly what the
+                  real client sends. Switch to the <strong>Default</strong> client to hand-craft
+                  headers instead.
                 </p>
                 <dl class="headers-locked__list">
                   <For each={props.headers.filter((h) => h.key.trim())}>
@@ -187,74 +197,8 @@ const ConfigTabs: Component<Props> = (props) => {
             rows={10}
             value={props.systemPrompt}
             onInput={(e) => props.onSystemPromptChange(e.currentTarget.value)}
-            placeholder="System prompt — sent as the first message in the conversation."
+            placeholder="System prompt. Goes out as the first message in the conversation."
             aria-label="System prompt"
-          />
-        </Show>
-
-        <Show when={props.tab === 'code'}>
-          <div class="config__panel-head">
-            <span class="config__label">
-              SDK code
-              <Show
-                when={props.sdkExecutable}
-                fallback={
-                  <span
-                    class="config__badge"
-                    title="Browsers can't execute this in-process — copy the code and run locally."
-                  >
-                    preview only
-                  </span>
-                }
-              >
-                <span class="config__badge config__badge--ok">runnable</span>
-              </Show>
-              <Show when={props.sdkCodeIsEdited}>
-                <span class="config__badge config__badge--accent">edited</span>
-              </Show>
-            </span>
-            <div class="config__panel-actions">
-              <Show when={props.sdkLangOptions.length > 1}>
-                <div class="lang-toggle" role="tablist" aria-label="Code language">
-                  <For each={props.sdkLangOptions}>
-                    {(l) => (
-                      <button
-                        type="button"
-                        class="lang-toggle__btn"
-                        classList={{ 'lang-toggle__btn--active': props.sdkLang === l }}
-                        onClick={() => props.onSdkLangChange(l)}
-                        role="tab"
-                        aria-selected={props.sdkLang === l}
-                      >
-                        {l}
-                      </button>
-                    )}
-                  </For>
-                </div>
-              </Show>
-              <Show when={props.sdkCodeIsEdited}>
-                <button type="button" class="config__link" onClick={props.onResetSdkCode}>
-                  Reset
-                </button>
-              </Show>
-            </div>
-          </div>
-          <p class="config__note">
-            <Show
-              when={props.sdkExecutable}
-              fallback={<>Mirrors the request above. Copy and run it locally to verify.</>}
-            >
-              {props.sdkCodeIsEdited
-                ? 'Code edited — Send executes this snippet via stubbed SDK.'
-                : 'In sync with the request. Edit to override; Send will then run the snippet directly.'}
-            </Show>
-          </p>
-          <CodeView
-            code={props.sdkCode}
-            language={props.sdkLang}
-            editable
-            onChange={props.onSdkCodeChange}
-            rows={Math.min(16, Math.max(6, props.sdkCode.split('\n').length + 1))}
           />
         </Show>
       </div>
