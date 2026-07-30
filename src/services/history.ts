@@ -1,4 +1,6 @@
-const KEY = 'wingman:history';
+import { STORAGE } from './settings';
+
+const KEY = STORAGE.history;
 const MAX_ENTRIES = 50;
 
 export interface HistoryEntry {
@@ -33,9 +35,11 @@ export interface HistoryEntry {
 
 export type NewHistoryEntry = Omit<HistoryEntry, 'id' | 'timestamp'>;
 
+// sessionStorage, not localStorage: history holds prompts and responses, and
+// it dies with the tab like everything else Wingman keeps.
 function safeRead(): HistoryEntry[] {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = sessionStorage.getItem(KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? (parsed as HistoryEntry[]) : [];
@@ -46,9 +50,9 @@ function safeRead(): HistoryEntry[] {
 
 function safeWrite(entries: HistoryEntry[]): void {
   try {
-    localStorage.setItem(KEY, JSON.stringify(entries));
+    sessionStorage.setItem(KEY, JSON.stringify(entries));
   } catch {
-    // localStorage full or unavailable — fail silently rather than disrupt the
+    // Storage full or unavailable — fail silently rather than disrupt the
     // request flow. The user's last request still went through; only the
     // historical record is lost.
   }

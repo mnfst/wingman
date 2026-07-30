@@ -40,7 +40,70 @@
   padding: 24px 24px 16px;
 }
 
-/* ── Title bar: brand · request tabs · community ─────────────────────── */
+/* ── Status bar: Bruno-style meta strip pinned to the bottom ─────────── */
+
+.statusbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 26px;
+  padding: 0 10px;
+  flex-shrink: 0;
+  background: var(--bg-mute);
+  border-top: 1px solid var(--border);
+  font-size: 11px;
+}
+
+.statusbar__group {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.statusbar__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 20px;
+  padding: 0 7px;
+  border: 0;
+  background: none;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    color 0.12s,
+    background 0.12s;
+}
+
+.statusbar__item:hover {
+  color: var(--pink-strong);
+  background: var(--pink-soft);
+}
+
+.statusbar__item--on {
+  color: var(--pink-strong);
+}
+
+.statusbar__version {
+  padding: 0 5px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  font-size: 10.5px;
+}
+
+/* Narrow enough that the labels stop fitting beside the request tabs — the
+   icons still name each item through their title/aria-label. */
+@media (max-width: 560px) {
+  .statusbar__item span {
+    display: none;
+  }
+}
+
+/* ── Title bar: brand · request tabs ─────────────────────────────────── */
 
 .titlebar {
   display: flex;
@@ -78,30 +141,6 @@
   min-width: 0;
   display: flex;
   align-items: stretch;
-}
-
-.titlebar__links {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  align-self: center;
-}
-
-.titlebar__link {
-  width: 28px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  border-radius: var(--radius-sm);
-  color: var(--text-muted);
-  transition:
-    color 0.12s,
-    background 0.12s;
-}
-
-.titlebar__link:hover {
-  color: var(--pink-strong);
-  background: var(--pink-soft);
 }
 
 /* ── Request tabs (Postman/browser-style history) ────────────────────── */

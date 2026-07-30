@@ -71,13 +71,74 @@
     </script>
   </head>
   <body>
+    <!--
+      The About copy, served in the HTML response.
+
+      Wingman is client-rendered, so the About modal only enters the DOM once a
+      visitor clicks the button in the top bar — crawlers that do not execute
+      JavaScript would never see any of this. The same copy lives in
+      src/content/about.ts for the modal, and src/content/about.test.ts fails if
+      the two drift apart. It is clipped rather than display:none so it stays
+      crawlable; visitors get the identical text from the About modal.
+    -->
+    <section
+      id="about-wingman"
+      style="
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        padding: 0;
+        overflow: hidden;
+        clip-path: inset(50%);
+        border: 0;
+      "
+    >
+      <h1>Wingman — Postman for LLM APIs</h1>
+      <p>Postman for LLM APIs. A simple yet powerful tool to test LLM APIs.</p>
+      <h2>What it does</h2>
+      <ul>
+        <li>Send messages to LLM providers</li>
+        <li>Edit system prompts or choose among popular ones</li>
+        <li>Allows quick testing and error debugging</li>
+      </ul>
+      <h2>What it does not</h2>
+      <ul>
+        <li>Store your data: prompts, keys or responses (it's only a frontend)</li>
+        <li>Persist history and API keys between sessions</li>
+        <li>Serves as a chat assistant</li>
+      </ul>
+      <p>
+        Wingman is free and open source software (FOSS) under
+        <a href="https://github.com/mnfst/wingman/blob/main/LICENSE">MIT license</a>. Made for the
+        community by the community. If you think that it deserves more highlight, share it with your
+        peers and <a href="https://github.com/mnfst/wingman">give us a star on GitHub</a>.
+      </p>
+      <h2>The Manifest ecosystem</h2>
+      <p>Wingman is part of the Manifest ecosystem, checkout our other open source repositories:</p>
+      <ul>
+        <li><a href="https://manifest.build">Manifest</a> — Open-source LLM gateway</li>
+        <li>
+          <a href="https://github.com/mnfst/awesome-free-llm-apis">Free LLM APIs</a> — Awesome list
+          of LLM APIs with permanent free tiers
+        </li>
+        <li>
+          <a href="https://github.com/mnfst/modelparams.dev">modelparams.dev</a> — Open-source AI
+          model parameters database
+        </li>
+        <li>
+          <a href="https://github.com/mnfst/modeldeprecations.dev">modeldeprecations.dev</a> —
+          Open-source AI model deprecations database
+        </li>
+      </ul>
+    </section>
     <div id="root">
       <noscript>
-        <h1>Test any LLM API from your browser</h1>
+        <h2>Test any LLM API from your browser</h2>
         <p>
-          Wingman is the Postman for LLMs. Call OpenAI Chat Completions, OpenAI Responses,
-          Anthropic Messages, or any OpenAI-compatible provider. Stream replies token by token
-          and inspect the exact request and response without installing an SDK.
+          Wingman is the Postman for LLMs. Call OpenAI Chat Completions, OpenAI Responses, Anthropic
+          Messages, or any OpenAI-compatible provider. Stream replies token by token and inspect the
+          exact request and response without installing an SDK.
         </p>
         <p>
           Use it to test LLM gateways, debug streaming, compare Chat Completions vs Responses,
