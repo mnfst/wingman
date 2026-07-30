@@ -1,110 +1,37 @@
-# Wingman
+<br />
+<img src="assets/logo.png" width="80" alt="Wingman" />
 
-Hosted single-page playground for testing LLM APIs straight from the browser. Pick a **wire format** — OpenAI **Chat Completions**, OpenAI **Responses**, or **Anthropic Messages** — paste a base URL + key, and call any provider that speaks it (Manifest, OpenAI, Anthropic, Together, Fireworks, Groq, DeepSeek, Z.AI, MiniMax, …). Stream the reply token by token or fetch it whole, and inspect the exact request / response on the wire.
+### Wingman - the Postman for LLMs.
 
-It started as a [Manifest](https://manifest.build) gateway tester, so it also impersonates the agents Manifest tracks — **OpenClaw**, **Hermes**, **OpenAI SDK**, **Vercel AI SDK**, **LangChain**, plain **cURL**, or a raw fetch — to show how the proxy classifies each client.
+[![CI](https://github.com/mnfst/wingman/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mnfst/wingman/actions/workflows/ci.yml)
+[![License](https://img.shields.io/github/license/mnfst/wingman)](LICENSE)
+[![Commit activity](https://img.shields.io/github/commit-activity/m/mnfst/wingman)](https://github.com/mnfst/wingman/pulse)
+[![Built with Solid](https://img.shields.io/badge/built%20with-Solid-2c4f7c?logo=solid&logoColor=white)](https://www.solidjs.com)
+[![Discord](https://img.shields.io/badge/Discord-join-5865f2?logo=discord&logoColor=white)](https://discord.gg/FepAked3W7)
+[![Try it](https://img.shields.io/badge/try%20it-wingman.manifest.build-db2777)](https://wingman.manifest.build)
 
-Live at **<https://wingman.manifest.build>**.
+Wingman is an API client for LLMs. Pick a wire format (OpenAI Chat Completions, OpenAI Responses, Anthropic Messages), paste a base URL and a key, and call anything that speaks it: OpenAI, Anthropic, Groq, Together, DeepSeek, your own gateway.
 
-## What it's for
+Configure the request like Postman, read the reply like ChatGPT, then flip a tab to see the exact bytes that went over the wire. It can also impersonate the clients a proxy sees in the wild (OpenClaw, Hermes, the OpenAI SDK, LangChain, cURL) by replaying their real headers and system prompts.
 
-- Calling any LLM provider by URL + key + format — no SDK install, no terminal.
-- Comparing the same prompt across formats (Chat Completions vs Responses) or across providers.
-- Watching a streamed response arrive token by token, with time-to-first-token.
-- Verifying Manifest routing decisions (which tier did it pick for this prompt?).
-- Inspecting how a proxy classifies different SDKs from their User-Agent / `X-Stainless-*` headers.
-- Reproducing a customer report end-to-end without touching the real CLI.
+No backend. Requests go from your tab straight to the endpoint you typed, so nothing is proxied and nothing is logged. Nothing is kept either: your key, base URL, history and prompts all sit in `sessionStorage` and die with the tab.
 
-## How it works (and what it doesn't do)
+Open it at **[wingman.manifest.build](https://wingman.manifest.build)**, or run it locally if your gateway is on localhost. Pointing it at a gateway, CORS rules, and why localhost is a problem of its own: [docs/connecting.md](docs/connecting.md).
 
-Wingman is a **static SPA**. It has no backend of its own — every request goes straight from your browser to whatever endpoint you configure in the connection bar. There is no telemetry, no server-side logging, no proxy in between. Streaming responses are read directly from the `fetch` body as Server-Sent Events.
+Built by the team behind [Manifest](https://manifest.build).
 
-Nothing Wingman holds outlives the tab. API keys, base URL, model, request history and system prompts all live in `sessionStorage`, so they survive switching provider or reloading the page and are gone the moment you close the tab. Nothing is written to `localStorage`, and nothing leaves the browser. The full source is in this repo if you want to audit it.
+![Wingman](assets/screenshot.png)
 
-## Connecting to a gateway
-
-Open <https://wingman.manifest.build>, then:
-
-- **Provider preset** — pick a provider (OpenAI, Anthropic, Mistral, Groq, …) to auto-fill its base URL and wire format. The default, **Custom / Manifest**, pre-fills the Manifest Cloud gateway (`https://app.manifest.build`) — edit the Base URL by hand to point at your own gateway (which switches the pill back to Custom).
-- **Format** — the wire protocol: OpenAI Chat Completions (`/v1/chat/completions`), OpenAI Responses (`/v1/responses`), or Anthropic Messages (`/v1/messages`). This sets the endpoint path, auth scheme, body shape, and how the response is parsed.
-- **Base URL** — e.g. `https://your-manifest.example.com`, `https://api.openai.com`, `https://api.anthropic.com`, or `http://localhost:3001` (more on cross-origin below). Wingman appends the format's path shown in the method selector, and surfaces the resolved endpoint under the URL bar whenever normalisation changed what you typed. Pasting a full endpoint or a base ending in `/v1` is fine — the duplicate is stripped rather than producing `/v1/v1/chat/completions`. A missing scheme is filled in (`http://` for loopback hosts, `https://` otherwise).
-- **API key** — `Authorization: Bearer` for OpenAI-style formats, `x-api-key` for Anthropic (attached automatically per format). Keys are kept per provider: switching preset shows that provider's own key (blank until you set one), and switching back restores it.
-- **Model** — `auto` or a specific model id. When the endpoint answers `GET /v1/models` (Manifest, OpenAI-compatible providers, Anthropic), the field becomes a dropdown listing that catalog; otherwise it stays free-text.
-- **Stream** — toggle at the right of the config tab strip to read the reply as it's generated (Server-Sent Events).
-
-You can pre-fill via query string: `?baseUrl=https://your.gateway&apiKey=mnfst_...`. The Manifest dashboard's Wingman drawer does this automatically.
-
-### Cross-origin requirements
-
-Wingman runs at `wingman.manifest.build` and your gateway runs elsewhere, so the gateway must allow the Wingman origin via CORS. The Manifest backend allows it **in dev mode** (`NODE_ENV !== 'production'`), which covers local and self-hosted-dev gateways. Production builds keep CORS off — the dashboard is same-origin there — so pointing Wingman at a production gateway means opting into CORS for the Wingman origin yourself.
-
-Whatever the backend, it must answer the preflight with at least:
-
-```
-Access-Control-Allow-Origin: https://wingman.manifest.build
-Access-Control-Allow-Headers: Authorization, Content-Type, X-API-Key, X-Stainless-Lang, X-Stainless-Package-Version, X-Stainless-OS, X-Stainless-Arch, X-Stainless-Runtime, X-Stainless-Runtime-Version, X-Stainless-Retry-Count
-```
-
-The `X-Stainless-*` headers matter: the OpenClaw, Hermes, and OpenAI SDK profiles replay them to mimic the real SDK fingerprint, so an allow-list that omits them fails the preflight and the request never leaves the browser. Hermes sends a couple more (`X-Stainless-Async`, `X-Stainless-Read-Timeout`), so the robust option is to reflect the request's `Access-Control-Request-Headers` instead of hard-coding a list.
-
-### Reaching a gateway on localhost
-
-CORS is not the obstacle here, and this is worth being precise about because the symptom looks identical.
-
-If your gateway is on a loopback or private address (`localhost`, `127.0.0.1`, `192.168.x.x`) and you load Wingman over HTTPS, **the browser blocks the request before CORS is even consulted**. Chrome ≥ 138 gates public-page → local-network requests behind the **Local Network Access** permission; it replaced Private Network Access, so the `Access-Control-Allow-Private-Network: true` preflight header that used to satisfy it no longer does anything. Safari refuses the call outright as mixed content. In a cross-origin iframe the permission is denied by permissions policy unless the embedder adds `allow="local-network-access"`, which means no prompt ever appears.
-
-No change to the gateway can lift this — it's a property of the two origins. To test a local gateway, serve Wingman from the local network too:
+## Contributing
 
 ```bash
 git clone https://github.com/mnfst/wingman && cd wingman
-npm install && npm run dev
-# → http://localhost:3002, same address space as your gateway
-```
-
-Wingman reports this case as **local network blocked** rather than "CORS blocked", so you don't go editing an allow-list that was already correct.
-
-Calling **Anthropic** directly: its API blocks browser origins by default, so Wingman sends the `anthropic-dangerous-direct-browser-access: true` header (alongside `anthropic-version`) automatically when you pick the Anthropic Messages format.
-
-`Access-Control-Allow-Credentials` can stay **false** — Wingman uses bearer keys, never cookies.
-
-If you're behind a corporate firewall or running a fully air-gapped Manifest, clone this repo and `npm run dev` — Wingman runs entirely client-side.
-
-## Local development
-
-```bash
 npm install
-npm run dev
-# → http://localhost:3002
+npm run dev     # http://localhost:3002
 ```
 
-| Variable        | Default | Purpose                |
-| --------------- | ------- | ---------------------- |
-| `WINGMAN_PORT`  | `3002`  | Vite dev server port.  |
-
-Scripts:
-
-- `npm run dev` — start Vite dev server.
-- `npm run build` — production build into `dist/`.
-- `npm run preview` — serve the built bundle.
-- `npm run lint` — ESLint over `src/`.
-- `npm run format` — Prettier across `src/`.
-- `npm run typecheck` — `tsc --noEmit`.
-
-## How it's wired
-
-- **`src/formats/`** — one module per wire format (`openai-chat`, `openai-responses`, `anthropic-messages`). Each owns its endpoint path, auth scheme, body builder, response parsers, and streaming parser. Adding a provider format means adding one file and listing it in `index.ts`.
-- **`src/profiles.ts`** — catalog of agent/SDK fingerprints layered on a format: headers, system prompt, optional body extras, code snippet. Each profile declares which formats it's compatible with; the UI filters the list to the selected format.
-- **`src/snippets.ts`** — format-aware SDK / cURL code-snippet builders for the preview panel.
-- **`src/send.ts`** — fetch wrapper that captures status, latency, request/response headers, and parses JSON. `sendRequestStreaming` reads the SSE body and assembles the text via the format's stream parser. Filters out forbidden headers (`User-Agent`, `Sec-*`, `Cookie`, …) that browsers refuse to set on fetch and surfaces them in the UI.
-- **`src/services/sse.ts`** — generic Server-Sent Events reader (decodes the stream, splits events).
-- **`src/App.tsx`** — composes the layout, Postman-style config on top (request tabs → URL bar → Client / Auth / Headers / System Prompt / Code tabs) with the chat thread + message box below. State lives in `src/state/appState.ts`, network/history actions in `src/state/appActions.ts`.
-
-## Caveats
-
-Browsers don't let JavaScript override `User-Agent`, `Cookie`, or any `Sec-*` header on `fetch`. That means impersonating SDK fingerprints from the browser is partial — Manifest will still see the browser's real User-Agent. The header editor flags which entries got dropped so you know.
-
-For a full-fidelity impersonation, copy the `curl` snippet shown in the SDK preview panel and run it from your terminal.
+Issues and pull requests are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers the rest, and it is short.
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT. See [LICENSE](LICENSE).
