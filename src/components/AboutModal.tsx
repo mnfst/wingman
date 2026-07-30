@@ -67,7 +67,7 @@ const AboutModal: Component<Props> = (props) => {
         >
           <header class="about-modal__head">
             <div class="about-modal__brand">
-              <img src="/wingman.svg" alt="" class="about-modal__logo" width="32" height="32" />
+              <img src="/favicon.svg" alt="" class="about-modal__logo" width="32" height="32" />
               <div>
                 <h2 id="about-modal-title" class="about-modal__name">
                   Wingman
