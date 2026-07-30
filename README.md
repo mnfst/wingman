@@ -1,7 +1,7 @@
 <br />
 <img src="assets/logo.png" width="80" alt="Wingman" />
 
-### Wingman - the Postman for LLMs.
+### Wingman - the Postman for LLM APIs.
 
 [![CI](https://github.com/mnfst/wingman/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mnfst/wingman/actions/workflows/ci.yml)
 [![License](https://img.shields.io/github/license/mnfst/wingman)](LICENSE)

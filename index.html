@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Test Any LLM API in Your Browser — Wingman</title>
+    <title>Postman for LLM APIs | Wingman</title>
     <link rel="canonical" href="https://wingman.manifest.build/" />
     <link rel="icon" href="/favicon.ico" sizes="any" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -20,53 +20,103 @@
     <meta name="theme-color" content="#faf8f5" />
     <meta
       name="description"
-      content="Wingman is the Postman for LLMs: call any OpenAI-compatible, OpenAI Responses, or Anthropic API from your browser. Stream token by token and inspect the raw request and response."
+      content="Test any LLM API from your browser. Send a message, edit the system prompt, read the raw response. Free, open source, and nothing outlives the tab."
     />
     <meta
       name="keywords"
-      content="LLM API tester, OpenAI-compatible API tester, Anthropic API tester, Responses API tester, streaming API tester, Postman for LLMs"
+      content="Postman for LLM APIs, LLM API tester, OpenAI API tester, Anthropic API tester, test LLM API in browser, system prompt tester, open source LLM client"
     />
     <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Wingman" />
+    <meta property="og:locale" content="en_US" />
     <meta property="og:url" content="https://wingman.manifest.build/" />
-    <meta property="og:title" content="Wingman — Test Any LLM API in Your Browser" />
+    <meta property="og:title" content="Postman for LLM APIs | Wingman" />
     <meta
       property="og:description"
-      content="The Postman for LLMs. Call any OpenAI-compatible or Anthropic API, stream the reply, and inspect the raw request and response."
+      content="A small, free tool for testing LLM APIs. Point it at any provider, edit the system prompt, and read exactly what came back on the wire."
     />
-    <meta property="og:image" content="https://wingman.manifest.build/wingman.svg" />
-    <meta property="og:image:alt" content="Wingman, a browser-based LLM API tester from Manifest" />
+    <meta property="og:image" content="https://wingman.manifest.build/og.png" />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Wingman, the Postman for LLM APIs" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Wingman — Test Any LLM API in Your Browser" />
+    <meta name="twitter:title" content="Postman for LLM APIs | Wingman" />
     <meta
       name="twitter:description"
-      content="The Postman for LLMs. Call any OpenAI-compatible or Anthropic API from the browser, stream token by token, and inspect the wire."
+      content="Test LLM APIs without installing anything. Wingman runs in the browser, keeps your key in the tab, and shows you the raw request and response."
     />
-    <meta name="twitter:image" content="https://wingman.manifest.build/wingman.svg" />
-    <meta name="twitter:image:alt" content="Wingman, a browser-based LLM API tester from Manifest" />
+    <meta name="twitter:image" content="https://wingman.manifest.build/og.png" />
+    <meta name="twitter:image:alt" content="Wingman, the Postman for LLM APIs" />
     <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "Wingman",
+        "alternateName": "Postman for LLM APIs",
         "url": "https://wingman.manifest.build/",
         "applicationCategory": "DeveloperApplication",
         "operatingSystem": "Any (web browser)",
-        "description": "A browser-based tester for LLM APIs, including OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and OpenAI-compatible providers. Supports streaming and raw request and response inspection.",
+        "description": "Wingman is a free, open-source browser tool for testing LLM APIs. Send messages to OpenAI-compatible, OpenAI Responses, or Anthropic endpoints, edit the system prompt, and read the raw request and response. There is no backend: requests go straight from the browser to the provider.",
         "featureList": [
-          "Test OpenAI Chat Completions, OpenAI Responses, and Anthropic Messages APIs",
-          "Call any OpenAI-compatible endpoint from the browser",
-          "Stream token-by-token responses over Server-Sent Events",
-          "Inspect raw request and response payloads and headers",
-          "Compare SDK and agent fingerprints such as OpenAI SDK, LangChain, Hermes and OpenClaw"
+          "Send messages to any OpenAI-compatible, OpenAI Responses, or Anthropic endpoint",
+          "Edit the system prompt, or load one captured from a real agent",
+          "Stream the reply token by token over Server-Sent Events",
+          "Read the raw request and response, headers included, to debug errors",
+          "Compare client fingerprints such as OpenAI SDK, LangChain, Hermes and OpenClaw"
         ],
+        "image": "https://wingman.manifest.build/og.png",
+        "screenshot": "https://wingman.manifest.build/og.png",
         "isAccessibleForFree": true,
+        "license": "https://opensource.org/licenses/MIT",
+        "sameAs": ["https://github.com/mnfst/wingman"],
         "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
         "publisher": {
           "@type": "Organization",
           "name": "Manifest",
           "url": "https://manifest.build"
         }
+      }
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "Does Wingman store my prompts, API keys, or responses?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Wingman is a static frontend with no backend of its own, so your prompts, keys and responses go straight from the browser to the endpoint you configure and never reach a server of ours. What Wingman does hold onto, including keys, presets, prompts and history, lives in session storage and is gone once you close the tab."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Does Wingman keep my history and API keys between sessions?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No. Everything is kept in session storage, so a closed tab takes the lot: no key, no history, no base URL left behind on a shared machine. Within a session your key and preset survive a reload or a provider switch."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is Wingman a chat assistant?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No, it is a testing tool. You send a message to check that an endpoint answers, compare wire formats, or read the error a provider returns. For everyday chat, use the provider's own app."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is Wingman free?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes. Wingman is free and open source under the MIT license, made for the community by the community. The source lives at https://github.com/mnfst/wingman, and a star there helps other developers find it."
+            }
+          }
+        ]
       }
     </script>
   </head>
@@ -136,9 +186,9 @@
       <noscript>
         <h2>Test any LLM API from your browser</h2>
         <p>
-          Wingman is the Postman for LLMs. Call OpenAI Chat Completions, OpenAI Responses, Anthropic
-          Messages, or any OpenAI-compatible provider. Stream replies token by token and inspect the
-          exact request and response without installing an SDK.
+          Wingman is the Postman for LLM APIs. Call OpenAI Chat Completions, OpenAI Responses,
+          Anthropic Messages, or any OpenAI-compatible provider. Stream replies token by token and
+          inspect the exact request and response without installing an SDK.
         </p>
         <p>
           Use it to test LLM gateways, debug streaming, compare Chat Completions vs Responses,

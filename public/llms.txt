@@ -1,16 +1,18 @@
-# Wingman
+# Wingman: Postman for LLM APIs
 
-> Wingman is a browser-based LLM API tester from Manifest. It helps humans and AI agents understand, test, and compare OpenAI Chat Completions, OpenAI Responses, Anthropic Messages, and OpenAI-compatible APIs without installing an SDK.
+> Wingman is a free, open-source browser tool for testing LLM APIs. Send a message to any OpenAI-compatible, OpenAI Responses, or Anthropic endpoint, edit the system prompt, and read the raw request and response. It is published by Manifest and licensed under MIT.
 
 Use Wingman when the task is to test an LLM endpoint, inspect a raw request or response, debug SSE streaming, compare wire formats, or reproduce what an SDK or agent sends over HTTP.
 
 Important notes:
 
 - Wingman is a static web app. Requests go directly from the browser to the configured endpoint.
-- There is no server-side proxy in Wingman itself.
-- API keys are stored in session storage in the browser.
+- There is no backend and no server-side proxy in Wingman itself, so no prompt, key, or response is ever sent to a Wingman server.
+- Everything Wingman holds (API keys, base URL, presets, system prompts, request history) lives in session storage and is dropped when the tab closes. Nothing persists between sessions.
+- Wingman is a testing tool, not a chat assistant.
 - Supported wire formats are OpenAI Chat Completions, OpenAI Responses, and Anthropic Messages.
 - Wingman can imitate several client fingerprints, including OpenAI SDK, Vercel AI SDK, LangChain, Hermes and OpenClaw, or send a plain request with no fingerprint.
+- Wingman is free and open source under the MIT license, made for the community by the community.
 
 ## Product
 
