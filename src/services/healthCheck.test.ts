@@ -6,7 +6,10 @@ const CHAT = '/v1/chat/completions';
 
 function mockResponse(
   body: string,
-  { status = 200, contentType = 'application/json' }: { status?: number; contentType?: string } = {},
+  {
+    status = 200,
+    contentType = 'application/json',
+  }: { status?: number; contentType?: string } = {},
 ) {
   vi.stubGlobal(
     'fetch',
@@ -40,7 +43,7 @@ describe('checkHealth', () => {
     expect(result.kind).toBe('not-a-gateway');
     if (result.kind === 'not-a-gateway') {
       expect(result.message).toMatch(/HTML, not a health payload/);
-      expect(result.message).toMatch(/check the Base URL/);
+      expect(result.message).toMatch(/Check the Base URL/);
     }
   });
 

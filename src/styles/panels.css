@@ -1,4 +1,4 @@
-/* ── Client (impersonation) selector — Postman "auth type" idiom ─────── */
+/* ── Client (impersonation) selector, Postman "auth type" idiom ─────── */
 
 .client-select {
   position: relative;
@@ -65,7 +65,7 @@
   min-width: 320px;
 }
 
-/* ── Locked (fingerprint) headers — read-only listing ────────────────── */
+/* ── Locked (fingerprint) headers, read-only listing ────────────────── */
 
 .headers-locked__list {
   margin: 0;

@@ -2,7 +2,7 @@
  * PWA plumbing: the service-worker registration and the browser's install
  * offer.
  *
- * Wingman installs cleanly because there is nothing to install — it is a
+ * Wingman installs cleanly because there is nothing to install. It is a
  * static SPA that talks straight to whatever endpoint you type. The worker
  * only caches Wingman's own shell (see public/sw.js); keys, prompts and
  * responses stay where they always were, in `sessionStorage` and the tab.

@@ -1,4 +1,4 @@
-// Draft tabs — requests that haven't been sent yet.
+// Draft tabs: requests that haven't been sent yet.
 //
 // A sent request becomes a history entry and gets its own tab. Everything
 // before that lives in a draft, and "+" makes a new one. There used to be a
@@ -9,7 +9,7 @@ import type { ProfileLang } from '../profiles';
 
 /**
  * The request setup a draft carries. Without it, every tab would share one
- * global form — retargeting tab B's model would silently retarget tab A too.
+ * global form: retargeting tab B's model would silently retarget tab A too.
  * Captured when a draft loses focus, re-applied when it regains it.
  */
 export interface DraftConfig {
@@ -46,7 +46,7 @@ export interface TabRef {
 
 /**
  * Which tab to activate after closing the one at `index`: the tab to its right,
- * falling back to the one on its left — what browsers and Postman do.
+ * falling back to the one on its left, which is what browsers and Postman do.
  */
 export function tabAfterClosing(tabs: TabRef[], index: number): TabRef | undefined {
   return tabs[index + 1] ?? tabs[index - 1];

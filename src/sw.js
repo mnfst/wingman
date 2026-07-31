@@ -3,14 +3,14 @@
  * open instantly and survive a flaky connection.
  *
  * It only ever touches same-origin GETs. Every request Wingman exists to make
- * — the calls to the gateway or provider you typed — is cross-origin and goes
+ * (the calls to the gateway or provider you typed) is cross-origin and goes
  * straight to the network, untouched and uncached. Keeping keys and responses
  * out of the cache is the whole point: nothing Wingman holds should outlive
  * the tab.
  *
  * This file is a build input, not a served one: vite.config.ts fills in the
  * two placeholders below and emits the result as `dist/sw.js`. That is also
- * what makes updates work — every build produces different bytes, and
+ * what makes updates work: every build produces different bytes, and
  * different bytes are what tell the browser to install a new worker.
  */
 
@@ -52,7 +52,7 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
-  // Anything not served by Wingman itself — providers, gateways, analytics —
+  // Anything not served by Wingman itself (providers, gateways, analytics)
   // is none of the worker's business.
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/_vercel/')) return;
@@ -92,7 +92,7 @@ self.addEventListener('fetch', (event) => {
  *
  * Hosts label static files `Vary: Origin` (Vercel and Vite's own preview
  * server both do), and the precache fetches them without an `Origin` while the
- * page asks for its module scripts with one — so a strict match misses every
+ * page asks for its module scripts with one, so a strict match misses every
  * entry that matters and the app comes up blank offline. Everything in here is
  * one of Wingman's own files, served one way to everybody, so there is no
  * second representation for `Vary` to be protecting.
@@ -101,7 +101,7 @@ function match(request) {
   return caches.match(request, { ignoreVary: true });
 }
 
-/** Store a response, but only a complete one — a 206 or an opaque error is worse than nothing. */
+/** Store a response, but only a complete one. A 206 or an opaque error is worse than nothing. */
 async function put(request, response) {
   if (!response.ok || response.status !== 200 || response.type !== 'basic') return;
   const cache = await caches.open(CACHE);

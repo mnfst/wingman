@@ -48,7 +48,7 @@ export const LICENSE_NOTE =
 
 export const STAR_CTA = 'Star Wingman on GitHub';
 
-/** Where a bug report or a question goes — the two things the star button isn't. */
+/** Where a bug report or a question goes: the two things the star button isn't. */
 export const COMMUNITY: CommunityLink[] = [
   { label: 'Report an issue', href: ISSUES_URL },
   { label: 'Start a discussion', href: DISCUSSIONS_URL },

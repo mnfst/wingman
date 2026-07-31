@@ -1,6 +1,6 @@
 // Turning what a user types into the URL Wingman actually POSTs to.
 //
-// Wingman's convention is that the Base URL carries no endpoint path — the
+// Wingman's convention is that the Base URL carries no endpoint path. The
 // selected `ApiFormat` appends it (`/v1/chat/completions`, `/v1/messages`,
 // `/v1/responses`). People reasonably paste the thing their provider's docs
 // show them, which is usually the full endpoint or a base ending in `/v1`.
@@ -22,7 +22,7 @@ const FORMAT_PATHS = ['/v1/chat/completions', '/v1/messages', '/v1/responses'] a
 export interface NormalizedBaseUrl {
   /** Base URL with no trailing slash and no duplicated endpoint path. */
   base: string;
-  /** `base` + the format path — the URL a request is actually sent to. */
+  /** `base` + the format path, the URL a request is actually sent to. */
   requestUrl: string;
   /** False when the input can't be turned into an absolute http(s) URL. */
   valid: boolean;
@@ -60,7 +60,7 @@ export function isPrivateHost(hostname: string): boolean {
  *
  * Don't be tempted to let `new URL()` decide this. Chrome accepts spaces in a
  * host and percent-encodes them, so `new URL('https://not a url at all')`
- * resolves to the host `not%20a%20url%20at%20all` instead of throwing — while
+ * resolves to the host `not%20a%20url%20at%20all` instead of throwing, while
  * Node and jsdom, which follow the spec here, do throw. Validating the host
  * ourselves is the only way the same input is rejected in the browser and in
  * the tests.
@@ -87,7 +87,7 @@ function stripEndpointPath(pathname: string, formatPath: string): { path: string
     if (path.toLowerCase().endsWith(candidate)) {
       return {
         path: path.slice(0, -candidate.length),
-        note: `Removed "${candidate}" — the format already appends it.`,
+        note: `Removed "${candidate}". The format already appends it.`,
       };
     }
   }
@@ -102,7 +102,7 @@ function stripEndpointPath(pathname: string, formatPath: string): { path: string
 /**
  * The Base URL to start from when the user hasn't picked one.
  *
- * On a loopback host, guess the Manifest dev backend on :3001 — Wingman is a
+ * On a loopback host, guess the Manifest dev backend on :3001. Wingman is a
  * Manifest gateway tester first, so that's the useful default for `npm run
  * dev`. What it must never do is return Wingman's *own* origin, which the
  * previous port-passthrough did for any port other than 3000/3002. That was
@@ -112,18 +112,22 @@ function stripEndpointPath(pathname: string, formatPath: string): { path: string
  * (the Manifest dashboard's dev drawer proxies it onto one), so the passthrough
  * had become the common case rather than the edge.
  */
-export function defaultBaseUrl(location?: { protocol: string; hostname: string; port: string }): string {
+export function defaultBaseUrl(location?: {
+  protocol: string;
+  hostname: string;
+  port: string;
+}): string {
   const loc = location ?? (typeof window === 'undefined' ? null : window.location);
   if (!loc) return MANIFEST_BASE_URL;
   if (!isLoopbackHost(loc.hostname)) return MANIFEST_BASE_URL;
-  // Wingman is itself on the gateway's port — there's nothing left to guess.
+  // Wingman is itself on the gateway's port, so there's nothing left to guess.
   if (loc.port === MANIFEST_DEV_GATEWAY_PORT) return MANIFEST_BASE_URL;
   return `${loc.protocol}//${loc.hostname}:${MANIFEST_DEV_GATEWAY_PORT}`;
 }
 
 /**
  * Normalise a user-typed base URL and resolve the URL a request will be sent
- * to. Never throws — an unusable input comes back with `valid: false` and a
+ * to. Never throws: an unusable input comes back with `valid: false` and a
  * message, because the alternative was `fetch` throwing a raw TypeError (or,
  * worse, resolving a schemeless base relative to Wingman's own origin and
  * quietly sending the user's API key there).
@@ -142,11 +146,13 @@ export function normalizeBaseUrl(raw: string, formatPath: string): NormalizedBas
   const notes: string[] = [];
   let candidate = trimmed;
   if (!/^[a-z][a-z0-9+.-]*:\/\//i.test(candidate)) {
-    // A schemeless value is not a relative URL here — it's a host the user
+    // A schemeless value is not a relative URL here. It's a host the user
     // didn't finish typing. Guess the scheme rather than letting `fetch`
     // resolve it against Wingman's origin.
     if (/^[a-z][a-z0-9+.-]*:/i.test(candidate) && !/^[a-z]+:\d+/i.test(candidate)) {
-      return fail(`"${candidate.split(':')[0]}" is not a supported scheme — use http:// or https://.`);
+      return fail(
+        `"${candidate.split(':')[0]}" is not a supported scheme. Use http:// or https://.`,
+      );
     }
     const scheme = inferScheme(candidate);
     candidate = scheme + candidate;
@@ -162,7 +168,7 @@ export function normalizeBaseUrl(raw: string, formatPath: string): NormalizedBas
 
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
     const scheme = parsed.protocol.replace(/:$/, '');
-    return fail(`"${scheme}" is not a supported scheme — use http:// or https://.`);
+    return fail(`"${scheme}" is not a supported scheme. Use http:// or https://.`);
   }
   if (!hasValidHostname(parsed.hostname)) return fail("That isn't a valid URL.");
 

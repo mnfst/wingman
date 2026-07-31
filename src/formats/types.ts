@@ -42,7 +42,7 @@ export interface StreamDelta {
 
 /**
  * Stateful per-request SSE interpreter. Stateful (not a pure function) because
- * some formats — Anthropic especially — split the final usage across several
+ * some formats (Anthropic especially) split the final usage across several
  * events (input tokens in `message_start`, output tokens in `message_delta`),
  * so the parser accumulates and emits a single assembled `final` at the end.
  */

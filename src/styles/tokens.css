@@ -15,7 +15,7 @@
   --pink: #ec4899;
   --pink-strong: #db2777;
   --pink-soft: rgba(236, 72, 153, 0.12);
-  /* Postman paints POST amber — reuse that muscle memory for the verb chip. */
+  /* Postman paints POST amber, so reuse that muscle memory for the verb chip. */
   --method-post: #b45309;
   --ok: #15803d;
   --ok-bg: #dcfce7;
@@ -37,7 +37,7 @@
   --radius-pill: 999px;
   --thread-max: 860px;
 
-  /* Type — the same stacks app.manifest.build uses, loaded from styles/fonts.css.
+  /* Type: the same stacks app.manifest.build uses, loaded from styles/fonts.css.
      Wingman is denser tool chrome than the dashboard, so the sizes stay smaller;
      the faces and their fallbacks are identical. */
   --font-sans: 'DM Sans', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
@@ -111,7 +111,7 @@ button {
   cursor: pointer;
 }
 
-/* Keyboard focus is always visible, in brand pink. Text fields opt out — they
+/* Keyboard focus is always visible, in brand pink. Text fields opt out, since they
    carry their own border + ring treatment that fires on any focus. */
 :focus-visible {
   outline: 2px solid var(--pink-strong);

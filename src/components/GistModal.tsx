@@ -62,7 +62,7 @@ const GistModal: Component<Props> = (props) => {
     }
   };
   // Run sync once on render and whenever props.open flips.
-  // (Effect-style via createSignal getter — Solid re-runs the JSX accessors.)
+  // (Effect-style via createSignal getter, so Solid re-runs the JSX accessors.)
   const _open = () => {
     sync();
     return props.open;

@@ -1,6 +1,6 @@
 // Generic Server-Sent Events reader. Decodes a fetch response body stream,
 // buffers across network chunks (an event can be split mid-line), and yields
-// one `{ event?, data }` per SSE event. Format-agnostic — each ApiFormat's
+// one `{ event?, data }` per SSE event. Format-agnostic: each ApiFormat's
 // StreamParser interprets the `data` payload.
 
 export interface SseEvent {

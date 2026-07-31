@@ -2,7 +2,7 @@
  * Verbatim Hermes Agent system prompt, re-captured 2026-07-30 from
  * NousResearch/hermes-agent main@8defb9f run one-shot against a stub
  * OpenAI-compatible server with an isolated HERMES_HOME (config
- * model: auto / provider: custom — the impersonation profile). The user
+ * model: auto / provider: custom, the impersonation profile). The user
  * home directory and host kernel from the capture are redacted to generic
  * placeholders; everything else is exactly what a real client sends.
  */

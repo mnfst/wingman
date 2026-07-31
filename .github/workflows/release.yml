@@ -1,13 +1,13 @@
 # Turns pending changesets into a version bump.
 #
-# Wingman is never published to a registry — the "release" is the deploy, and
+# Wingman is never published to a registry. The "release" is the deploy, and
 # the only thing that has to move with it is the version in package.json, which
 # vite.config.ts bakes into the status bar. So this workflow does exactly one
 # thing: whenever main has unreleased changesets, it opens (or updates) a
 # "Version Packages" PR that bumps package.json, writes CHANGELOG.md, and
 # deletes the changesets it consumed. Merging that PR is the release.
 #
-# Needs Settings → Actions → General → "Allow GitHub Actions to create and
+# Needs Settings > Actions > General > "Allow GitHub Actions to create and
 # approve pull requests" to be on, or the action can't open the PR.
 
 name: Release
@@ -20,7 +20,7 @@ on:
     branches: [main]
   workflow_dispatch:
 
-# One version PR at a time — two runs racing would fight over the same branch.
+# One version PR at a time. Two runs racing would fight over the same branch.
 concurrency:
   group: release
   cancel-in-progress: false

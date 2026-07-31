@@ -20,7 +20,7 @@ export function createAppActions(s: AppState) {
     ...s.drafts().map((d): TabRef => ({ kind: 'draft', id: d.id })),
   ];
 
-  /** Clear the response pane — every tab switch starts from a blank slate. */
+  /** Clear the response pane. Every tab switch starts from a blank slate. */
   const clearResponse = () => {
     s.setResult(null);
     s.setStreamingText('');
@@ -114,8 +114,8 @@ export function createAppActions(s: AppState) {
   };
 
   /**
-   * The + button / ⌘⇧O. A new tab inherits the setup you're looking at — the
-   * common case is firing a second request at the same endpoint — and starts
+   * The + button / ⌘⇧O. A new tab inherits the setup you're looking at (the
+   * common case is firing a second request at the same endpoint) and starts
    * with an empty message.
    */
   const handleNewRequest = () => {
@@ -140,7 +140,7 @@ export function createAppActions(s: AppState) {
       restoreFromHistory(entry);
       return;
     }
-    // Nothing left to fall back to — open an empty tab rather than show a
+    // Nothing left to fall back to, so open an empty tab rather than show a
     // dead response with no tab selected.
     handleNewRequest();
   };
