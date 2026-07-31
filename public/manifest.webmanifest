@@ -1,6 +1,6 @@
 {
   "id": "/",
-  "name": "Wingman — Postman for LLMs",
+  "name": "Wingman - LLM API testing",
   "short_name": "Wingman",
   "description": "Call any OpenAI-compatible, OpenAI Responses, or Anthropic API from your browser. Stream token by token and inspect the raw request and response.",
   "start_url": "/",

@@ -1,6 +1,6 @@
 // Code-snippet builders for the SDK preview panel. Kept separate from the
 // profile catalog so profiles.ts stays scannable and under the file-size limit.
-// Snippets are illustrative (non-streaming) — they mirror the form, they don't
+// Snippets are illustrative (non-streaming). They mirror the form, they don't
 // drive the request (the format does).
 import type { ApiFormat, RequestParams } from './formats';
 import type { ProfileLang } from './profiles';
@@ -207,7 +207,7 @@ export function rawSnippet(p: RequestParams, format: ApiFormat): string {
   const auth = authHeaderPair(format, p.apiKey);
   if (auth) headers[auth[0]] = auth[1];
   Object.assign(headers, format.defaultHeaders ?? {});
-  return `# Plain fetch — no User-Agent override.
+  return `# Plain fetch, no User-Agent override.
 fetch("${url}", {
   method: "POST",
   headers: ${indentLines(jsonBody(headers, 2), 2)},

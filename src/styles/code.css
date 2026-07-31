@@ -108,7 +108,7 @@
 }
 
 /* ── Syntax highlighting (highlight.js) ──────────────────────────────── */
-/* Tuned for the dark code view background. Single theme — code views are
+/* Tuned for the dark code view background. Single theme, because code views are
    always dark, regardless of light/dark page mode. */
 
 .hljs {

@@ -16,8 +16,8 @@ import { createAppActions } from './state/appActions';
 /**
  * Layout, top to bottom, following the conventions developers already know:
  * a Postman-style request strip up top (tabs row, URL bar), then a Bruno-style
- * split — request configuration in the left pane, conversation in the right
- * pane like ChatGPT/Claude. App itself is only wiring — state lives in
+ * split: request configuration in the left pane, conversation in the right
+ * pane like ChatGPT/Claude. App itself is only wiring. State lives in
  * state/appState, actions in state/appActions.
  */
 const App: Component = () => {

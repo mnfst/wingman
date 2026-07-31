@@ -16,7 +16,7 @@ interface Props {
 
 /**
  * The snippet for the selected client. It lives under the Client tab rather
- * than in a tab of its own: the code *is* the client — reading "OpenAI SDK"
+ * than in a tab of its own: the code *is* the client, and reading "OpenAI SDK"
  * and then hunting for the matching snippet somewhere else was a step nobody
  * needed to take.
  */

@@ -101,7 +101,7 @@
   font-size: 10.5px;
 }
 
-/* Narrow enough that the labels stop fitting beside the request tabs — the
+/* Narrow enough that the labels stop fitting beside the request tabs. The
    icons still name each item through their title/aria-label. */
 @media (max-width: 560px) {
   .statusbar__item span {
@@ -312,7 +312,7 @@
   background: var(--err-bg);
 }
 
-/* Narrow: stack the panes — config on top (capped), chat below. */
+/* Narrow: stack the panes, config on top (capped), chat below. */
 @media (max-width: 900px) {
   .main {
     flex-direction: column;

@@ -72,7 +72,7 @@ export function makeOpenAIStub(ctx: RunnerContext) {
         },
       },
     };
-    // Minimal `responses` shim — uses the same OpenAI-compatible chat
+    // Minimal `responses` shim. Uses the same OpenAI-compatible chat
     // endpoint, since Manifest's proxy doesn't expose `/v1/responses` yet.
     responses = {
       create: (args: ChatCompletionsCreateArgs) => this.chat.completions.create(args),

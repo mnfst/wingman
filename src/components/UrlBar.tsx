@@ -95,7 +95,7 @@ const CodeIcon: Component = () => (
 );
 
 // The outer span stays mounted so the live region exists before the status
-// flips — screen readers only announce changes inside an already-present
+// flips. Screen readers only announce changes inside an already-present
 // aria-live node.
 const HealthBadge: Component<{ status: HealthStatus }> = (p) => {
   const status = () => p.status;
@@ -124,7 +124,7 @@ const HealthBadge: Component<{ status: HealthStatus }> = (p) => {
 };
 
 // A bare "119ms" in the address field reads as the latency of something the
-// user did, which it never is — nobody asked for it and no send has happened
+// user did, which it never is. Nobody asked for it and no send has happened
 // yet. Say what the badge actually means and leave the number to the tooltip.
 function healthLabel(s: HealthStatus): string {
   switch (s.kind) {
@@ -145,13 +145,13 @@ function healthLabel(s: HealthStatus): string {
   }
 }
 
-// The badge only ever proves the health endpoint answered — it says nothing
+// The badge only ever proves the health endpoint answered. It says nothing
 // about the endpoint a send targets. Naming the probed URL keeps a green badge
 // from being read as "your request will work".
 function healthTitle(s: HealthStatus): string {
   switch (s.kind) {
     case 'ok':
-      return `Health check succeeded in ${s.latencyMs} ms — probed ${s.probedUrl}`;
+      return `Health check succeeded in ${s.latencyMs} ms. Probed ${s.probedUrl}`;
     case 'checking':
       return 'Checking the gateway health endpoint…';
     case 'invalid':
@@ -175,7 +175,7 @@ function healthTitle(s: HealthStatus): string {
 const UrlBar: Component<Props> = (props) => {
   const [keyRevealed, setKeyRevealed] = createSignal(false);
 
-  // A different provider means a different secret in the field — never leave
+  // A different provider means a different secret in the field, so never leave
   // the next one revealed unasked.
   createEffect(
     on(
@@ -277,7 +277,7 @@ const UrlBar: Component<Props> = (props) => {
             !props.canSave
               ? 'Send a request first, then save it as a gist'
               : props.saveStatus === 'saved'
-                ? 'Copied to clipboard — paste into the GitHub gist tab'
+                ? 'Copied to clipboard. Paste it into the GitHub gist tab'
                 : 'Save this request as a GitHub gist'
           }
         >
@@ -294,7 +294,7 @@ const UrlBar: Component<Props> = (props) => {
         </button>
       </div>
       {/* Pasting a full endpoint or a `/v1` base is the most common way to get
-          a 404 out of a healthy gateway — surface what normalisation did (or
+          a 404 out of a healthy gateway, so surface what normalisation did (or
           why the URL is unusable) before Send, but stay silent otherwise. */}
       <Show when={props.baseUrlProblem || props.baseUrlNote}>
         <div class="urlbar__hint" classList={{ 'urlbar__hint--err': !!props.baseUrlProblem }}>

@@ -1,5 +1,5 @@
 // Model catalog lookup: GET {base}/v1/models, the OpenAI-compatible listing
-// endpoint that Manifest, OpenAI, Groq, Mistral — and, same shape, Anthropic —
+// endpoint that Manifest, OpenAI, Groq, Mistral (and, same shape, Anthropic)
 // all expose. Best-effort: any failure (no CORS, 401, not implemented) simply
 // yields an empty list and the model field stays free-text.
 import type { ApiFormat } from '../formats';
@@ -19,7 +19,7 @@ function modelIdsFrom(json: unknown): string[] {
       if (typeof id === 'string' && id) ids.push(id);
     }
   }
-  // Dedupe, keep server order — routers put their preferred alias (auto) first.
+  // Dedupe, keep server order: routers put their preferred alias (auto) first.
   return [...new Set(ids)];
 }
 

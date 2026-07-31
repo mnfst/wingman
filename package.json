@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Hosted Manifest gateway tester — impersonate OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL and inspect raw request/response.",
+  "description": "Hosted Manifest gateway tester: impersonate OpenClaw, Hermes, OpenAI SDK, Vercel AI SDK, LangChain, cURL and inspect raw request/response.",
   "homepage": "https://wingman.manifest.build",
   "repository": {
     "type": "git",

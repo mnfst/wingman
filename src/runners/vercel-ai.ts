@@ -37,7 +37,7 @@ function extractText(json: unknown): string {
 
 /**
  * Stubs `createOpenAI` and `generateText` from the Vercel AI SDK. The
- * generated snippet uses these two named exports — anything else throws a
+ * generated snippet uses these two named exports. Anything else throws a
  * clear error so users know what's stubbed.
  */
 export function makeVercelAIStubs(ctx: RunnerContext) {
@@ -82,10 +82,10 @@ export function makeVercelAIStubs(ctx: RunnerContext) {
   };
 
   // `streamText` is rarely used in our snippets; surface a clear error if
-  // someone tries — better than a cryptic undefined-call.
+  // someone tries, which beats a cryptic undefined-call.
   const streamText = async () => {
     throw new Error(
-      'streamText is not stubbed in Wingman yet — switch to generateText to test routing.',
+      'streamText is not stubbed in Wingman yet. Switch to generateText to test routing.',
     );
   };
 

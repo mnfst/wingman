@@ -257,7 +257,7 @@
   margin-top: 10px;
 }
 
-/* A second block inside one tab — the code sitting under the client picker.
+/* A second block inside one tab: the code sitting under the client picker.
    The rule keeps it from reading as more of the block above it. */
 .config__section {
   margin-top: 16px;

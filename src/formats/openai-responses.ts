@@ -67,7 +67,7 @@ function createStreamParser(): StreamParser {
 export const openaiResponses: ApiFormat = {
   id: 'openai-responses',
   label: 'OpenAI Responses',
-  blurb: 'POST /v1/responses — OpenAI’s newer stateful API with typed streaming events.',
+  blurb: 'POST /v1/responses, OpenAI’s newer stateful API with typed streaming events.',
   icon: '/icons/providers/openai.svg',
   docsUrl: 'https://platform.openai.com/docs/api-reference/responses',
   path: '/v1/responses',

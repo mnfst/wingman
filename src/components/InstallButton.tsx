@@ -21,7 +21,7 @@ const DownloadIcon: Component = () => (
 
 /**
  * The install entry in the status bar. It only appears once the browser has
- * offered a prompt — anywhere that can't install (Firefox, an iOS tab, an
+ * offered a prompt. Anywhere that can't install (Firefox, an iOS tab, an
  * already-installed window) the item never shows rather than promising
  * something that won't happen.
  */
