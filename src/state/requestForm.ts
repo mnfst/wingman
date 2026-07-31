@@ -64,7 +64,7 @@ export function createRequestForm(d: Deps) {
   // truth for Send, provided the client can execute it in this language.
   const [scratchCode, setScratchCode] = createSignal<Record<string, string>>({});
 
-  // Everything a snippet renders, in one object — and the same one handed to
+  // Everything a snippet renders, in one object, and the same one handed to
   // the parser when the snippet is edited, so the two directions stay symmetric.
   const snippetContext = createMemo<SnippetContext>(() => ({
     params: d.params(),

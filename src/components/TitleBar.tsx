@@ -9,7 +9,7 @@ import type { Component, JSX } from 'solid-js';
  * It is also the h1: without it the only heading on the rendered page would be
  * the clipped one in index.html, and a page whose entire heading structure is
  * invisible reads badly to a search engine. The clipped h1 stays there for
- * crawlers that never run JavaScript, so two exist — which HTML5 allows.
+ * crawlers that never run JavaScript, so two exist, which HTML5 allows.
  *
  * The mark is /favicon.svg rather than a second copy of the same artwork: the
  * browser has already fetched it for the tab icon, so this costs no request.

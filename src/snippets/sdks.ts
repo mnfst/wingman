@@ -1,5 +1,5 @@
 // Snippets for the SDK clients. Each one declares the same four things the
-// form holds — base URL, key, model, messages — plus any header the user added
+// form holds (base URL, key, model, messages) plus any header the user added
 // on top of the SDK's own fingerprint, so the panel is a faithful rendering of
 // the request and can be read back into the form.
 import {
@@ -29,7 +29,7 @@ function pyHeaders(ctx: SnippetContext, name = 'default_headers', indent = 4): s
   return `\n${pad}${name}=${indentLines(jsonBody(extra, 4), indent)},`;
 }
 
-/** `import os` — only when the key is a `os.environ[…]` reference. */
+/** `import os`, only when the key is a `os.environ[…]` reference. */
 function osImport(ctx: SnippetContext): string {
   return needsOsImport(ctx) ? 'import os\n' : '';
 }

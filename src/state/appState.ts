@@ -214,7 +214,7 @@ export function createAppState() {
     updateHeaderEntries: form.updateHeaderEntries,
     onSdkCodeChange: form.onSdkCodeChange,
     // Compare against the normalised base, since that's what the snippet
-    // printed — otherwise a trailing slash in the URL bar reads as an edit.
+    // printed. Otherwise a trailing slash in the URL bar reads as an edit.
     baseUrl: () => normalized().base,
     setBaseUrl: handleBaseUrlInput,
     apiKey,

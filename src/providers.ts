@@ -269,7 +269,7 @@ export const CUSTOM_PROVIDER: Provider = PROVIDER_BY_ID[DEFAULT_PROVIDER_ID]!;
 
 /**
  * The env var a code snippet reads the key from instead of printing it. Named
- * after the provider so the snippet reads like real project code — the OpenAI
+ * after the provider so the snippet reads like real project code. The OpenAI
  * SDK looks for `OPENAI_API_KEY` on its own, and `MANIFEST_API_KEY` is what a
  * gateway user would have exported anyway.
  */

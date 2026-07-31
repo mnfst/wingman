@@ -1,5 +1,5 @@
 // What every snippet builder reads, and the shared plumbing for rendering it.
-// Snippets are illustrative (non-streaming) — they mirror the form, they don't
+// Snippets are illustrative (non-streaming). They mirror the form, they don't
 // drive the request (the format does). The one thing they must never do is
 // hand out a live credential: the Code panel is the part of Wingman people
 // screenshot, paste into an issue or share on a call, so the key is written as
@@ -10,7 +10,7 @@ import type { ProfileLang } from '../profiles';
 export const MANIFEST_KEY_PLACEHOLDER = 'mnfst_YOUR_KEY';
 export const GENERIC_KEY_PLACEHOLDER = 'YOUR_API_KEY';
 
-/** Stand-ins a snippet prints when there's no key — never a real value. */
+/** Stand-ins a snippet prints when there's no key. Never a real value. */
 export const KEY_PLACEHOLDERS: readonly string[] = [
   MANIFEST_KEY_PLACEHOLDER,
   GENERIC_KEY_PLACEHOLDER,
@@ -38,7 +38,7 @@ export interface SnippetContext {
 }
 
 /**
- * The key where a *value expression* is expected — quotes included when it's a
+ * The key where a *value expression* is expected, quotes included when it's a
  * literal, because `process.env.X` must not be quoted and `"sk-…"` must be.
  */
 export function keyExpr(ctx: SnippetContext, placeholder = MANIFEST_KEY_PLACEHOLDER): string {
@@ -53,7 +53,7 @@ export function keyExpr(ctx: SnippetContext, placeholder = MANIFEST_KEY_PLACEHOL
   }
 }
 
-/** The key spliced *into* an existing string — a YAML value, a curl header. */
+/** The key spliced *into* an existing string: a YAML value, a curl header. */
 export function keyInline(ctx: SnippetContext, placeholder = MANIFEST_KEY_PLACEHOLDER): string {
   if (!ctx.key.hidden) return ctx.key.value || placeholder;
   return `$${ctx.key.envName}`;
@@ -97,7 +97,7 @@ export function headerValue(headers: Record<string, string>, name: string): stri
 /**
  * The headers a *client* snippet has to declare: whatever the Headers tab holds
  * beyond what the SDK sends by itself. An SDK stamps its own fingerprint, so
- * repeating those ten stainless headers in the snippet would be noise — only
+ * repeating those ten stainless headers in the snippet would be noise, so only
  * what the user added or overrode belongs in the code.
  */
 export function extraHeaders(ctx: SnippetContext): Record<string, string> {
@@ -121,7 +121,7 @@ export function authHeaderPair(ctx: SnippetContext): [string, string] | null {
 /**
  * The header pairs a raw snippet spells out on the user's behalf, because the
  * form adds them automatically: the credential and `Content-Type`. Skipped when
- * the Headers tab already defines them — a hand-written override wins, exactly
+ * the Headers tab already defines them. A hand-written override wins, exactly
  * as it does in `send.ts`.
  *
  * Round-tripping depends on this: parsing an edited snippet subtracts the same

@@ -54,7 +54,7 @@ export interface Profile {
    */
   executable?: boolean;
   /**
-   * True when the snippet can't express the system prompt — the agent clients
+   * True when the snippet can't express the system prompt. The agent clients
    * only write a provider config, so the prompt travels with the CLI, not the
    * code. Editing such a snippet must not be read as "the prompt was deleted".
    */
