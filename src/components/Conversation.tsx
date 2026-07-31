@@ -13,7 +13,7 @@ interface Props {
   devTools: boolean;
 }
 
-/* Thin-line magic wand with sparkles — the empty pane's only ornament, drawn
+/* Thin-line magic wand with sparkles, the empty pane's only ornament, drawn
    in border-grey so it reads as texture, not content (Bruno's paper plane).
    Rendered at 1.5× the viewBox, so the stroke widths are divided by the same
    factor to keep the line hairline-thin at the larger size. */

@@ -69,7 +69,7 @@ function createStreamParser(): StreamParser {
 export const openaiChat: ApiFormat = {
   id: 'openai-chat',
   label: 'OpenAI Chat Completions',
-  blurb: 'POST /v1/chat/completions — the OpenAI-compatible standard (Groq, Together, DeepSeek…).',
+  blurb: 'POST /v1/chat/completions, the OpenAI-compatible standard (Groq, Together, DeepSeek…).',
   icon: '/icons/providers/openai.svg',
   docsUrl: 'https://platform.openai.com/docs/api-reference/chat',
   path: '/v1/chat/completions',

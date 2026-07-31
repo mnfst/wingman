@@ -176,7 +176,7 @@ const AboutModal: Component<Props> = (props) => {
                       >
                         {link.label}
                       </a>
-                      <span class="about-modal__eco-desc"> — {link.description}</span>
+                      <span class="about-modal__eco-desc"> - {link.description}</span>
                     </li>
                   )}
                 </For>

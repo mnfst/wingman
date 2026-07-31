@@ -85,7 +85,7 @@ const ProviderDropdown: Component<Props> = (props) => {
         onClick={toggle}
         aria-haspopup="listbox"
         aria-expanded={open()}
-        title={`Provider preset: ${active().name} — ${active().subtitle}`}
+        title={`Provider preset: ${active().name}. ${active().subtitle}`}
       >
         <img class="provider-dd__icon" src={active().icon} alt="" width="18" height="18" />
         <ChevronIcon />

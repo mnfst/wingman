@@ -1,6 +1,6 @@
 // Profiles are agent/SDK *fingerprints* layered on top of an API format. A
 // profile contributes request headers (to mimic a real client), a default
-// system prompt, an optional body fragment, and an SDK code snippet — but the
+// system prompt, an optional body fragment, and an SDK code snippet. But the
 // wire shape (path, auth, body, response parsing) belongs to the ApiFormat.
 // Each profile declares which formats it's compatible with; the UI filters the
 // list to the selected format.
@@ -26,7 +26,7 @@ import {
 export type ProfileMode = 'agent' | 'sdk' | 'raw';
 export type ProfileLang = 'typescript' | 'python' | 'bash';
 
-/** @deprecated use RequestParams from ./formats — kept as an alias. */
+/** @deprecated use RequestParams from ./formats. Kept as an alias. */
 export type ProfileParams = RequestParams;
 
 export interface Profile {
@@ -42,7 +42,7 @@ export interface Profile {
   formats: ApiFormatId[];
   defaultSystemPrompt?: string;
   /**
-   * When true, the Headers panel is hidden — the profile simulates a real
+   * When true, the Headers panel is hidden: the profile simulates a real
    * SDK/agent fingerprint and arbitrary header editing would defeat that. The
    * Default client leaves this false because hand-crafting is its whole point.
    */
@@ -50,11 +50,11 @@ export interface Profile {
   /**
    * When true, the SDK code editor can actually drive the request: editing
    * the code and hitting Send executes it via stubbed SDKs. Currently only
-   * the TypeScript SDK profiles can do this — Python needs Pyodide.
+   * the TypeScript SDK profiles can do this. Python needs Pyodide.
    */
   executable?: boolean;
   /**
-   * True when the snippet can't express the system prompt — the agent clients
+   * True when the snippet can't express the system prompt. The agent clients
    * only write a provider config, so the prompt travels with the CLI, not the
    * code. Editing such a snippet must not be read as "the prompt was deleted".
    */
@@ -62,7 +62,7 @@ export interface Profile {
   headers: (params: RequestParams) => Record<string, string>;
   /**
    * Fingerprint-only body fields merged on top of the format's body (e.g.
-   * OpenClaw's `max_completion_tokens`). Optional — most profiles add nothing.
+   * OpenClaw's `max_completion_tokens`). Optional, and most profiles add nothing.
    */
   bodyExtras?: (params: RequestParams) => Record<string, unknown>;
   code: (ctx: SnippetContext) => string;
@@ -108,7 +108,7 @@ export const PROFILES: Profile[] = [
     defaultSystemPrompt: OPENCLAW_SYSTEM,
     headersLocked: true,
     headers: () => ({ ...stainlessJs }),
-    // `store: false` was dropped upstream in openclaw 2026.7.x — the shipped
+    // `store: false` was dropped upstream in openclaw 2026.7.x. The shipped
     // client now sends only the token cap (July 2026 capture).
     bodyExtras: () => ({ max_completion_tokens: 8192 }),
     omitsSystemPrompt: true,

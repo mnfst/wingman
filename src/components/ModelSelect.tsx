@@ -3,7 +3,7 @@ import { createMemo, createSignal, For, onCleanup, Show, type Component } from '
 interface Props {
   value: string;
   onChange: (value: string) => void;
-  /** Model ids fetched from the endpoint's /v1/models — empty means unknown. */
+  /** Model ids fetched from the endpoint's /v1/models. Empty means unknown. */
   models: string[];
 }
 

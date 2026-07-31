@@ -8,7 +8,7 @@
   gap: 24px;
 }
 
-/* Empty pane, Bruno-style: a big faint line drawing and the keyboard map —
+/* Empty pane, Bruno-style: a big faint line drawing and the keyboard map,
    ornament and orientation, no lecture. */
 .conversation__empty {
   padding: 12vh 16px 0;
@@ -163,7 +163,7 @@
   }
 }
 
-/* ── Chat composer (message box only — config lives above) ───────────── */
+/* ── Chat composer (message box only, config lives above) ───────────── */
 
 .chatbox {
   flex-shrink: 0;

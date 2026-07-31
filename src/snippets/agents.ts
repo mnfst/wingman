@@ -5,7 +5,7 @@ import { envHint, keyInline, type SnippetContext } from './context';
 
 /**
  * OpenClaw's provider config is a single-quoted JSON blob. A hidden key can't
- * just sit inside it — single quotes stop the shell expanding `$VAR` — so the
+ * just sit inside it (single quotes stop the shell expanding `$VAR`), so the
  * quote is closed around the reference and reopened after it, which is the
  * standard `'…'"$VAR"'…'` splice.
  */

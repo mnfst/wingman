@@ -1,6 +1,6 @@
 // Background lookups against the endpoint the URL bar points at: is it up, and
 // what models does it serve? Both are debounced past typing and both fail
-// quietly — neither is allowed to block sending a request.
+// quietly. Neither is allowed to block sending a request.
 import { createEffect, createSignal, onCleanup, type Accessor } from 'solid-js';
 import type { ApiFormat } from '../formats';
 import type { Provider } from '../providers';

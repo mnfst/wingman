@@ -42,7 +42,7 @@ const CheckIcon: Component = () => (
 /**
  * The "method selector" slot of the URL bar. Every LLM call is a POST, so the
  * verb is a fixed Postman-orange label and the dropdown picks the wire format
- * (the endpoint path) instead — the closest thing an LLM API has to a method.
+ * (the endpoint path) instead, the closest thing an LLM API has to a method.
  */
 const FormatDropdown: Component<Props> = (props) => {
   const [open, setOpen] = createSignal(false);
@@ -85,7 +85,7 @@ const FormatDropdown: Component<Props> = (props) => {
         onClick={toggle}
         aria-haspopup="listbox"
         aria-expanded={open()}
-        title={`${active().label} — ${active().blurb}`}
+        title={`${active().label}: ${active().blurb}`}
       >
         <span class="format-dd__method">POST</span>
         <span class="format-dd__path">{active().path}</span>

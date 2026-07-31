@@ -52,7 +52,7 @@ function safeWrite(entries: HistoryEntry[]): void {
   try {
     sessionStorage.setItem(KEY, JSON.stringify(entries));
   } catch {
-    // Storage full or unavailable — fail silently rather than disrupt the
+    // Storage full or unavailable. Fail silently rather than disrupt the
     // request flow. The user's last request still went through; only the
     // historical record is lost.
   }

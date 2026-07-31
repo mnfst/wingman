@@ -44,7 +44,7 @@ function makeConsoleStub(logs: string[]): Console {
         }
       })
       .join(' ');
-  // Cast at the boundary — we don't want every call site to know the stub
+  // Cast at the boundary. We don't want every call site to know the stub
   // doesn't implement the full Console surface.
   return {
     log: (...args: unknown[]) => logs.push(fmt(args)),
@@ -78,7 +78,7 @@ function buildGlobals(profileId: string, ctx: RunnerContext): Record<string, unk
       return { ChatOpenAI };
     }
     case 'raw':
-      // Plain fetch — no stubs needed; the runtime fetch is intercepted by
+      // Plain fetch, no stubs needed; the runtime fetch is intercepted by
       // sendRequest equivalent only via the user's own code, so let it run
       // against the global fetch directly. We still capture the result by
       // wrapping fetch.

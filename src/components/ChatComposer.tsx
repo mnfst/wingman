@@ -29,7 +29,7 @@ const SendIcon: Component = () => (
 /**
  * ChatGPT-style message box: just the text and a send arrow. Everything about
  * the request (client, endpoint, headers, system prompt) is configured in the
- * bars above — this is only what the "user" says.
+ * bars above. This is only what the "user" says.
  */
 const ChatComposer: Component<Props> = (props) => {
   let taRef: HTMLTextAreaElement | undefined;

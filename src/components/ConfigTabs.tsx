@@ -42,7 +42,7 @@ const TABS: ReadonlyArray<{ id: ConfigTabId; label: string }> = [
 ];
 
 /**
- * The left pane, Bruno-style: one facet of the request per tab — which client
+ * The left pane, Bruno-style: one facet of the request per tab. Which client
  * to send as (with the code that client would run), the headers, and the
  * harness system prompt. Auth lives up in the URL bar next to the address it
  * belongs to.
@@ -102,7 +102,7 @@ const ConfigTabs: Component<Props> = (props) => {
                   <span class="config__tab-count">({sysLen().toLocaleString()})</span>
                 </Show>
                 <Show when={t.id === 'client' && props.sdkCodeIsEdited}>
-                  <span class="config__tab-edited" title="Code edited — Send runs the snippet" />
+                  <span class="config__tab-edited" title="Code edited. Send runs the snippet" />
                 </Show>
               </button>
             )}
