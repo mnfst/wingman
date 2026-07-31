@@ -27,6 +27,9 @@ function setup(initial: { formatId?: ApiFormatId; profileId?: string; lang?: Pro
       profile: () => PROFILE_BY_ID[profileId()]!,
       lang,
       params: () => params,
+      // The Code panel prints an env-var reference by default; the snippet
+      // tests in src/snippets cover the revealed variant.
+      keyRef: () => ({ hidden: true, envName: 'MANIFEST_API_KEY', value: params.apiKey }),
     });
     return { ...form, setFormatId, setProfileId, setLang, dispose };
   });

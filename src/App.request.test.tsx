@@ -201,6 +201,23 @@ describe('changing the request', () => {
     expect(editor.value).toContain('from openai import OpenAI');
   });
 
+  // The Code panel is the part people screenshot, so the key is an env-var
+  // reference until they ask for the real thing.
+  it('keeps the key out of the snippet until it is revealed', () => {
+    render(() => <App />);
+    const key = screen.getByLabelText('API key') as HTMLInputElement;
+    key.value = 'mnfst_live_secret';
+    key.dispatchEvent(new Event('input', { bubbles: true }));
+
+    const editor = () => document.querySelector('.code-view__textarea') as HTMLTextAreaElement;
+    expect(editor().value).not.toContain('mnfst_live_secret');
+
+    screen.getByText('Reveal key').click();
+
+    expect(editor().value).toContain('mnfst_live_secret');
+    expect(screen.getByText('Hide key')).toBeTruthy();
+  });
+
   // Switching client swaps the fingerprint headers and the captured prompt.
   it('sends as the selected client', async () => {
     render(() => <App />);

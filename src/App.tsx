@@ -121,6 +121,10 @@ const App: Component = () => {
             sdkCodeIsEdited={s.sdkCodeIsEdited()}
             onResetSdkCode={s.resetSdkCode}
             sdkExecutable={s.sdkExecutable()}
+            keyHidden={!s.revealKey()}
+            onToggleKey={() => s.setRevealKey(!s.revealKey())}
+            keyEnvName={s.keyEnvName()}
+            hasKey={s.apiKey().trim().length > 0}
             stream={s.stream()}
             onStreamChange={s.persistAndSetStream}
           />

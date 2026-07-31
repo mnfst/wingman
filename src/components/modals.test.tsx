@@ -161,7 +161,9 @@ describe('AboutModal', () => {
     expect(screen.getByText(TAGLINE)).toBeTruthy();
     for (const item of [...DOES, ...DOES_NOT]) expect(screen.getByText(item)).toBeTruthy();
     for (const link of ECOSYSTEM) {
-      expect(screen.getByText(link.label).getAttribute('href')).toBe(link.href);
+      // `getAllByText`: some labels also appear in the support links above.
+      const hrefs = screen.getAllByText(link.label).map((n) => n.getAttribute('href'));
+      expect(hrefs).toContain(link.href);
     }
   });
 

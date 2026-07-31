@@ -99,19 +99,23 @@ describe('CodePanel', () => {
     isEdited: false,
     onReset: vi.fn(),
     executable: true,
+    keyHidden: true,
+    onToggleKey: vi.fn(),
+    keyEnvName: 'MANIFEST_API_KEY',
+    hasKey: true,
     ...over,
   });
 
   it('marks a runnable snippet and explains what Send will do', () => {
     render(() => <CodePanel {...panelProps()} />);
     expect(screen.getByText('runnable')).toBeTruthy();
-    expect(screen.getByText(/Edit it and Send will run the snippet/)).toBeTruthy();
+    expect(screen.getByText(/Send will run the snippet instead/)).toBeTruthy();
   });
 
   it('marks a preview-only snippet', () => {
     render(() => <CodePanel {...panelProps({ executable: false })} />);
     expect(screen.getByText('preview only')).toBeTruthy();
-    expect(screen.getByText(/Copy it and run it locally/)).toBeTruthy();
+    expect(screen.getByText(/change either one and the other follows/)).toBeTruthy();
   });
 
   it('offers a reset once the snippet is edited', () => {
@@ -144,6 +148,32 @@ describe('CodePanel', () => {
     textarea.dispatchEvent(new Event('input', { bubbles: true }));
 
     expect(onCodeChange).toHaveBeenCalledWith('const b = 2;');
+  });
+
+  // The Code panel is the part people screenshot, so the key is an env-var
+  // reference until they explicitly ask for the real thing.
+  it('names the env var the snippet reads, and offers to reveal the key', () => {
+    const onToggleKey = vi.fn();
+    render(() => <CodePanel {...panelProps({ onToggleKey })} />);
+
+    expect(screen.getByText(/safe to paste into an issue/)).toBeTruthy();
+    expect(screen.getAllByText('MANIFEST_API_KEY').length).toBeGreaterThan(0);
+
+    screen.getByText('Reveal key').click();
+
+    expect(onToggleKey).toHaveBeenCalled();
+  });
+
+  it('offers to hide it again once revealed', () => {
+    render(() => <CodePanel {...panelProps({ keyHidden: false })} />);
+    expect(screen.getByText('Hide key').getAttribute('aria-pressed')).toBe('true');
+    expect(screen.queryByText(/safe to paste into an issue/)).toBeNull();
+  });
+
+  // Nothing to hide, so no toggle to press.
+  it('drops the toggle when there is no key', () => {
+    render(() => <CodePanel {...panelProps({ hasKey: false })} />);
+    expect(screen.queryByText('Reveal key')).toBeNull();
   });
 
   it('hides the language toggle when there is only one', () => {

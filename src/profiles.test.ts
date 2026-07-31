@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { PROFILES, PROFILE_BY_ID, profilesForFormat, resolveProfileId } from './profiles';
-import { FORMAT_BY_ID, type RequestParams } from './formats';
+import { FORMAT_BY_ID, type ApiFormat, type RequestParams } from './formats';
+import type { SnippetContext } from './snippets';
+import type { Profile, ProfileLang } from './profiles';
 
 const params: RequestParams = {
   baseUrl: 'https://app.manifest.build',
@@ -9,6 +11,19 @@ const params: RequestParams = {
   systemPrompt: 'be terse',
   userMessage: 'hello',
 };
+
+/** What the Code panel hands a client's snippet builder. */
+function contextFor(profile: Profile, lang: ProfileLang, format: ApiFormat): SnippetContext {
+  const clientHeaders = { ...(format.defaultHeaders ?? {}), ...profile.headers(params) };
+  return {
+    params,
+    lang,
+    format,
+    headers: { ...clientHeaders },
+    clientHeaders,
+    key: { hidden: true, envName: 'MANIFEST_API_KEY', value: params.apiKey },
+  };
+}
 
 describe('resolveProfileId', () => {
   // Settings and saved history outlive the catalog. Both ids below were real
@@ -93,7 +108,7 @@ describe('the client catalog', () => {
       for (const lang of profile.langs) {
         expect(profile.headers(params)).toBeTypeOf('object');
         expect(profile.bodyExtras?.(params) ?? {}).toBeTypeOf('object');
-        const code = profile.code(params, lang, format);
+        const code = profile.code(contextFor(profile, lang, format));
         expect(code.length).toBeGreaterThan(0);
         // The snippet has to describe the request on screen, not a stale one.
         expect(code).toContain(params.model);

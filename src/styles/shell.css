@@ -88,6 +88,12 @@
   color: var(--pink-strong);
 }
 
+/* Only ever present when the browser is actually offering an install, so it
+   can afford to be the one coloured item down here. */
+.statusbar__item--install {
+  color: var(--pink-strong);
+}
+
 .statusbar__version {
   padding: 0 5px;
   color: var(--text-faint);

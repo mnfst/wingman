@@ -246,9 +246,9 @@ describe('the health badge', () => {
     };
     render(() => <UrlBar {...props({ healthStatus: status })} />);
 
-    const badge = screen.getByText('42ms');
+    const badge = screen.getByText('healthy');
     expect(badge.title).toBe(
-      'Health check succeeded — probed https://app.manifest.build/api/v1/health',
+      'Health check succeeded in 42 ms — probed https://app.manifest.build/api/v1/health',
     );
     expect(badge.className).toContain('health-badge--ok');
   });
