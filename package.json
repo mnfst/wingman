@@ -1,6 +1,6 @@
 {
   "name": "wingman",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "private": true,
   "type": "module",
   "description": "Postman for LLM APIs. A free, open-source browser tool to test OpenAI-compatible, OpenAI Responses, and Anthropic endpoints and read the raw request and response.",
