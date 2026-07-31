@@ -136,9 +136,8 @@ describe('hasValidHostname', () => {
     'accepts %s',
     (h) => expect(hasValidHostname(h)).toBe(true),
   );
-  it.each(['', 'not%20a%20url%20at%20all', 'a b', 'a|b', 'héllo.example.com'])(
-    'rejects %s',
-    (h) => expect(hasValidHostname(h)).toBe(false),
+  it.each(['', 'not%20a%20url%20at%20all', 'a b', 'a|b', 'héllo.example.com'])('rejects %s', (h) =>
+    expect(hasValidHostname(h)).toBe(false),
   );
 });
 

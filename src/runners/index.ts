@@ -55,95 +55,41 @@ function makeConsoleStub(logs: string[]): Console {
   } as unknown as Console;
 }
 
-function buildContext(opts: RunOptions, onResult: (r: SendResult) => void): RunnerContext {
-  return {
-    defaultBaseUrl: opts.baseUrl,
-    defaultApiKey: opts.apiKey,
-    hooks: { onResult },
-  };
-}
+/**
+ * The global bindings a profile's snippet expects, keyed by profile id. One
+ * table, rather than a switch plus a hand-maintained list of ids: `isExecutable`
+ * and the runner lookup used to be able to disagree, and did: both still named
+ * a `raw` profile that had been folded into `default` and could no longer be
+ * reached, alongside a `bash` branch that would have fed a cURL command to a JS
+ * parser. Adding a runner is now one entry.
+ */
+const RUNNERS: Record<string, (ctx: RunnerContext) => Record<string, unknown>> = {
+  'openai-sdk': (ctx) => ({ OpenAI: makeOpenAIStub(ctx) }),
+  'vercel-ai-sdk': (ctx) => makeVercelAIStubs(ctx),
+  langchain: (ctx) => ({ ChatOpenAI: makeLangChainStub(ctx) }),
+};
 
 /**
- * Build the global bindings for a given profile. Each profile gets its own
- * set so error messages in unrelated SDKs read cleanly.
+ * Whether Send can execute this client's snippet in the browser. TypeScript
+ * only: Python would need Pyodide and a cURL command needs a shell.
  */
-function buildGlobals(profileId: string, ctx: RunnerContext): Record<string, unknown> | null {
-  switch (profileId) {
-    case 'openai-sdk':
-      return { OpenAI: makeOpenAIStub(ctx) };
-    case 'vercel-ai-sdk':
-      return makeVercelAIStubs(ctx);
-    case 'langchain': {
-      const ChatOpenAI = makeLangChainStub(ctx);
-      return { ChatOpenAI };
-    }
-    case 'raw':
-      // Plain fetch, no stubs needed; the runtime fetch is intercepted by
-      // sendRequest equivalent only via the user's own code, so let it run
-      // against the global fetch directly. We still capture the result by
-      // wrapping fetch.
-      return { fetch: makeFetchInterceptor(ctx) };
-    default:
-      return null;
-  }
-}
-
-function makeFetchInterceptor(ctx: RunnerContext) {
-  return async (input: RequestInfo | URL, init?: RequestInit) => {
-    const start = performance.now();
-    const realUrl = typeof input === 'string' ? input : input.toString();
-    const headers: Record<string, string> = {};
-    if (init?.headers) {
-      const h = new Headers(init.headers);
-      h.forEach((v, k) => (headers[k] = v));
-    }
-    let body = '';
-    if (typeof init?.body === 'string') body = init.body;
-    const response = await fetch(input, init);
-    const text = await response.clone().text();
-    const respHeaders: Record<string, string> = {};
-    response.headers.forEach((v, k) => (respHeaders[k] = v));
-    let json: unknown = null;
-    try {
-      json = JSON.parse(text);
-    } catch {
-      /* keep as text */
-    }
-    ctx.hooks.onResult({
-      url: realUrl,
-      status: response.status,
-      statusText: response.statusText,
-      ok: response.ok,
-      durationMs: performance.now() - start,
-      requestHeaders: headers,
-      requestBody: body,
-      responseHeaders: respHeaders,
-      responseBody: text,
-      responseJson: json,
-    });
-    // Return a fresh response so user code can still call .json() etc.
-    return new Response(text, {
-      status: response.status,
-      statusText: response.statusText,
-      headers: response.headers,
-    });
-  };
-}
-
 export function isExecutable(profileId: string, lang: string): boolean {
-  if (lang !== 'typescript' && lang !== 'bash') return false;
-  if (lang === 'bash' && profileId !== 'raw') return false;
-  return ['openai-sdk', 'vercel-ai-sdk', 'langchain', 'raw'].includes(profileId);
+  return lang === 'typescript' && Object.hasOwn(RUNNERS, profileId);
 }
 
 export async function runUserCode(opts: RunOptions): Promise<RunOutput> {
   const logs: string[] = [];
   const captured: SendResult[] = [];
-  const ctx = buildContext(opts, (r) => captured.push(r));
-  const globals = buildGlobals(opts.profileId, ctx);
-  if (!globals) {
+  const ctx: RunnerContext = {
+    defaultBaseUrl: opts.baseUrl,
+    defaultApiKey: opts.apiKey,
+    hooks: { onResult: (r) => captured.push(r) },
+  };
+  const makeGlobals = RUNNERS[opts.profileId];
+  if (!makeGlobals) {
     throw new Error(`No runner registered for profile "${opts.profileId}".`);
   }
+  const globals = makeGlobals(ctx);
   const consoleStub = makeConsoleStub(logs);
   const stripped = stripModuleSyntax(opts.code);
 

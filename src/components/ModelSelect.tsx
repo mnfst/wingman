@@ -1,4 +1,5 @@
-import { createMemo, createSignal, For, onCleanup, Show, type Component } from 'solid-js';
+import { createMemo, createSignal, For, Show, type Component } from 'solid-js';
+import { createDismissable } from '../primitives/dismissable';
 
 interface Props {
   value: string;
@@ -29,7 +30,7 @@ const ChevronIcon: Component = () => (
  * the chevron shows the full list.
  */
 const ModelSelect: Component<Props> = (props) => {
-  const [open, setOpen] = createSignal(false);
+  const { open, openMenu: show, close } = createDismissable('.model-select');
   // While the menu is open, typing filters; the chevron shows everything.
   const [filtering, setFiltering] = createSignal(false);
 
@@ -40,27 +41,12 @@ const ModelSelect: Component<Props> = (props) => {
     return props.models.filter((m) => m.toLowerCase().includes(q));
   });
 
-  const close = () => setOpen(false);
-
-  const onDocumentClick = (e: MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (!target.closest('.model-select')) close();
-  };
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') close();
-  };
-
   const openMenu = (withFilter: boolean) => {
+    // Nothing to pick from: the endpoint's catalog was unavailable, so the
+    // field stays a plain free-text input.
     if (props.models.length === 0) return;
     setFiltering(withFilter);
-    if (open()) return;
-    setOpen(true);
-    document.addEventListener('click', onDocumentClick);
-    document.addEventListener('keydown', onKeyDown);
-    onCleanup(() => {
-      document.removeEventListener('click', onDocumentClick);
-      document.removeEventListener('keydown', onKeyDown);
-    });
+    show();
   };
 
   const handleSelect = (id: string) => {

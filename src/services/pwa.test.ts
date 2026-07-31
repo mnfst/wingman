@@ -62,10 +62,48 @@ describe('service worker source', () => {
 });
 
 describe('registerServiceWorker', () => {
+  /** Give jsdom the serviceWorker container it does not implement. */
+  function withServiceWorker(register: ReturnType<typeof vi.fn>) {
+    Object.defineProperty(navigator, 'serviceWorker', {
+      configurable: true,
+      value: { register },
+    });
+    return () => Reflect.deleteProperty(navigator, 'serviceWorker');
+  }
+
   it('does nothing where service workers are unavailable', () => {
     const spy = vi.spyOn(window, 'addEventListener');
     expect(() => registerServiceWorker()).not.toThrow();
     // jsdom ships no serviceWorker, so it must not even wait for load.
     expect(spy).not.toHaveBeenCalledWith('load', expect.anything());
+  });
+
+  // After load, never before: registering during the first paint costs the
+  // thing the worker exists to make faster.
+  it('waits for load, then registers the worker', () => {
+    const register = vi.fn().mockResolvedValue(undefined);
+    const cleanup = withServiceWorker(register);
+
+    registerServiceWorker();
+    expect(register).not.toHaveBeenCalled();
+
+    window.dispatchEvent(new Event('load'));
+
+    expect(register).toHaveBeenCalledWith('/sw.js');
+    cleanup();
+  });
+
+  // A refused registration costs offline support and nothing else, so it must
+  // not surface as an unhandled rejection in a browser that simply can't.
+  it('stays silent when registration is refused', async () => {
+    const register = vi.fn().mockRejectedValue(new Error('SecurityError'));
+    const cleanup = withServiceWorker(register);
+
+    registerServiceWorker();
+    window.dispatchEvent(new Event('load'));
+    await Promise.resolve();
+
+    expect(register).toHaveBeenCalled();
+    cleanup();
   });
 });

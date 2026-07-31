@@ -8,14 +8,16 @@
     "skipLibCheck": true,
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
-    "outDir": "dist",
-    "rootDir": "src",
-    "declaration": false,
+    // Vite does the building; tsc is only ever a checker here, so there is no
+    // output layout for it to keep in step with.
+    "noEmit": true,
     "sourceMap": true,
     "noUncheckedIndexedAccess": true,
     "forceConsistentCasingInFileNames": true,
     "types": ["node", "vite/client"]
   },
-  "include": ["src/**/*"],
+  // The e2e specs and the two config files are code too — they get the same
+  // checking the app does, rather than being the one place a type error hides.
+  "include": ["src/**/*", "e2e/**/*", "vite.config.ts", "playwright.config.ts"],
   "exclude": ["node_modules", "dist"]
 }

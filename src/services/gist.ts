@@ -13,7 +13,8 @@ export interface GistContext {
   apiKey: string;
 }
 
-const NEW_GIST_URL = 'https://gist.github.com/';
+/** Where "Copy & open new gist" sends the user, once the report is on the clipboard. */
+export const NEW_GIST_URL = 'https://gist.github.com/';
 
 function redactApiKey(key: string): string {
   if (!key) return '(none)';
@@ -171,5 +172,3 @@ export function buildMarkdownReport(
   );
   return lines.join('\n');
 }
-
-export const NEW_GIST_TARGET_URL = NEW_GIST_URL;

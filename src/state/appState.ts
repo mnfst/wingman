@@ -129,12 +129,14 @@ export function createAppState() {
   };
 
   const setProfileSafely = (id: string) => {
+    const nextProfile = PROFILE_BY_ID[id];
+    // Same contract as setFormatSafely: an id that names nothing is ignored
+    // rather than selected-and-persisted, which used to leave the form on a
+    // client that only existed as a fallback and a dead id in the session.
+    if (!nextProfile) return;
     setProfileId(id);
     writeStorage(STORAGE.profile, id);
-    const nextProfile = PROFILE_BY_ID[id];
-    if (nextProfile && !nextProfile.langs.includes(lang())) {
-      setLang(nextProfile.defaultLang);
-    }
+    if (!nextProfile.langs.includes(lang())) setLang(nextProfile.defaultLang);
   };
 
   const setFormatSafely = (id: string) => {

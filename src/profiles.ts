@@ -26,9 +26,6 @@ import {
 export type ProfileMode = 'agent' | 'sdk' | 'raw';
 export type ProfileLang = 'typescript' | 'python' | 'bash';
 
-/** @deprecated use RequestParams from ./formats. Kept as an alias. */
-export type ProfileParams = RequestParams;
-
 export interface Profile {
   id: string;
   label: string;

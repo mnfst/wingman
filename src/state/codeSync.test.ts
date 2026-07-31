@@ -181,3 +181,62 @@ describe('changing the form moves the snippet', () => {
     });
   });
 });
+
+describe('editing the system prompt in the snippet', () => {
+  it('moves the System Prompt tab', () => {
+    withState((s) => {
+      useDefaultClient(s);
+      s.onSdkCodeChange(s.sdkCode().replace('Be terse.', 'Answer in French.'));
+      expect(s.systemPrompts()['default']).toBe('Answer in French.');
+    });
+  });
+});
+
+describe('what the snippet is not allowed to move', () => {
+  // The agent clients only write a provider config, so their snippet has no
+  // room for the prompt. Editing one must not read as "the prompt was deleted".
+  it('leaves the system prompt alone for a client whose snippet omits it', () => {
+    withState((s) => {
+      s.setFormatSafely('openai-chat');
+      s.setProfileSafely('openclaw');
+      s.setUserMessage('Say hello.');
+      const before = s.systemPrompts()['openclaw'];
+      expect(before).toBeTruthy();
+
+      s.onSdkCodeChange(s.sdkCode().replace('Say hello.', 'Say goodbye.'));
+
+      expect(s.systemPrompts()['openclaw']).toBe(before);
+    });
+  });
+
+  // A fingerprint client has no editable headers, so nothing the snippet says
+  // about them may reach the (hidden) Headers tab.
+  it('leaves the headers alone for a locked client', () => {
+    withState((s) => {
+      s.setFormatSafely('openai-chat');
+      s.setProfileSafely('openai-sdk');
+      s.setLang('typescript');
+      const before = recordFromEntries(s.headerEntries());
+
+      s.onSdkCodeChange(
+        s.sdkCode().replace('const client', 'const extra = { "X-Trace": "1" };\nconst client'),
+      );
+
+      expect(recordFromEntries(s.headerEntries())).toEqual(before);
+    });
+  });
+
+  // Re-applying the same set would rebuild every row and steal the caret, so
+  // an edit that says nothing new about the headers must write no override.
+  it('records no header override when the snippet names the headers already set', () => {
+    withState((s) => {
+      useDefaultClient(s);
+      const before = recordFromEntries(s.headerEntries());
+
+      s.onSdkCodeChange(s.sdkCode().replace('Say hello.', 'Say goodbye.'));
+
+      expect(recordFromEntries(s.headerEntries())).toEqual(before);
+      expect(s.headerOverrides()).toEqual({});
+    });
+  });
+});

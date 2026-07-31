@@ -117,8 +117,10 @@ export function defaultBaseUrl(location?: {
   hostname: string;
   port: string;
 }): string {
-  const loc = location ?? (typeof window === 'undefined' ? null : window.location);
-  if (!loc) return MANIFEST_BASE_URL;
+  // The parameter exists so the loopback branches can be exercised directly.
+  // There is no server-rendered path to guard against: Wingman only ever runs
+  // in a browser.
+  const loc = location ?? window.location;
   if (!isLoopbackHost(loc.hostname)) return MANIFEST_BASE_URL;
   // Wingman is itself on the gateway's port, so there's nothing left to guess.
   if (loc.port === MANIFEST_DEV_GATEWAY_PORT) return MANIFEST_BASE_URL;

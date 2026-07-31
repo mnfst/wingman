@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { PROFILES, PROFILE_BY_ID, type Profile, type ProfileLang } from '../profiles';
 import { FORMAT_BY_ID, type ApiFormat } from '../formats';
 import { autoHeaders, parseSnippet, type SnippetContext } from './index';
+import { blockAfter, containsEnvRef, escapeRegex, unquote } from './literals';
 import { entriesFromRecord } from '../services/settings';
 
 const KEY = 'mnfst_live_9f3ab21c';
@@ -227,5 +228,109 @@ describe('header entries round-trip through the editor shape', () => {
       { key: 'X-One', value: '1' },
       { key: 'X-Two', value: '2' },
     ]);
+  });
+});
+
+// A few corners of the snippet plumbing the round-trip sweep above never
+// reaches: formats that need no credential, and the literal reader's fallbacks.
+describe('snippet plumbing corners', () => {
+  it('spells out no auth header for a format that authenticates with none', () => {
+    const profile = PROFILE_BY_ID['default']!;
+    const ctx = contextFor(profile, 'bash');
+    const noAuth = { ...ctx.format, auth: { kind: 'none' } as const };
+
+    expect(autoHeaders({ ...ctx, format: noAuth })).toEqual({
+      'Content-Type': 'application/json',
+    });
+  });
+
+  // The Headers tab already lists them, so the snippet must not print a second
+  // copy under its own name.
+  it('leaves out the headers the request already carries', () => {
+    const profile = PROFILE_BY_ID['default']!;
+    const ctx = contextFor(profile, 'bash');
+
+    expect(
+      autoHeaders({
+        ...ctx,
+        headers: { authorization: 'Bearer typed-by-hand', 'content-type': 'text/plain' },
+      }),
+    ).toEqual({});
+  });
+});
+
+describe('headers the user added on top of a client', () => {
+  // The snippet only spells out what the SDK would not send by itself, so a
+  // hand-added header has to appear as a keyword argument.
+  it.each(['python', 'typescript'] as const)('prints them in the %s SDK snippet', (lang) => {
+    const profile = PROFILE_BY_ID['openai-sdk']!;
+    const ctx = contextFor(profile, lang);
+    const code = profile.code({
+      ...ctx,
+      headers: { ...ctx.clientHeaders, 'X-Trace': 'abc' },
+    });
+    expect(code).toContain('X-Trace');
+    expect(code).toContain('abc');
+  });
+});
+
+describe('reading literals back', () => {
+  it('unescapes a double-quoted string, half-typed escape and all', () => {
+    expect(unquote('"a\\nb"')).toBe('a\nb');
+    // Mid-edit the string is not valid JSON yet; it still has to read back.
+    expect(unquote('"trailing\\"')).toBe('trailing\\');
+  });
+
+  it('unescapes a shell-quoted string', () => {
+    expect(unquote("'it'\\''s fine'")).toBe("it's fine");
+  });
+
+  it('unescapes a template literal', () => {
+    expect(unquote('`a\\`b`')).toBe('a`b');
+  });
+
+  it('leaves anything that is not a quoted literal alone', () => {
+    expect(unquote('process.env.KEY')).toBe('process.env.KEY');
+    expect(unquote('"')).toBe('"');
+  });
+
+  // Half-typed code is the normal state of the editor, so neither of these may
+  // throw or return a truncated block.
+  it('returns null when the block never closes', () => {
+    expect(blockAfter('create({ model: "auto"', /create\(\{/)).toBeNull();
+  });
+
+  it('returns null when the pattern never matches, or opens no block', () => {
+    expect(blockAfter('nothing here', /create\(/)).toBeNull();
+    expect(blockAfter('create(model)', /create\(/)).toBeNull();
+  });
+
+  it('reads a block whose strings carry the closing bracket', () => {
+    expect(blockAfter('messages: [{ "content": "a ] b" }]', /messages:\s*\[/)).toBe(
+      '[{ "content": "a ] b" }]',
+    );
+  });
+
+  // The parser builds patterns out of values the user typed; an unescaped one
+  // would either throw or match the wrong thing.
+  it('escapes a literal before it becomes part of a pattern', () => {
+    expect(new RegExp(escapeRegex('a+b(c)')).test('a+b(c)')).toBe(true);
+    expect(escapeRegex('a.b')).toBe('a\\.b');
+  });
+
+  // Reading one of these back into the key field would replace the user's key
+  // with the reference that was standing in for it.
+  it.each([
+    '$MANIFEST_API_KEY',
+    'process.env.OPENAI_API_KEY',
+    'os.environ["ANTHROPIC_API_KEY"]',
+    'Bearer ${process.env.KEY}',
+    'import.meta.env.VITE_KEY',
+  ])('treats %s as a reference, not a secret', (value) => {
+    expect(containsEnvRef(value)).toBe(true);
+  });
+
+  it('treats a real key as a secret', () => {
+    expect(containsEnvRef('mnfst_live_9f3ab21c')).toBe(false);
   });
 });

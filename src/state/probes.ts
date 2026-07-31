@@ -35,7 +35,12 @@ export function createProbes(d: Deps) {
     const formatPath = d.format().path;
     const timer = window.setTimeout(() => {
       setHealthStatus({ kind: 'checking' });
-      checkHealth(url, path, formatPath, controller.signal).then(setHealthStatus);
+      // Guard on the signal for the same reason the model lookup does: an
+      // aborted probe still settles, and its stale verdict would otherwise
+      // land on top of the badge the newer target already produced.
+      checkHealth(url, path, formatPath, controller.signal).then((status) => {
+        if (!controller.signal.aborted) setHealthStatus(status);
+      });
     }, 400);
     onCleanup(() => {
       window.clearTimeout(timer);

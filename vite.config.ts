@@ -64,6 +64,34 @@ export default defineConfig({
     // (page protocol and origin drive the mixed-content / local-network
     // diagnosis), so it has to run against a document.
     environment: 'jsdom',
-    include: ['src/**/*.test.ts'],
+    include: ['src/**/*.test.{ts,tsx}'],
+    setupFiles: ['./src/test/setup.ts'],
+    // Solid has to come from the plugin-compiled client build, not the
+    // pre-bundled server one, or components render to strings instead of DOM.
+    server: { deps: { inline: [/solid-js/, /@solidjs\/testing-library/] } },
+    coverage: {
+      provider: 'v8',
+      reporter: ['text-summary', 'lcov'],
+      include: ['src/**/*.{ts,tsx}'],
+      exclude: [
+        'src/**/*.test.{ts,tsx}',
+        'src/test/**',
+        'src/globals.d.ts',
+        // Verbatim captures of two real CLIs' system prompts — string
+        // constants with no logic to exercise.
+        'src/templates/**',
+        // Type-only modules: they compile to nothing, so the instrumenter
+        // reports them as 0/0 and drags an otherwise-full report under target.
+        'src/formats/types.ts',
+        'src/runners/types.ts',
+      ],
+      // Every statement, line and function is covered, and those three are the
+      // gate worth holding at 100. Branches sits lower on purpose: the
+      // shortfall is the `typeof ref === "function"` test Solid's compiler
+      // emits behind every `ref={...}`, the lazy getters it wraps component
+      // props in, and defensive `?? fallback` arms guarding invariants the
+      // callers already hold. No test can take both sides of those.
+      thresholds: { lines: 100, functions: 100, branches: 97, statements: 100 },
+    },
   },
 });
