@@ -42,7 +42,8 @@ refactors — don't need one. More in [.changeset/README.md](.changeset/README.m
 - Open an issue first for anything large, so you don't spend a weekend on something we would turn down.
 - No backend, ever. Wingman is a static SPA and every request goes browser to provider. Anything needing a server of ours belongs elsewhere.
 - Everything stays in `sessionStorage` — keys, base URL, model, prompts, history. That is on purpose: nothing Wingman holds should outlive the tab. Don't move any of it to `localStorage`.
-- Adding a wire format is one file in `src/formats/` listed in its `index.ts`. Adding a client to impersonate is one entry in `src/profiles.ts`.
+- Adding a wire format is one file in `src/formats/` listed in its `index.ts`. Adding a client to impersonate is one entry in `src/profiles.ts` plus its snippet in `src/snippets/`.
+- The Code panel and the request bars are two views of the same request. A new snippet has to round-trip: `src/snippets/parse.ts` reads it back, and `snippets.test.ts` checks every client in every language. Print the key with `keyExpr`/`keyInline` so it stays out of a shared screenshot.
 - Logic in `src/services/` should come with tests. They sit next to the code as `*.test.ts` and run under Vitest.
 - Prettier owns formatting. Run `npm run format` and don't argue with it.
 - The social card at `public/og.png` is generated, not hand-drawn. Edit `scripts/og-image.html` and re-render with the command in its header comment.

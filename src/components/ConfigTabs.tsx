@@ -27,6 +27,10 @@ interface Props {
   sdkCodeIsEdited: boolean;
   onResetSdkCode: () => void;
   sdkExecutable: boolean;
+  keyHidden: boolean;
+  onToggleKey: () => void;
+  keyEnvName: string;
+  hasKey: boolean;
   stream: boolean;
   onStreamChange: (value: boolean) => void;
 }
@@ -151,6 +155,10 @@ const ConfigTabs: Component<Props> = (props) => {
             isEdited={props.sdkCodeIsEdited}
             onReset={props.onResetSdkCode}
             executable={props.sdkExecutable}
+            keyHidden={props.keyHidden}
+            onToggleKey={props.onToggleKey}
+            keyEnvName={props.keyEnvName}
+            hasKey={props.hasKey}
           />
         </Show>
 
