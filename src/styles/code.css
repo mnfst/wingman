@@ -69,6 +69,12 @@
 }
 
 .code-view__textarea {
+  /* Block, not inline: an inline textarea sits on the text baseline, which
+     leaves a ~6px strip of descender space under it. That strip makes the
+     wrapper taller than the textarea, and the highlighted layer behind it
+     (sized to the wrapper) then drifts half a line out of register once the
+     snippet is scrolled to the bottom. */
+  display: block;
   width: 100%;
   border: none;
   border-radius: 0;
@@ -105,6 +111,91 @@
 .code-view__textarea--overlay::selection {
   background: rgba(99, 102, 241, 0.35);
   color: transparent;
+}
+
+/* ── Code scrollbars ─────────────────────────────────────────────────── */
+/* Snippets overflow both ways: long lines scroll sideways, tall ones scroll
+   down. One set of rules for every code scroller, on the scrollers themselves
+   rather than on .code-view, because the gist preview renders a bare <pre>
+   outside one. A code surface is dark in both page modes, so `color-scheme`
+   has to say so or the browser paints a light system bar (track, arrows and
+   all) across the bottom of anything that overflows. */
+.code-view__pre,
+.code-view__textarea {
+  color-scheme: dark;
+}
+
+.code-view__pre::-webkit-scrollbar,
+.code-view__textarea::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.code-view__pre::-webkit-scrollbar-track,
+.code-view__pre::-webkit-scrollbar-corner,
+.code-view__textarea::-webkit-scrollbar-track,
+.code-view__textarea::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* A webkit thumb has no margin, so the transparent border plus a padding-box
+   clip is what insets it inside its track. */
+.code-view__pre::-webkit-scrollbar-thumb,
+.code-view__textarea::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--code-text) 28%, transparent);
+  background-clip: padding-box;
+  border: 3px solid transparent;
+  border-radius: 999px;
+}
+
+.code-view__pre::-webkit-scrollbar-thumb:hover,
+.code-view__textarea::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--code-text) 48%, transparent);
+  background-clip: padding-box;
+}
+
+/* Arrow buttons belong to the system scrollbar, not to this one. */
+.code-view__pre::-webkit-scrollbar-button,
+.code-view__textarea::-webkit-scrollbar-button {
+  display: none;
+}
+
+/* The drag-to-resize corner is a light system widget sitting on a dark panel.
+   Repaint it as a single faint stroke: the affordance survives, the white box
+   doesn't. */
+.code-view__textarea::-webkit-resizer {
+  background-color: transparent;
+  background-image: linear-gradient(
+    135deg,
+    transparent 0 40%,
+    color-mix(in srgb, var(--code-text) 30%, transparent) 40% 60%,
+    transparent 60% 100%
+  );
+}
+
+/* The highlighted layer scrolls in lockstep beneath the textarea, so it has to
+   go on reserving the space its own scrollbars take: strip them and the two
+   layers drift apart by a scrollbar width at the end of a scroll. It paints
+   nothing, though. Only the textarea's bars are real. */
+.code-view__pre--bg::-webkit-scrollbar-thumb,
+.code-view__pre--bg::-webkit-scrollbar-thumb:hover {
+  background: transparent;
+}
+
+/* Firefox has no ::-webkit-scrollbar, so it gets the standard properties: a
+   thin bar tinted to match. They can't be set unconditionally, because Chrome
+   drops every ::-webkit-scrollbar rule above the moment either one is present
+   on an element and falls back to its own bar, arrow buttons and all. */
+@supports not selector(::-webkit-scrollbar) {
+  .code-view__pre,
+  .code-view__textarea {
+    scrollbar-width: thin;
+    scrollbar-color: color-mix(in srgb, var(--code-text) 28%, transparent) transparent;
+  }
+
+  .code-view__pre--bg {
+    scrollbar-color: transparent transparent;
+  }
 }
 
 /* ── Syntax highlighting (highlight.js) ──────────────────────────────── */

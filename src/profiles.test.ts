@@ -61,6 +61,31 @@ describe('the client catalog', () => {
     expect(new Set(PROFILES.map((p) => p.id)).size).toBe(PROFILES.length);
   });
 
+  // Catalog order is what the client menu renders, so it's a product decision,
+  // not an accident of editing.
+  it('leads with the OpenAI SDK, then the other SDKs, then the agents', () => {
+    expect(PROFILES[0]!.id).toBe('openai-sdk');
+    const modes = PROFILES.map((p) => p.mode);
+    expect(modes.lastIndexOf('sdk')).toBeLessThan(modes.indexOf('agent'));
+  });
+
+  it('keeps Default last', () => {
+    expect(PROFILES.at(-1)!.id).toBe('default');
+  });
+
+  // Both agent clients only show up under openai-chat, so that's the one list
+  // where the whole ordering is visible at once.
+  it('orders the openai-chat menu SDKs first, agents next, Default last', () => {
+    expect(profilesForFormat('openai-chat').map((p) => p.id)).toEqual([
+      'openai-sdk',
+      'vercel-ai-sdk',
+      'langchain',
+      'openclaw',
+      'hermes',
+      'default',
+    ]);
+  });
+
   it('defaults each client to a language it actually offers', () => {
     for (const p of PROFILES) {
       expect(p.langs).toContain(p.defaultLang);
