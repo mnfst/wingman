@@ -22,6 +22,20 @@ npm run build
 
 CI runs those four on every pull request, so a red one won't get merged.
 
+## Versioning
+
+The version in the status bar comes from `package.json` and nobody edits it by hand. If your
+change is one a user would notice, add a changeset:
+
+```bash
+npm run changeset
+```
+
+Pick `patch`, `minor` or `major`, write one line about what changed, and commit the file it
+drops in `.changeset/`. When the PR lands, the release workflow opens a "Version Packages" PR
+that does the bump and the changelog; merging it is the release. Invisible changes — CI, docs,
+refactors — don't need one. More in [.changeset/README.md](.changeset/README.md).
+
 ## Ground rules
 
 - One thing per PR. A fix and a refactor in the same diff take three times as long to review.

@@ -123,10 +123,13 @@ const HealthBadge: Component<{ status: HealthStatus }> = (p) => {
   );
 };
 
+// A bare "119ms" in the address field reads as the latency of something the
+// user did, which it never is — nobody asked for it and no send has happened
+// yet. Say what the badge actually means and leave the number to the tooltip.
 function healthLabel(s: HealthStatus): string {
   switch (s.kind) {
     case 'ok':
-      return `${s.latencyMs}ms`;
+      return 'healthy';
     case 'checking':
       return '…';
     case 'invalid':
@@ -148,7 +151,7 @@ function healthLabel(s: HealthStatus): string {
 function healthTitle(s: HealthStatus): string {
   switch (s.kind) {
     case 'ok':
-      return `Health check succeeded — probed ${s.probedUrl}`;
+      return `Health check succeeded in ${s.latencyMs} ms — probed ${s.probedUrl}`;
     case 'checking':
       return 'Checking the gateway health endpoint…';
     case 'invalid':

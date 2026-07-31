@@ -13,9 +13,17 @@ export interface EcosystemLink {
   description: string;
 }
 
+export interface CommunityLink {
+  label: string;
+  href: string;
+}
+
 export const WINGMAN_REPO = 'https://github.com/mnfst/wingman';
 export const MANIFEST_URL = 'https://manifest.build';
+export const MANIFEST_REPO = 'https://github.com/mnfst/manifest';
 export const LICENSE_URL = `${WINGMAN_REPO}/blob/main/LICENSE`;
+export const ISSUES_URL = `${WINGMAN_REPO}/issues/new`;
+export const DISCUSSIONS_URL = `${WINGMAN_REPO}/discussions`;
 
 export const TAGLINE = 'Postman for LLM APIs. A simple yet powerful tool to test LLM APIs.';
 
@@ -38,15 +46,29 @@ export const DOES_NOT: string[] = [
 export const LICENSE_NOTE =
   'Wingman is free and open source software (FOSS) under MIT license. Made for the community by the community. If you think that it deserves more highlight, share it with your peers and give us a star on GitHub.';
 
+export const STAR_CTA = 'Star Wingman on GitHub';
+
+/** Where a bug report or a question goes — the two things the star button isn't. */
+export const COMMUNITY: CommunityLink[] = [
+  { label: 'Report an issue', href: ISSUES_URL },
+  { label: 'Start a discussion', href: DISCUSSIONS_URL },
+];
+
 export const ECOSYSTEM_HEADING = 'The Manifest ecosystem';
 
-export const ECOSYSTEM_INTRO =
-  'Wingman is part of the Manifest ecosystem, checkout our other open source repositories:';
+// Split around the product name so "Manifest" can carry a link to its site
+// while the ecosystem list below points at the repositories. Joined back into
+// ECOSYSTEM_INTRO for the copy test, which compares rendered text.
+export const ECOSYSTEM_INTRO_BEFORE = 'Wingman is part of the ';
+export const ECOSYSTEM_INTRO_LINK = 'Manifest';
+export const ECOSYSTEM_INTRO_AFTER = ' ecosystem, checkout our other open source repositories:';
+
+export const ECOSYSTEM_INTRO = `${ECOSYSTEM_INTRO_BEFORE}${ECOSYSTEM_INTRO_LINK}${ECOSYSTEM_INTRO_AFTER}`;
 
 export const ECOSYSTEM: EcosystemLink[] = [
   {
     label: 'Manifest',
-    href: MANIFEST_URL,
+    href: MANIFEST_REPO,
     description: 'Open-source LLM gateway',
   },
   {
