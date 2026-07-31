@@ -26,7 +26,7 @@ const CACHE = `wingman-${BUILD_ID}`;
    draw. The app is client-rendered, so the JS is as load-bearing as the HTML,
    and the fonts and provider logos are what keep an offline launch from
    looking broken rather than merely disconnected. */
-const SHELL = ['/', '/favicon.svg', '/wingman.svg', '/manifest.webmanifest', ...PRECACHE];
+const SHELL = ['/', '/favicon.svg', '/manifest.webmanifest', ...PRECACHE];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -57,8 +57,9 @@ self.addEventListener('fetch', (event) => {
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/_vercel/')) return;
 
-  // Navigations: fresh HTML when online, the cached shell when not. The host
-  // rewrites every path to `/`, so that one entry answers any route.
+  // Navigations: fresh HTML when online, the cached shell when not. Wingman is
+  // a single route, so that one entry is every navigation there is to answer.
+  // Unknown paths 404 from the host rather than being rewritten to `/`.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)

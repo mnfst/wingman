@@ -29,10 +29,6 @@
       name="description"
       content="Test any LLM API from your browser. Send a message, edit the system prompt, read the raw response. Free, open source, and nothing outlives the tab."
     />
-    <meta
-      name="keywords"
-      content="Postman for LLM APIs, LLM API tester, OpenAI API tester, Anthropic API tester, test LLM API in browser, system prompt tester, open source LLM client"
-    />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Wingman" />
     <meta property="og:locale" content="en_US" />
@@ -137,6 +133,10 @@
       src/content/about.ts for the modal, and src/content/about.test.ts fails if
       the two drift apart. It is clipped rather than display:none so it stays
       crawlable; visitors get the identical text from the About modal.
+
+      Its h1 is the only one a crawler that skips JavaScript will ever see, so
+      it stays an h1 even though the rendered app has one of its own in the
+      title bar.
     -->
     <section
       id="about-wingman"
