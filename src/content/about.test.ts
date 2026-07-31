@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  COMMUNITY,
   DOES,
   DOES_HEADING,
   DOES_NOT,
@@ -11,6 +12,8 @@ import {
   ECOSYSTEM_INTRO,
   LICENSE_NOTE,
   LICENSE_URL,
+  MANIFEST_REPO,
+  MANIFEST_URL,
   TAGLINE,
   WINGMAN_REPO,
 } from './about';
@@ -69,9 +72,20 @@ describe('about copy in index.html', () => {
     expect(section).toContain(WINGMAN_REPO);
   });
 
+  it.each(COMMUNITY)('carries the $label link', (link) => {
+    expect(text).toContain(link.label);
+    expect(section).toContain(`href="${link.href}"`);
+  });
+
   it('carries the ecosystem intro', () => {
     expect(text).toContain(ECOSYSTEM_HEADING);
     expect(text).toContain(ECOSYSTEM_INTRO);
+  });
+
+  // The list points at repositories, so the one link to Manifest's site is the
+  // product name in the intro sentence.
+  it('links the Manifest site from the intro', () => {
+    expect(section).toContain(`href="${MANIFEST_URL}"`);
   });
 
   it.each(ECOSYSTEM)('carries the $label link', (link) => {
@@ -82,10 +96,17 @@ describe('about copy in index.html', () => {
 });
 
 describe('about links', () => {
-  it.each([...ECOSYSTEM.map((l) => l.href), WINGMAN_REPO, LICENSE_URL])(
-    'points %s at https',
-    (href) => {
-      expect(href).toMatch(/^https:\/\//);
-    },
-  );
+  it.each([
+    ...ECOSYSTEM.map((l) => l.href),
+    ...COMMUNITY.map((l) => l.href),
+    WINGMAN_REPO,
+    LICENSE_URL,
+    MANIFEST_URL,
+  ])('points %s at https', (href) => {
+    expect(href).toMatch(/^https:\/\//);
+  });
+
+  it('sends the ecosystem entry for Manifest to its repository', () => {
+    expect(ECOSYSTEM.find((l) => l.label === 'Manifest')?.href).toBe(MANIFEST_REPO);
+  });
 });

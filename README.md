@@ -16,7 +16,7 @@ Configure the request like Postman, read the reply like ChatGPT, then flip a tab
 
 No backend. Requests go from your tab straight to the endpoint you typed, so nothing is proxied and nothing is logged. Nothing is kept either: your key, base URL, history and prompts all sit in `sessionStorage` and die with the tab.
 
-Open it at **[wingman.manifest.build](https://wingman.manifest.build)**, or run it locally if your gateway is on localhost. Pointing it at a gateway, CORS rules, and why localhost is a problem of its own: [docs/connecting.md](docs/connecting.md).
+Open it at **[wingman.manifest.build](https://wingman.manifest.build)**, or run it locally if your gateway is on localhost. It installs as an app too — hit Install in the status bar, or use your browser's install button — which gets you a window of its own and a cold start that doesn't wait on the network. Pointing it at a gateway, CORS rules, and why localhost is a problem of its own: [docs/connecting.md](docs/connecting.md).
 
 Built by the team behind [Manifest](https://manifest.build).
 

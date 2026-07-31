@@ -1,12 +1,17 @@
 import { createEffect, For, onCleanup, Show, type Component } from 'solid-js';
 import {
+  COMMUNITY,
   DOES,
   DOES_HEADING,
   DOES_NOT,
   DOES_NOT_HEADING,
   ECOSYSTEM,
-  ECOSYSTEM_INTRO,
+  ECOSYSTEM_INTRO_AFTER,
+  ECOSYSTEM_INTRO_BEFORE,
+  ECOSYSTEM_INTRO_LINK,
   LICENSE_NOTE,
+  MANIFEST_URL,
+  STAR_CTA,
   TAGLINE,
   WINGMAN_REPO,
 } from '../content/about';
@@ -120,20 +125,45 @@ const AboutModal: Component<Props> = (props) => {
             <hr class="about-modal__rule" />
 
             <p class="about-modal__note">{LICENSE_NOTE}</p>
-            <a
-              href={WINGMAN_REPO}
-              target="_blank"
-              rel="noopener noreferrer"
-              class="about-modal__star"
-            >
-              <GitHubIcon />
-              <span>Star Wingman on GitHub</span>
-            </a>
+            <div class="about-modal__actions">
+              <a
+                href={WINGMAN_REPO}
+                target="_blank"
+                rel="noopener noreferrer"
+                class="about-modal__star"
+              >
+                <GitHubIcon />
+                <span>{STAR_CTA}</span>
+              </a>
+              <For each={COMMUNITY}>
+                {(link) => (
+                  <a
+                    href={link.href}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    class="about-modal__action"
+                  >
+                    {link.label}
+                  </a>
+                )}
+              </For>
+            </div>
 
             <hr class="about-modal__rule" />
 
             <section class="about-modal__eco">
-              <p class="about-modal__eco-intro">{ECOSYSTEM_INTRO}</p>
+              <p class="about-modal__eco-intro">
+                {ECOSYSTEM_INTRO_BEFORE}
+                <a
+                  href={MANIFEST_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  class="about-modal__eco-link"
+                >
+                  {ECOSYSTEM_INTRO_LINK}
+                </a>
+                {ECOSYSTEM_INTRO_AFTER}
+              </p>
               <ul class="about-modal__eco-list">
                 <For each={ECOSYSTEM}>
                   {(link) => (

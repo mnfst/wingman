@@ -11,7 +11,14 @@ import {
   type ProfileLang,
 } from '../profiles';
 import { FORMATS, FORMAT_BY_ID, type ApiFormat, type ApiFormatId } from '../formats';
-import { PROVIDER_BY_ID, DEFAULT_PROVIDER_ID, CUSTOM_PROVIDER, type Provider } from '../providers';
+import {
+  PROVIDER_BY_ID,
+  DEFAULT_PROVIDER_ID,
+  CUSTOM_PROVIDER,
+  keyEnvVarName,
+  type Provider,
+} from '../providers';
+import type { KeyRef } from '../snippets';
 import { type SendResult } from '../send';
 import { listHistory, type HistoryEntry } from '../services/history';
 import { defaultBaseUrl, normalizeBaseUrl } from '../services/baseUrl';
@@ -25,6 +32,7 @@ import {
 } from '../services/settings';
 import { newDraftId, type DraftConfig, type DraftTab } from './drafts';
 import { createRequestForm } from './requestForm';
+import { createCodeSync } from './codeSync';
 import { createProbes } from './probes';
 
 export type AppState = ReturnType<typeof createAppState>;
@@ -103,7 +111,22 @@ export function createAppState() {
 
   const requestUrl = () => normalized().requestUrl;
 
-  const form = createRequestForm({ formatId, format, profile, lang, params });
+  // The Code panel is what people screenshot and paste into issues, so it
+  // prints an env-var reference by default and only shows the real key when
+  // asked. Never sticky: a reveal lasts as long as you're looking at it.
+  const [revealKey, setRevealKey] = createSignal(false);
+  const keyEnvName = createMemo(() => keyEnvVarName(providerId()));
+  const keyRef = createMemo<KeyRef>(() => ({
+    hidden: !revealKey(),
+    envName: keyEnvName(),
+    value: apiKey(),
+  }));
+
+  const form = createRequestForm({ formatId, format, profile, lang, params, keyRef });
+
+  const updateSystemPrompt = (value: string) => {
+    setSystemPrompts({ ...systemPrompts(), [profile().id]: value });
+  };
 
   const setProfileSafely = (id: string) => {
     setProfileId(id);
@@ -181,9 +204,28 @@ export function createAppState() {
     }
   };
 
-  const updateSystemPrompt = (value: string) => {
-    setSystemPrompts({ ...systemPrompts(), [profile().id]: value });
-  };
+  // Typing in the Code panel edits the same request the bars above do: the
+  // snippet is parsed back into the form on every keystroke.
+  const applyCodeEdit = createCodeSync({
+    profile,
+    snippetContext: form.snippetContext,
+    clientHeaders: form.clientHeaders,
+    headerEntries: form.headerEntries,
+    updateHeaderEntries: form.updateHeaderEntries,
+    onSdkCodeChange: form.onSdkCodeChange,
+    // Compare against the normalised base, since that's what the snippet
+    // printed — otherwise a trailing slash in the URL bar reads as an edit.
+    baseUrl: () => normalized().base,
+    setBaseUrl: handleBaseUrlInput,
+    apiKey,
+    setApiKey: persistAndSetKey,
+    model,
+    setModel: persistAndSetModel,
+    userMessage,
+    setUserMessage,
+    systemPrompt: () => systemPrompts()[profile().id] ?? '',
+    setSystemPrompt: updateSystemPrompt,
+  });
 
   /**
    * Draft tabs as the strip should render them. The open draft's text lives in
@@ -272,9 +314,12 @@ export function createAppState() {
     gistModalOpen,
     setGistModalOpen,
     healthStatus,
+    revealKey,
+    setRevealKey,
     // derived
     provider,
     apiKey,
+    keyEnvName,
     format,
     availableProfiles,
     profile,
@@ -291,6 +336,9 @@ export function createAppState() {
     selectProvider,
     handleBaseUrlInput,
     updateSystemPrompt,
+    // Overrides the plain scratch-code setter spread in from `form` above:
+    // editing the snippet also feeds the parsed values back into the form.
+    onSdkCodeChange: applyCodeEdit,
     captureDraftConfig,
     applyDraftConfig,
   };

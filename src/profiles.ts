@@ -9,7 +9,7 @@
 // kept in their own modules so this catalog stays scannable.
 import { OPENCLAW_SYSTEM } from './templates/openclaw-system';
 import { HERMES_SYSTEM } from './templates/hermes-system';
-import type { ApiFormat, ApiFormatId, RequestParams } from './formats';
+import type { ApiFormatId, RequestParams } from './formats';
 import {
   anthropicSdkSnippet,
   curlSnippet,
@@ -20,6 +20,7 @@ import {
   openclawSnippet,
   rawSnippet,
   vercelSnippet,
+  type SnippetContext,
 } from './snippets';
 
 export type ProfileMode = 'agent' | 'sdk' | 'raw';
@@ -52,13 +53,19 @@ export interface Profile {
    * the TypeScript SDK profiles can do this — Python needs Pyodide.
    */
   executable?: boolean;
+  /**
+   * True when the snippet can't express the system prompt — the agent clients
+   * only write a provider config, so the prompt travels with the CLI, not the
+   * code. Editing such a snippet must not be read as "the prompt was deleted".
+   */
+  omitsSystemPrompt?: boolean;
   headers: (params: RequestParams) => Record<string, string>;
   /**
    * Fingerprint-only body fields merged on top of the format's body (e.g.
    * OpenClaw's `max_completion_tokens`). Optional — most profiles add nothing.
    */
   bodyExtras?: (params: RequestParams) => Record<string, unknown>;
-  code: (params: RequestParams, lang: ProfileLang, format: ApiFormat) => string;
+  code: (ctx: SnippetContext) => string;
 }
 
 const stainlessJs = {
@@ -104,7 +111,8 @@ export const PROFILES: Profile[] = [
     // `store: false` was dropped upstream in openclaw 2026.7.x — the shipped
     // client now sends only the token cap (July 2026 capture).
     bodyExtras: () => ({ max_completion_tokens: 8192 }),
-    code: (p) => openclawSnippet(p),
+    omitsSystemPrompt: true,
+    code: openclawSnippet,
   },
   {
     id: 'hermes',
@@ -119,7 +127,8 @@ export const PROFILES: Profile[] = [
     defaultSystemPrompt: HERMES_SYSTEM,
     headersLocked: true,
     headers: () => ({ ...stainlessPython }),
-    code: (p) => hermesSnippet(p),
+    omitsSystemPrompt: true,
+    code: hermesSnippet,
   },
   {
     id: 'openai-sdk',
@@ -134,7 +143,7 @@ export const PROFILES: Profile[] = [
     headersLocked: true,
     executable: true,
     headers: () => ({ ...stainlessJs }),
-    code: (p, lang) => openaiSdkSnippet(p, lang),
+    code: openaiSdkSnippet,
   },
   {
     id: 'vercel-ai-sdk',
@@ -149,7 +158,7 @@ export const PROFILES: Profile[] = [
     headersLocked: true,
     executable: true,
     headers: () => ({ 'User-Agent': 'ai-sdk/5.0.0 (Node.js v22.17.1)' }),
-    code: (p) => vercelSnippet(p),
+    code: vercelSnippet,
   },
   {
     id: 'langchain',
@@ -164,7 +173,7 @@ export const PROFILES: Profile[] = [
     headersLocked: true,
     executable: true,
     headers: () => ({ 'User-Agent': 'langchain-python/0.3.0' }),
-    code: (p, lang) => langchainSnippet(p, lang),
+    code: langchainSnippet,
   },
   {
     id: 'openai-responses',
@@ -177,7 +186,7 @@ export const PROFILES: Profile[] = [
     defaultLang: 'typescript',
     formats: ['openai-responses'],
     headers: () => ({ ...stainlessJs }),
-    code: (p, lang) => openaiResponsesSnippet(p, lang),
+    code: openaiResponsesSnippet,
   },
   {
     id: 'anthropic-sdk',
@@ -190,7 +199,7 @@ export const PROFILES: Profile[] = [
     defaultLang: 'typescript',
     formats: ['anthropic-messages'],
     headers: () => ({}),
-    code: (p, lang) => anthropicSdkSnippet(p, lang),
+    code: anthropicSdkSnippet,
   },
   // Was two entries, "cURL" and "Raw / None". They were indistinguishable on
   // the wire: the only thing separating them was cURL's `User-Agent`, and the
@@ -208,8 +217,7 @@ export const PROFILES: Profile[] = [
     defaultLang: 'bash',
     formats: ['openai-chat', 'openai-responses', 'anthropic-messages'],
     headers: () => ({}),
-    code: (p, lang, format) =>
-      lang === 'typescript' ? rawSnippet(p, format) : curlSnippet(p, format),
+    code: (ctx) => (ctx.lang === 'typescript' ? rawSnippet(ctx) : curlSnippet(ctx)),
   },
 ];
 

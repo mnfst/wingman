@@ -266,3 +266,14 @@ export const PROVIDER_BY_ID: Record<string, Provider> = Object.fromEntries(
 
 /** The Custom/Manifest preset — the only one whose base URL is user-editable. */
 export const CUSTOM_PROVIDER: Provider = PROVIDER_BY_ID[DEFAULT_PROVIDER_ID]!;
+
+/**
+ * The env var a code snippet reads the key from instead of printing it. Named
+ * after the provider so the snippet reads like real project code — the OpenAI
+ * SDK looks for `OPENAI_API_KEY` on its own, and `MANIFEST_API_KEY` is what a
+ * gateway user would have exported anyway.
+ */
+export function keyEnvVarName(providerId: string): string {
+  if (providerId === DEFAULT_PROVIDER_ID) return 'MANIFEST_API_KEY';
+  return `${providerId.replace(/[^a-z0-9]+/gi, '_').toUpperCase()}_API_KEY`;
+}
