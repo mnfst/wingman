@@ -61,8 +61,8 @@ function statusTone(entry: HistoryEntry): 'ok' | 'warn' | 'err' {
 
 /** First line of the draft's message, or a placeholder while it's empty. */
 function draftLabel(draft: DraftTab): string {
-  const text = draft.message.trim().split('\n')[0] ?? '';
-  return text || 'Untitled';
+  // `split` always yields at least one element, so the first is never absent.
+  return draft.message.trim().split('\n')[0]! || 'Untitled';
 }
 
 /**

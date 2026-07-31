@@ -46,12 +46,10 @@ export async function checkHealth(
     return { kind: 'invalid', message: normalized.problem ?? 'Invalid base URL.' };
   }
 
-  let probedUrl: string;
-  try {
-    probedUrl = new URL(path, normalized.base).toString();
-  } catch {
-    return { kind: 'invalid', message: 'Invalid base URL.' };
-  }
+  // `normalized.base` is `origin + path` off a parsed URL, so resolving a
+  // relative health path against it cannot fail — the try/catch that used to
+  // wrap this guarded a branch nothing could reach.
+  const probedUrl = new URL(path, normalized.base).toString();
 
   const started = performance.now();
   let res: Response;

@@ -6,7 +6,10 @@ const CHAT = '/v1/chat/completions';
 
 function mockResponse(
   body: string,
-  { status = 200, contentType = 'application/json' }: { status?: number; contentType?: string } = {},
+  {
+    status = 200,
+    contentType = 'application/json',
+  }: { status?: number; contentType?: string } = {},
 ) {
   vi.stubGlobal(
     'fetch',

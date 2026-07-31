@@ -11,5 +11,7 @@ Thumbs.db
 .vscode/
 .idea/
 coverage/
+playwright-report/
+test-results/
 *.tsbuildinfo
 .vercel/

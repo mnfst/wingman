@@ -1,5 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import { PROFILES, PROFILE_BY_ID, profilesForFormat, resolveProfileId } from './profiles';
+import { FORMAT_BY_ID, type RequestParams } from './formats';
+
+const params: RequestParams = {
+  baseUrl: 'https://app.manifest.build',
+  apiKey: 'mnfst_test',
+  model: 'auto',
+  systemPrompt: 'be terse',
+  userMessage: 'hello',
+};
 
 describe('resolveProfileId', () => {
   // Settings and saved history outlive the catalog. Both ids below were real
@@ -64,6 +73,39 @@ describe('the client catalog', () => {
   it('defaults each client to a language it actually offers', () => {
     for (const p of PROFILES) {
       expect(p.langs).toContain(p.defaultLang);
+    }
+  });
+
+  it('declares at least one format for every client', () => {
+    for (const p of PROFILES) {
+      expect(p.formats.length).toBeGreaterThan(0);
+      for (const id of p.formats) expect(FORMAT_BY_ID[id]).toBeDefined();
+    }
+  });
+
+  // Every client is reachable from the UI, so every client's own three
+  // contributions — headers, body extras, snippet — have to hold up for each
+  // format and language it declares. A catalog entry that throws here is one
+  // that would throw the moment it is selected.
+  it.each(PROFILES.map((p) => [p.id, p] as const))('builds a request for %s', (_id, profile) => {
+    for (const formatId of profile.formats) {
+      const format = FORMAT_BY_ID[formatId]!;
+      for (const lang of profile.langs) {
+        expect(profile.headers(params)).toBeTypeOf('object');
+        expect(profile.bodyExtras?.(params) ?? {}).toBeTypeOf('object');
+        const code = profile.code(params, lang, format);
+        expect(code.length).toBeGreaterThan(0);
+        // The snippet has to describe the request on screen, not a stale one.
+        expect(code).toContain(params.model);
+      }
+    }
+  });
+
+  // A fingerprint client hides its Headers tab, so the headers it sets are the
+  // only ones that will ever go out — they cannot be empty.
+  it('gives every locked client a fingerprint to send', () => {
+    for (const p of PROFILES.filter((profile) => profile.headersLocked)) {
+      expect(Object.keys(p.headers(params)).length).toBeGreaterThan(0);
     }
   });
 });

@@ -1,4 +1,4 @@
-import { createSignal, For, Show, type Component } from 'solid-js';
+import { createMemo, createSignal, For, Show, type Component } from 'solid-js';
 import type { SendResult } from '../send';
 import type { ApiFormat } from '../formats';
 import { describeFailure } from '../services/diagnostics';
@@ -97,14 +97,20 @@ const AssistantMessage: Component<Props> = (props) => {
   // is the only thing that can sensibly be shown.
   const visibleTab = (): Tab => (props.devTools ? tab() : 'output');
 
+  // Memoised, not plain accessors: `usage()` alone is read four times by the
+  // chips below, and each read re-walks the whole response payload.
   // Prefer the parsed/assembled response text; fall back to streamed text.
-  const assistantText = () => {
+  const assistantText = createMemo(() => {
     const r = props.result;
     if (!r) return null;
     return props.format.extractText(r.responseJson) ?? r.streamedText ?? null;
-  };
-  const usage = () => (props.result ? props.format.extractUsage(props.result.responseJson) : null);
-  const model = () => (props.result ? props.format.extractModel(props.result.responseJson) : null);
+  });
+  const usage = createMemo(() =>
+    props.result ? props.format.extractUsage(props.result.responseJson) : null,
+  );
+  const model = createMemo(() =>
+    props.result ? props.format.extractModel(props.result.responseJson) : null,
+  );
   // A user-cancelled request needs no explanation.
   const failureKind = () => {
     const kind = props.result?.errorKind;

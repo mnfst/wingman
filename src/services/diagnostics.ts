@@ -26,15 +26,8 @@ export interface FailureAdvice {
   detail: string;
 }
 
-function pageProtocol(): string {
-  if (typeof window === 'undefined') return 'https:';
-  return window.location.protocol;
-}
-
-function pageOrigin(): string {
-  if (typeof window === 'undefined') return '';
-  return window.location.origin;
-}
+const pageProtocol = () => window.location.protocol;
+const pageOrigin = () => window.location.origin;
 
 /**
  * Classify a rejected fetch. `targetUrl` is the URL that was being requested;
@@ -82,7 +75,7 @@ export function describeFailure(kind: FailureKind, targetUrl: string): FailureAd
           `The browser blocked this request: ${pageOrigin()} is a public page and ${host} is on ` +
           'your local network. Chrome gates that behind the Local Network Access permission and ' +
           'Safari refuses it outright. No CORS or server-side change will lift it. Run Wingman ' +
-          'on localhost (or open it from your dashboard\'s own origin) to reach a local gateway.',
+          "on localhost (or open it from your dashboard's own origin) to reach a local gateway.",
       };
     case 'mixed-content':
       return {

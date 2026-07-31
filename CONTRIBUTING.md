@@ -14,13 +14,17 @@ Set `WINGMAN_PORT` if 3002 is taken.
 ## Before you open a PR
 
 ```bash
+npm run format:check
 npm run lint
 npm run typecheck
-npm test
+npm run test:coverage   # unit + component tests, with the coverage gate
 npm run build
+npm run test:e2e        # Playwright, against the built bundle
 ```
 
-CI runs those four on every pull request, so a red one won't get merged.
+CI runs all of those on every pull request, so a red one won't get merged.
+
+The e2e suite needs a browser once: `npx playwright install chromium`.
 
 ## Ground rules
 
@@ -29,7 +33,7 @@ CI runs those four on every pull request, so a red one won't get merged.
 - No backend, ever. Wingman is a static SPA and every request goes browser to provider. Anything needing a server of ours belongs elsewhere.
 - Everything stays in `sessionStorage` — keys, base URL, model, prompts, history. That is on purpose: nothing Wingman holds should outlive the tab. Don't move any of it to `localStorage`.
 - Adding a wire format is one file in `src/formats/` listed in its `index.ts`. Adding a client to impersonate is one entry in `src/profiles.ts`.
-- Logic in `src/services/` should come with tests. They sit next to the code as `*.test.ts` and run under Vitest.
+- Everything in `src/` comes with tests, and coverage is gated in CI: statements, lines and functions must stay at 100%. Unit and component tests sit next to the code as `*.test.ts(x)` and run under Vitest; browser journeys live in `e2e/` and run under Playwright. Say _why_ a test exists when the reason isn't obvious from its name — the existing ones do.
 - Prettier owns formatting. Run `npm run format` and don't argue with it.
 - The social card at `public/og.png` is generated, not hand-drawn. Edit `scripts/og-image.html` and re-render with the command in its header comment.
 

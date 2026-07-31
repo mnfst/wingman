@@ -1,5 +1,6 @@
-import { createSignal, For, onCleanup, Show, type Component } from 'solid-js';
+import { For, Show, type Component } from 'solid-js';
 import type { Profile } from '../profiles';
+import { createDismissable } from '../primitives/dismissable';
 
 interface Props {
   profiles: readonly Profile[];
@@ -48,32 +49,9 @@ export const categoryTag = (p: Profile) =>
  * one-line blurb); the selected client's blurb renders under the control.
  */
 const ClientSelect: Component<Props> = (props) => {
-  const [open, setOpen] = createSignal(false);
+  const { open, close, toggle } = createDismissable('.client-select');
 
   const active = () => props.profiles.find((p) => p.id === props.activeId) ?? props.profiles[0]!;
-
-  const close = () => setOpen(false);
-
-  const onDocumentClick = (e: MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (!target.closest('.client-select')) close();
-  };
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') close();
-  };
-
-  const toggle = () => {
-    const next = !open();
-    setOpen(next);
-    if (next) {
-      document.addEventListener('click', onDocumentClick);
-      document.addEventListener('keydown', onKeyDown);
-      onCleanup(() => {
-        document.removeEventListener('click', onDocumentClick);
-        document.removeEventListener('keydown', onKeyDown);
-      });
-    }
-  };
 
   const handleSelect = (id: string) => {
     props.onSelect(id);

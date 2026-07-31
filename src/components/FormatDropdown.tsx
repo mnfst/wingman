@@ -1,5 +1,6 @@
-import { createSignal, For, onCleanup, Show, type Component } from 'solid-js';
+import { For, Show, type Component } from 'solid-js';
 import type { ApiFormat } from '../formats';
+import { createDismissable } from '../primitives/dismissable';
 
 interface Props {
   formats: readonly ApiFormat[];
@@ -45,32 +46,9 @@ const CheckIcon: Component = () => (
  * (the endpoint path) instead — the closest thing an LLM API has to a method.
  */
 const FormatDropdown: Component<Props> = (props) => {
-  const [open, setOpen] = createSignal(false);
+  const { open, close, toggle } = createDismissable('.format-dd');
 
   const active = () => props.formats.find((f) => f.id === props.activeId) ?? props.formats[0]!;
-
-  const close = () => setOpen(false);
-
-  const onDocumentClick = (e: MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (!target.closest('.format-dd')) close();
-  };
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') close();
-  };
-
-  const toggle = () => {
-    const next = !open();
-    setOpen(next);
-    if (next) {
-      document.addEventListener('click', onDocumentClick);
-      document.addEventListener('keydown', onKeyDown);
-      onCleanup(() => {
-        document.removeEventListener('click', onDocumentClick);
-        document.removeEventListener('keydown', onKeyDown);
-      });
-    }
-  };
 
   const handleSelect = (id: string) => {
     props.onSelect(id);

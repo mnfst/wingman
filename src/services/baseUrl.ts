@@ -112,9 +112,15 @@ function stripEndpointPath(pathname: string, formatPath: string): { path: string
  * (the Manifest dashboard's dev drawer proxies it onto one), so the passthrough
  * had become the common case rather than the edge.
  */
-export function defaultBaseUrl(location?: { protocol: string; hostname: string; port: string }): string {
-  const loc = location ?? (typeof window === 'undefined' ? null : window.location);
-  if (!loc) return MANIFEST_BASE_URL;
+export function defaultBaseUrl(location?: {
+  protocol: string;
+  hostname: string;
+  port: string;
+}): string {
+  // The parameter exists so the loopback branches can be exercised directly;
+  // there is no server-rendered path to guard against — Wingman only ever runs
+  // in a browser.
+  const loc = location ?? window.location;
   if (!isLoopbackHost(loc.hostname)) return MANIFEST_BASE_URL;
   // Wingman is itself on the gateway's port — there's nothing left to guess.
   if (loc.port === MANIFEST_DEV_GATEWAY_PORT) return MANIFEST_BASE_URL;
@@ -146,7 +152,9 @@ export function normalizeBaseUrl(raw: string, formatPath: string): NormalizedBas
     // didn't finish typing. Guess the scheme rather than letting `fetch`
     // resolve it against Wingman's origin.
     if (/^[a-z][a-z0-9+.-]*:/i.test(candidate) && !/^[a-z]+:\d+/i.test(candidate)) {
-      return fail(`"${candidate.split(':')[0]}" is not a supported scheme — use http:// or https://.`);
+      return fail(
+        `"${candidate.split(':')[0]}" is not a supported scheme — use http:// or https://.`,
+      );
     }
     const scheme = inferScheme(candidate);
     candidate = scheme + candidate;

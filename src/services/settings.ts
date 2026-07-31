@@ -68,7 +68,6 @@ export function purgeLegacyStorage(): void {
 }
 
 export function readQueryParam(key: string): string | null {
-  if (typeof window === 'undefined') return null;
   try {
     return new URL(window.location.href).searchParams.get(key);
   } catch {

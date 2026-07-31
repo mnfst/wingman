@@ -44,9 +44,9 @@ describe('classifyFetchFailure', () => {
 
   it('does not blame the local network for a public HTTPS target', () => {
     setPageOrigin('https://wingman.manifest.build/');
-    expect(classifyFetchFailure(failedToFetch, 'https://app.manifest.build/v1/chat/completions')).toBe(
-      'network',
-    );
+    expect(
+      classifyFetchFailure(failedToFetch, 'https://app.manifest.build/v1/chat/completions'),
+    ).toBe('network');
   });
 
   // Same address space: loopback page to loopback gateway is allowed, so a

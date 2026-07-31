@@ -1,6 +1,7 @@
-import { createSignal, onCleanup, Show, type Component } from 'solid-js';
+import { createEffect, createMemo, createSignal, onCleanup, Show, type Component } from 'solid-js';
 import { highlight } from '../services/highlight';
 import { copyText } from '../services/clipboard';
+import { NEW_GIST_URL } from '../services/gist';
 import { CloseIcon, GitHubIcon } from './icons.jsx';
 
 interface Props {
@@ -8,8 +9,6 @@ interface Props {
   markdown: string;
   onClose: () => void;
 }
-
-const NEW_GIST_URL = 'https://gist.github.com/';
 
 const GistModal: Component<Props> = (props) => {
   const [copied, setCopied] = createSignal(false);
@@ -46,35 +45,26 @@ const GistModal: Component<Props> = (props) => {
     window.open(NEW_GIST_URL, '_blank', 'noopener,noreferrer');
   };
 
-  // Track keyboard listener while open.
-  // Solid's effect-via-prop pattern: only attach when open changes to true.
-  let attached = false;
-  const sync = () => {
-    if (props.open && !attached) {
-      document.addEventListener('keydown', onKey);
-      attached = true;
-      // Move focus into the dialog once it exists in the DOM.
-      previousFocus = document.activeElement as HTMLElement | null;
-      queueMicrotask(() => closeBtnRef?.focus());
-    } else if (!props.open && attached) {
-      document.removeEventListener('keydown', onKey);
-      attached = false;
-    }
-  };
-  // Run sync once on render and whenever props.open flips.
-  // (Effect-style via createSignal getter — Solid re-runs the JSX accessors.)
-  const _open = () => {
-    sync();
-    return props.open;
-  };
-  onCleanup(() => {
-    if (attached) document.removeEventListener('keydown', onKey);
+  // Escape-to-close lives on the document, so it may only be listening while
+  // the dialog is up. Registering it from an effect (rather than from inside
+  // the accessor the JSX reads, which is a side effect in a render path and
+  // fires on every unrelated re-render) ties it to `open` and to the
+  // component's own lifetime.
+  createEffect(() => {
+    if (!props.open) return;
+    document.addEventListener('keydown', onKey);
+    // Move focus into the dialog once it exists in the DOM.
+    previousFocus = document.activeElement as HTMLElement | null;
+    queueMicrotask(() => closeBtnRef?.focus());
+    onCleanup(() => document.removeEventListener('keydown', onKey));
   });
 
-  const highlighted = () => highlight(props.markdown, 'markdown');
+  // Highlighting a long markdown report is not free, and the modal re-renders
+  // on every copy-state flip — memoise so it only runs when the report changes.
+  const highlighted = createMemo(() => highlight(props.markdown, 'markdown'));
 
   return (
-    <Show when={_open()}>
+    <Show when={props.open}>
       <div
         class="gist-modal__overlay"
         onClick={(e) => {

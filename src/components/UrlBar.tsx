@@ -2,6 +2,7 @@ import { createEffect, createSignal, on, Show, type Component } from 'solid-js';
 import FormatDropdown from './FormatDropdown.jsx';
 import ProviderDropdown from './ProviderDropdown.jsx';
 import ModelSelect from './ModelSelect.jsx';
+import HealthBadge from './HealthBadge.jsx';
 import type { ApiFormat } from '../formats';
 import type { Provider } from '../providers';
 import type { HealthStatus } from '../services/healthCheck';
@@ -93,76 +94,6 @@ const CodeIcon: Component = () => (
     <polyline points="8 6 2 12 8 18" />
   </svg>
 );
-
-// The outer span stays mounted so the live region exists before the status
-// flips — screen readers only announce changes inside an already-present
-// aria-live node.
-const HealthBadge: Component<{ status: HealthStatus }> = (p) => {
-  const status = () => p.status;
-  const isError = () =>
-    status().kind === 'failed' ||
-    status().kind === 'invalid' ||
-    status().kind === 'not-a-gateway' ||
-    status().kind === 'http-error';
-  return (
-    <span role="status" aria-live="polite" aria-label="Gateway health">
-      <Show when={status().kind !== 'idle'}>
-        <span
-          class="health-badge"
-          classList={{
-            'health-badge--ok': status().kind === 'ok',
-            'health-badge--warn': status().kind === 'checking',
-            'health-badge--err': isError(),
-          }}
-          title={healthTitle(status())}
-        >
-          {healthLabel(status())}
-        </span>
-      </Show>
-    </span>
-  );
-};
-
-function healthLabel(s: HealthStatus): string {
-  switch (s.kind) {
-    case 'ok':
-      return `${s.latencyMs}ms`;
-    case 'checking':
-      return '…';
-    case 'invalid':
-      return 'invalid URL';
-    case 'failed':
-      return s.label;
-    case 'not-a-gateway':
-      return 'not a gateway';
-    case 'http-error':
-      return `HTTP ${s.status}`;
-    default:
-      return '';
-  }
-}
-
-// The badge only ever proves the health endpoint answered — it says nothing
-// about the endpoint a send targets. Naming the probed URL keeps a green badge
-// from being read as "your request will work".
-function healthTitle(s: HealthStatus): string {
-  switch (s.kind) {
-    case 'ok':
-      return `Health check succeeded — probed ${s.probedUrl}`;
-    case 'checking':
-      return 'Checking the gateway health endpoint…';
-    case 'invalid':
-      return s.message;
-    case 'failed':
-      return s.message;
-    case 'not-a-gateway':
-      return s.message;
-    case 'http-error':
-      return `${s.probedUrl} returned ${s.status} ${s.statusText}`;
-    default:
-      return '';
-  }
-}
 
 /**
  * Postman-style request bar: method/format selector, base URL with an embedded

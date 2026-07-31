@@ -1,5 +1,6 @@
-import { createSignal, For, onCleanup, Show, type Component } from 'solid-js';
+import { For, Show, type Component } from 'solid-js';
 import type { Provider } from '../providers';
+import { createDismissable } from '../primitives/dismissable';
 
 interface Props {
   providers: readonly Provider[];
@@ -45,32 +46,9 @@ const CheckIcon: Component = () => (
  * wire format, and default model. Typing in the URL flips back to Custom.
  */
 const ProviderDropdown: Component<Props> = (props) => {
-  const [open, setOpen] = createSignal(false);
+  const { open, close, toggle } = createDismissable('.provider-dd');
 
   const active = () => props.providers.find((p) => p.id === props.activeId) ?? props.providers[0]!;
-
-  const close = () => setOpen(false);
-
-  const onDocumentClick = (e: MouseEvent) => {
-    const target = e.target as HTMLElement;
-    if (!target.closest('.provider-dd')) close();
-  };
-  const onKeyDown = (e: KeyboardEvent) => {
-    if (e.key === 'Escape') close();
-  };
-
-  const toggle = () => {
-    const next = !open();
-    setOpen(next);
-    if (next) {
-      document.addEventListener('click', onDocumentClick);
-      document.addEventListener('keydown', onKeyDown);
-      onCleanup(() => {
-        document.removeEventListener('click', onDocumentClick);
-        document.removeEventListener('keydown', onKeyDown);
-      });
-    }
-  };
 
   const handleSelect = (id: string) => {
     props.onSelect(id);
