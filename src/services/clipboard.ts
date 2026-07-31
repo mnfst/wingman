@@ -22,7 +22,7 @@ export async function copyText(text: string): Promise<CopyOutcome> {
   }
 
   // Path 2: legacy execCommand. Requires the textarea to be in the DOM,
-  // visible-ish (off-screen is fine), focused, and selected — all done
+  // visible-ish (off-screen is fine), focused, and selected, all done
   // inside the same user-gesture stack.
   try {
     const ta = document.createElement('textarea');

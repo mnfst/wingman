@@ -144,7 +144,7 @@ describe('sending from the form', () => {
 });
 
 describe('sending refuses an unusable base URL', () => {
-  // Left to `fetch`, a schemeless base resolved against Wingman's own origin —
+  // Left to `fetch`, a schemeless base resolved against Wingman's own origin,
   // quietly shipping the user's API key to a host they never pointed at.
   it('never reaches the network and explains why', async () => {
     await withApp(async (s, a) => {

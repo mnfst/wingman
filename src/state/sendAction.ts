@@ -36,7 +36,7 @@ export function createSendAction(s: AppState, clearResponse: () => void) {
 
     // Stop before `fetch` does. An unusable base URL used to surface either a
     // raw "Failed to parse URL" TypeError or, worse, for a schemeless value, a
-    // request resolved against Wingman's own origin — quietly shipping the
+    // request resolved against Wingman's own origin, quietly shipping the
     // user's API key somewhere they never pointed at.
     if (!s.normalized().valid) {
       s.setResult(errorResult(s.normalized().problem ?? 'Invalid base URL.', 'Invalid base URL'));

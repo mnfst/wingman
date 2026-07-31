@@ -90,7 +90,7 @@ describe('reading an edited snippet back', () => {
     expect(roundTrip(profile, lang).model, label(profile, lang)).toBe(PARAMS.model);
   });
 
-  // OpenClaw's snippet only writes a provider config — there's no message in it
+  // OpenClaw's snippet only writes a provider config, so there's no message in it
   // to recover, and claiming otherwise would blank the composer.
   it.each(COMBINATIONS.filter((c) => c.profile.id !== 'openclaw'))(
     'recovers the user message from $profile.id ($lang)',

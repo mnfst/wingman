@@ -235,7 +235,7 @@ describe('changing the request', () => {
 
 describe('the request never leaving the browser', () => {
   // A base URL that cannot be resolved used to reach `fetch`, which resolved a
-  // schemeless value against Wingman's own origin — shipping the key elsewhere.
+  // schemeless value against Wingman's own origin, shipping the key elsewhere.
   it('explains an unusable base URL instead of sending', async () => {
     render(() => <App />);
 

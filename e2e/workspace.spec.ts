@@ -132,7 +132,7 @@ test('offers the request as a redacted report', async ({ page }) => {
 
 // The About modal promises nothing survives a closed tab. sessionStorage is
 // exactly that lifetime; a reload is the closest a test can get to proving the
-// weaker half — that a reload does keep the session.
+// weaker half, that a reload does keep the session.
 test('keeps the session across a reload but writes nothing to disk', async ({ page }) => {
   await page.getByRole('textbox', { name: 'API key' }).fill('mnfst_e2e_key');
   await page.getByLabel('User message').fill('Say hi');

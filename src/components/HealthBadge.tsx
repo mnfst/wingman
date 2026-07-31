@@ -1,11 +1,11 @@
 import { Show, type Component } from 'solid-js';
 import type { HealthStatus } from '../services/healthCheck';
 
-/** Every status that puts something on screen — that is, all but `idle`. */
+/** Every status that puts something on screen, which is all but `idle`. */
 type ShownHealth = Exclude<HealthStatus, { kind: 'idle' }>;
 
 // The outer span stays mounted so the live region exists before the status
-// flips — screen readers only announce changes inside an already-present
+// flips. Screen readers only announce changes inside an already-present
 // aria-live node.
 const HealthBadge: Component<{ status: HealthStatus }> = (p) => {
   // Narrowing here rather than inside the label helpers: they then cover the
@@ -34,7 +34,7 @@ const HealthBadge: Component<{ status: HealthStatus }> = (p) => {
 };
 
 // A bare "119ms" in the address field reads as the latency of something the
-// user did, which it never is — nobody asked for it and no send has happened
+// user did, which it never is. Nobody asked for it and no send has happened
 // yet. Say what the badge actually means and leave the number to the tooltip.
 function healthLabel(s: ShownHealth): string {
   switch (s.kind) {
@@ -53,13 +53,13 @@ function healthLabel(s: ShownHealth): string {
   }
 }
 
-// The badge only ever proves the health endpoint answered — it says nothing
+// The badge only ever proves the health endpoint answered. It says nothing
 // about the endpoint a send targets. Naming the probed URL keeps a green badge
 // from being read as "your request will work".
 function healthTitle(s: ShownHealth): string {
   switch (s.kind) {
     case 'ok':
-      return `Health check succeeded in ${s.latencyMs} ms — probed ${s.probedUrl}`;
+      return `Health check succeeded in ${s.latencyMs} ms. Probed ${s.probedUrl}`;
     case 'checking':
       return 'Checking the gateway health endpoint…';
     case 'invalid':

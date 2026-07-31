@@ -1,6 +1,6 @@
 // Open/close state for the URL bar's dropdowns (format, provider, client,
-// model). All four want the same contract — click outside or press Escape to
-// dismiss — and all four used to inline it, each registering its document
+// model). All four want the same contract (click outside or press Escape to
+// dismiss) and all four used to inline it, each registering its document
 // listeners from inside the click handler and unregistering them with
 // `onCleanup`. That never ran: `onCleanup` binds to the *current owner*, and an
 // event handler has none, so every open leaked a pair of document listeners
@@ -28,7 +28,7 @@ export function createDismissable(containerSelector: string): Dismissable {
     if (!open()) return;
     const onDocumentClick = (e: MouseEvent) => {
       // `closest` only exists on Element, and a click's target need not be one
-      // — the document itself is a valid target, and calling through to it
+      // The document itself is a valid target, and calling through to it
       // threw inside the listener instead of dismissing the menu.
       const target = e.target;
       if (!(target instanceof Element) || !target.closest(containerSelector)) close();

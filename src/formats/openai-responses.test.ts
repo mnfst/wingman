@@ -27,7 +27,7 @@ function drive(events: Array<{ event?: string; data: string }>) {
 
 describe('openai-responses buildBody', () => {
   // Responses takes a bare `input` string and `instructions`, not a messages
-  // array — the one thing that trips people moving over from Chat Completions.
+  // array. That is the one thing that trips people moving over from Chat Completions.
   it('uses input and instructions instead of a messages array', () => {
     const body = openaiResponses.buildBody(params({ systemPrompt: 'be terse' }), { stream: false });
     expect(body).toEqual({

@@ -4,7 +4,7 @@ import { createAppState, type AppState } from './appState';
 import { recordFromEntries } from '../services/settings';
 
 // Drives the real app state, because the point of the two-way binding is that
-// the Code panel and the bars above it are the same request — a test against
+// the Code panel and the bars above it are the same request, so a test against
 // the parser alone would prove the halves work and not that they're joined.
 
 function withState(run: (s: AppState) => void) {

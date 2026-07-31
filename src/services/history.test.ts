@@ -70,7 +70,7 @@ describe('appendHistory', () => {
     expect(all.at(-1)?.userMessage).toBe('msg-5');
   });
 
-  // A full quota must not take the request down with it — the response is
+  // A full quota must not take the request down with it. The response is
   // already on screen; only the historical record is lost.
   it('survives a storage write failure', () => {
     vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {

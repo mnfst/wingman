@@ -29,10 +29,6 @@
       name="description"
       content="Test any LLM API from your browser. Send a message, edit the system prompt, read the raw response. Free, open source, and nothing outlives the tab."
     />
-    <meta
-      name="keywords"
-      content="Postman for LLM APIs, LLM API tester, OpenAI API tester, Anthropic API tester, test LLM API in browser, system prompt tester, open source LLM client"
-    />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="Wingman" />
     <meta property="og:locale" content="en_US" />
@@ -132,11 +128,15 @@
       The About copy, served in the HTML response.
 
       Wingman is client-rendered, so the About modal only enters the DOM once a
-      visitor clicks the button in the top bar — crawlers that do not execute
+      visitor clicks the button in the top bar. Crawlers that do not execute
       JavaScript would never see any of this. The same copy lives in
       src/content/about.ts for the modal, and src/content/about.test.ts fails if
       the two drift apart. It is clipped rather than display:none so it stays
       crawlable; visitors get the identical text from the About modal.
+
+      Its h1 is the only one a crawler that skips JavaScript will ever see, so
+      it stays an h1 even though the rendered app has one of its own in the
+      title bar.
     -->
     <section
       id="about-wingman"
@@ -151,7 +151,7 @@
         border: 0;
       "
     >
-      <h1>Wingman — Postman for LLM APIs</h1>
+      <h1>Wingman - LLM API testing</h1>
       <p>Postman for LLM APIs. A simple yet powerful tool to test LLM APIs.</p>
       <h2>What it does</h2>
       <ul>
@@ -181,17 +181,17 @@
         other open source repositories:
       </p>
       <ul>
-        <li><a href="https://github.com/mnfst/manifest">Manifest</a> — Open-source LLM gateway</li>
+        <li><a href="https://github.com/mnfst/manifest">Manifest</a> - Open-source LLM gateway</li>
         <li>
-          <a href="https://github.com/mnfst/awesome-free-llm-apis">Free LLM APIs</a> — Awesome list
+          <a href="https://github.com/mnfst/awesome-free-llm-apis">Free LLM APIs</a> - Awesome list
           of LLM APIs with permanent free tiers
         </li>
         <li>
-          <a href="https://github.com/mnfst/modelparams.dev">modelparams.dev</a> — Open-source AI
+          <a href="https://github.com/mnfst/modelparams.dev">modelparams.dev</a> - Open-source AI
           model parameters database
         </li>
         <li>
-          <a href="https://github.com/mnfst/modeldeprecations.dev">modeldeprecations.dev</a> —
+          <a href="https://github.com/mnfst/modeldeprecations.dev">modeldeprecations.dev</a> -
           Open-source AI model deprecations database
         </li>
       </ul>

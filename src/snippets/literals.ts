@@ -2,7 +2,7 @@
 // are generated from known templates, so pattern matching over them is enough
 // and a real JS/Python/shell parser would be three parsers too many. Everything
 // here degrades to "found nothing" rather than throwing, because it runs on
-// every keystroke in the code editor — including on half-typed lines.
+// every keystroke in the code editor, including on half-typed lines.
 
 /** A quoted string in any flavour our snippets use, or a bare token. */
 const QUOTED = String.raw`"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|\`(?:[^\`\\]|\\.)*\``;
@@ -16,7 +16,7 @@ export function valueRegex(prefix: string, flags = 'i'): RegExp {
 
 /**
  * `name: <value>` / `name=<value>` / `"name": <value>`. The value may not start
- * on the next line — `\s*` there would happily read the following YAML key as
+ * on the next line. `\s*` there would happily read the following YAML key as
  * the value of an empty one.
  */
 export function fieldRegex(...names: string[]): RegExp {
@@ -26,7 +26,7 @@ export function fieldRegex(...names: string[]): RegExp {
 /**
  * The same, but only where the name opens a line. Snippets JSON-escape the
  * system prompt and the user message, so nothing inside them can contain a
- * newline — anchoring is what stops a prompt that happens to read
+ * newline. Anchoring is what stops a prompt that happens to read
  * "system: be terse" from being mistaken for the field itself.
  */
 export function lineFieldRegex(...names: string[]): RegExp {
@@ -43,7 +43,7 @@ export function unquote(raw: string): string {
     try {
       return JSON.parse(s) as string;
     } catch {
-      /* half-typed escape — fall through to the naive unescape */
+      /* half-typed escape, so fall through to the naive unescape */
     }
   }
   if (q === "'") return inner.split("'\\''").join("'");

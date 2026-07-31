@@ -103,7 +103,7 @@ const CodeIcon: Component = () => (
 const UrlBar: Component<Props> = (props) => {
   const [keyRevealed, setKeyRevealed] = createSignal(false);
 
-  // A different provider means a different secret in the field — never leave
+  // A different provider means a different secret in the field, so never leave
   // the next one revealed unasked.
   createEffect(
     on(
@@ -205,7 +205,7 @@ const UrlBar: Component<Props> = (props) => {
             !props.canSave
               ? 'Send a request first, then save it as a gist'
               : props.saveStatus === 'saved'
-                ? 'Copied to clipboard — paste into the GitHub gist tab'
+                ? 'Copied to clipboard. Paste it into the GitHub gist tab'
                 : 'Save this request as a GitHub gist'
           }
         >
@@ -222,7 +222,7 @@ const UrlBar: Component<Props> = (props) => {
         </button>
       </div>
       {/* Pasting a full endpoint or a `/v1` base is the most common way to get
-          a 404 out of a healthy gateway — surface what normalisation did (or
+          a 404 out of a healthy gateway, so surface what normalisation did (or
           why the URL is unusable) before Send, but stay silent otherwise. */}
       <Show when={props.baseUrlProblem || props.baseUrlNote}>
         <div class="urlbar__hint" classList={{ 'urlbar__hint--err': !!props.baseUrlProblem }}>

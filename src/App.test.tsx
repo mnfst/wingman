@@ -1,5 +1,5 @@
 // The whole app, mounted, with only the network faked. These are the journeys
-// a user actually takes — compose, send, read the wire, come back to it — and
+// a user actually takes (compose, send, read the wire, come back to it), and
 // they are the only tests that would catch a component wired to the wrong bit
 // of state.
 import { render, screen } from '@solidjs/testing-library';

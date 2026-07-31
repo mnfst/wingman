@@ -23,7 +23,7 @@ export interface Gateway {
 
 /**
  * Every test runs against a stubbed gateway. No API key, no rate limit, no
- * network flake — and the assertion that matters most (what Wingman actually
+ * network flake, and the assertion that matters most (what Wingman actually
  * puts on the wire) is only observable from here.
  */
 async function installGateway(page: Page): Promise<Gateway> {
@@ -56,7 +56,7 @@ async function installGateway(page: Page): Promise<Gateway> {
   await page.route('**/v1/responses', handle);
   await page.route('**/v1/messages', handle);
   // The background probes must not reach the real internet either. They are
-  // allowed to fail — neither blocks sending.
+  // allowed to fail: neither blocks sending.
   await page.route('**/v1/models', (route) =>
     route.fulfill({
       status: 200,

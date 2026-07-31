@@ -138,7 +138,7 @@ const RequestTabs: Component<Props> = (props) => {
           )}
         </For>
         {/* Drafts sit to the right of the sent requests, in the order they were
-            opened — a sent draft leaves the strip as the history tab it became. */}
+            opened. A sent draft leaves the strip as the history tab it became. */}
         <For each={props.drafts}>
           {(draft) => (
             <div

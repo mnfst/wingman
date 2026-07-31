@@ -23,7 +23,7 @@ interface Props {
 
 /**
  * The snippet for the selected client. It lives under the Client tab rather
- * than in a tab of its own: the code *is* the client — reading "OpenAI SDK"
+ * than in a tab of its own: the code *is* the client, and reading "OpenAI SDK"
  * and then hunting for the matching snippet somewhere else was a step nobody
  * needed to take. Editing it edits the request: the fields it names are read
  * back into the bars above as you type.
@@ -78,7 +78,7 @@ const CodePanel: Component<Props> = (props) => {
               aria-pressed={!props.keyHidden}
               title={
                 props.keyHidden
-                  ? 'Print the real key instead of the env var — only safe if nobody else is looking'
+                  ? 'Print the real key instead of the env var, only safe if nobody else is looking'
                   : `Go back to ${props.keyEnvName}`
               }
             >
@@ -95,16 +95,16 @@ const CodePanel: Component<Props> = (props) => {
       <p class="config__note">
         <Show
           when={props.executable}
-          fallback={<>Two-way with the request above — change either one and the other follows.</>}
+          fallback={<>Two-way with the request above: change either one and the other follows.</>}
         >
           {props.isEdited
             ? 'Edited. Send now runs this snippet through a stubbed SDK instead of the form.'
-            : 'Two-way with the request above — change either one and the other follows. Write something the form has no field for and Send will run the snippet instead.'}
+            : 'Two-way with the request above: change either one and the other follows. Write something the form has no field for and Send will run the snippet instead.'}
         </Show>
       </p>
       <Show when={props.hasKey && props.keyHidden}>
         <p class="config__note config__note--dim">
-          Your key stays out of the snippet — it reads <code>{props.keyEnvName}</code> from the
+          Your key stays out of the snippet. It reads <code>{props.keyEnvName}</code> from the
           environment, so this is safe to paste into an issue or a screenshot.
         </p>
       </Show>

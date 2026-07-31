@@ -60,7 +60,7 @@ const GistModal: Component<Props> = (props) => {
   });
 
   // Highlighting a long markdown report is not free, and the modal re-renders
-  // on every copy-state flip — memoise so it only runs when the report changes.
+  // on every copy-state flip, so memoise it: it then runs only when the report does.
   const highlighted = createMemo(() => highlight(props.markdown, 'markdown'));
 
   return (

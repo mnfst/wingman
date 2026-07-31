@@ -1,6 +1,6 @@
 // Running an edited snippet is the one place Wingman evaluates user code. The
 // stubs stand in for real SDKs, so what has to hold is that whatever the user
-// writes turns into the same SendResult a form-driven send would produce — and
+// writes turns into the same SendResult a form-driven send would produce, and
 // that a snippet which never calls out says so, rather than silently doing
 // nothing.
 import { beforeEach, describe, expect, it, vi } from 'vitest';

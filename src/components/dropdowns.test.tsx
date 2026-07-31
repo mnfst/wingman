@@ -118,7 +118,7 @@ describe('ClientSelect', () => {
 });
 
 describe('ModelSelect', () => {
-  // Any model id has to work, catalog or not — plenty of endpoints will not
+  // Any model id has to work, catalog or not. Plenty of endpoints will not
   // list theirs to a browser.
   it('stays a plain free-text field when the catalog is unavailable', () => {
     const onChange = vi.fn();

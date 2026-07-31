@@ -42,7 +42,7 @@ describe('openai-chat buildBody', () => {
     ]);
   });
 
-  // A prompt of only whitespace is an empty prompt — sending it would add a
+  // A prompt of only whitespace is an empty prompt. Sending it would add a
   // meaningless system turn and change how the gateway classifies the request.
   it('drops a whitespace-only system prompt', () => {
     const body = openaiChat.buildBody(params({ systemPrompt: '   \n ' }), { stream: false });

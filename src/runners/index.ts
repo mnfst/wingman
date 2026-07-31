@@ -44,7 +44,7 @@ function makeConsoleStub(logs: string[]): Console {
         }
       })
       .join(' ');
-  // Cast at the boundary — we don't want every call site to know the stub
+  // Cast at the boundary. We don't want every call site to know the stub
   // doesn't implement the full Console surface.
   return {
     log: (...args: unknown[]) => logs.push(fmt(args)),
@@ -58,7 +58,7 @@ function makeConsoleStub(logs: string[]): Console {
 /**
  * The global bindings a profile's snippet expects, keyed by profile id. One
  * table, rather than a switch plus a hand-maintained list of ids: `isExecutable`
- * and the runner lookup used to be able to disagree, and did — both still named
+ * and the runner lookup used to be able to disagree, and did: both still named
  * a `raw` profile that had been folded into `default` and could no longer be
  * reached, alongside a `bash` branch that would have fed a cURL command to a JS
  * parser. Adding a runner is now one entry.

@@ -9,7 +9,7 @@ const input = (over: Partial<SendInput> = {}): SendInput => ({
   ...over,
 });
 
-/** Minimal Response stand-in — jsdom's fetch is stubbed, not implemented. */
+/** Minimal Response stand-in: jsdom's fetch is stubbed, not implemented. */
 function jsonResponse(
   body: string,
   init: { status?: number; statusText?: string; headers?: Record<string, string> } = {},
@@ -47,7 +47,7 @@ describe('partitionHeaders', () => {
   });
 
   // The point of surfacing these is that the SDK profiles set a User-Agent the
-  // browser silently drops — users need to know the fingerprint is incomplete.
+  // browser silently drops, so users need to know the fingerprint is incomplete.
   it('blocks headers fetch forbids, case-insensitively', () => {
     const { allowed, blocked } = partitionHeaders({
       'User-Agent': 'OpenAI/JS',
@@ -132,7 +132,7 @@ describe('sendRequest', () => {
     expect(result.responseBody).toBe('<html>502</html>');
   });
 
-  // The request never left the browser, so there is no status to report — but
+  // The request never left the browser, so there is no status to report, but
   // the classified reason is what makes the failure actionable.
   it('reports a rejected fetch as a classified network error', async () => {
     fetchMock.mockRejectedValue(new TypeError('Failed to fetch'));

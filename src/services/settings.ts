@@ -1,5 +1,5 @@
-// Persistence + boot-time resolution helpers for App state. Pure functions —
-// no signals here — so App/appState stay focused on wiring.
+// Persistence + boot-time resolution helpers for App state. Pure functions,
+// no signals here, so App/appState stay focused on wiring.
 import type { HeaderEntry } from '../components/HeaderEditor.jsx';
 import { PROFILES, profilesForFormat, resolveProfileId } from '../profiles';
 import { FORMAT_BY_ID, DEFAULT_FORMAT_ID, type ApiFormatId } from '../formats';
@@ -23,7 +23,7 @@ const LEGACY_API_KEY = 'wingman:apiKey';
 
 // Everything Wingman holds lives in sessionStorage, which the browser drops
 // when the tab closes. Within a session the values persist, so switching
-// provider keeps your key, preset and prompt — but a closed tab takes the lot:
+// provider keeps your key, preset and prompt, but a closed tab takes the lot:
 // no key, no history, no base URL left behind on a shared machine. Nothing here
 // writes localStorage; `purgeLegacyStorage` clears what older builds left in it.
 export function readStorage(key: string, fallback: string): string {
@@ -53,7 +53,7 @@ export function removeStorage(key: string): void {
 /**
  * Older builds kept the base URL, model, preset and request history in
  * localStorage, which outlived the tab. Those writes are gone, but a returning
- * visitor still has the values sitting on disk — clear them on boot so the
+ * visitor still has the values sitting on disk, so clear them on boot and the
  * "nothing persists between sessions" promise holds for the browser too, not
  * just for code written from here on.
  */
@@ -154,8 +154,8 @@ export function resolveInitialProfile(formatId: ApiFormatId): string {
   const compatible = profilesForFormat(formatId);
   const stored = resolveProfileId(readStorage(STORAGE.profile, ''));
   if (compatible.some((p) => p.id === stored)) return stored;
-  // First-run default: the neutral Default client — no fingerprint headers, no
-  // giant captured system prompt — mirroring the "Custom / Manifest" provider
+  // First-run default: the neutral Default client, with no fingerprint headers
+  // and no giant captured system prompt, mirroring the "Custom / Manifest" provider
   // default. Impersonation is opt-in, not the landing state.
   const plain = compatible.find((p) => p.id === 'default');
   return plain?.id ?? compatible[0]?.id ?? PROFILES[0]!.id;
@@ -170,8 +170,8 @@ export interface BootState {
 
 /**
  * Everything the app needs before the first render: the active provider, base
- * URL, key map, and wire format — resolved from query params (`?baseUrl=`,
- * `?apiKey=`, `?format=` — the Manifest dashboard embed), then storage, then
+ * URL, key map, and wire format, resolved from query params (`?baseUrl=`,
+ * `?apiKey=`, `?format=`, the Manifest dashboard embed), then storage, then
  * defaults. Query-param values are persisted so a reload keeps them.
  */
 export function resolveBootState(): BootState {

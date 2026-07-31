@@ -55,7 +55,7 @@ export function createAppState() {
   const [stream, setStream] = createSignal(readStorage(STORAGE.stream, '0') === '1');
 
   const provider = createMemo<Provider>(() => PROVIDER_BY_ID[providerId()] ?? CUSTOM_PROVIDER);
-  // The key field shows whatever belongs to the active provider — so switching
+  // The key field shows whatever belongs to the active provider, so switching
   // preset blanks it (until that provider is keyed) and switching back fills it.
   const apiKey = createMemo(() => apiKeys()[providerId()] ?? '');
   const format = createMemo<ApiFormat>(() => FORMAT_BY_ID[formatId()] ?? FORMATS[0]!);
@@ -175,7 +175,7 @@ export function createAppState() {
   // Pick a provider preset: switch to its wire format and, for a concrete
   // provider, fill the base URL + a usable default model. Selecting "Custom /
   // Manifest" resets to the Manifest gateway defaults (base URL pre-filled, the
-  // `auto` router model) — the field stays free-text for a BYO endpoint. The
+  // `auto` router model). The field stays free-text for a BYO endpoint. The
   // API key needs no handling here: it's derived from the active provider.
   const selectProvider = (id: string) => {
     const preset = PROVIDER_BY_ID[id];
@@ -192,10 +192,10 @@ export function createAppState() {
     }
   };
 
-  // Typing in the Base URL field means the user has gone off-preset — flip to
+  // Typing in the Base URL field means the user has gone off-preset, so flip to
   // Custom (keeping model/format) so the field stays fully free-text. Retargeting
   // the URL isn't a deliberate provider switch, so the key already typed follows
-  // the user across (unless Custom is already keyed — never clobber that one).
+  // the user across (unless Custom is already keyed, which we never clobber).
   const handleBaseUrlInput = (value: string) => {
     persistAndSetBase(value);
     if (providerId() !== DEFAULT_PROVIDER_ID) {
@@ -216,7 +216,7 @@ export function createAppState() {
     updateHeaderEntries: form.updateHeaderEntries,
     onSdkCodeChange: form.onSdkCodeChange,
     // Compare against the normalised base, since that's what the snippet
-    // printed — otherwise a trailing slash in the URL bar reads as an edit.
+    // printed. Otherwise a trailing slash in the URL bar reads as an edit.
     baseUrl: () => normalized().base,
     setBaseUrl: handleBaseUrlInput,
     apiKey,
@@ -232,7 +232,7 @@ export function createAppState() {
   /**
    * Draft tabs as the strip should render them. The open draft's text lives in
    * `userMessage` while its tab has focus and only lands back on the record
-   * when the tab is parked, so overlay the live value — otherwise the tab you
+   * when the tab is parked, so overlay the live value. Otherwise the tab you
    * are typing into is the one tab whose label never changes.
    */
   const draftTabs = createMemo<DraftTab[]>(() => {

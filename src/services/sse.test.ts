@@ -85,7 +85,7 @@ describe('readSse', () => {
   });
 
   // Formats break out of the loop on their terminal event. Releasing the lock
-  // alone would leave the response body — and its connection — open.
+  // alone would leave the response body, and its connection, open.
   it('cancels the body when the consumer stops early', async () => {
     const cancel = vi.fn().mockResolvedValue(undefined);
     const reader = {

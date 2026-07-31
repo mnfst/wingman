@@ -51,7 +51,7 @@ describe('sdk snippet', () => {
     f.dispose();
   });
 
-  // Typing the generated code back by hand is not an edit — Send should return
+  // Typing the generated code back by hand is not an edit, so Send should return
   // to driving the request from the form.
   it('stops counting as edited once the text matches the generated snippet again', () => {
     const f = setup();

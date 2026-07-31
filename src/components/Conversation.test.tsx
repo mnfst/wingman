@@ -1,5 +1,5 @@
 // The right pane: the empty state, the sent message, and the response
-// inspector. The inspector is where a failure has to become actionable — a bare
+// inspector. The inspector is where a failure has to become actionable. A bare
 // "Failed to fetch" is the thing the diagnostics exist to replace.
 import { render, screen } from '@solidjs/testing-library';
 import { afterEach, describe, expect, it, vi } from 'vitest';
@@ -127,7 +127,7 @@ describe('the response summary', () => {
   });
 
   // Status 0 means the request never reached a server, so there is no code to
-  // show — only the reason it never left.
+  // show, only the reason it never left.
   it('names the reason instead of a status code for a request that never landed', () => {
     render(() => (
       <AssistantMessage

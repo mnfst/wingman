@@ -120,7 +120,7 @@ describe('health probe', () => {
     await settle();
     expect(p.healthStatus()).toMatchObject({ kind: 'ok' });
 
-    // The abandoned probe answers now — with an HTML body, which would
+    // The abandoned probe answers now, with an HTML body, which would
     // otherwise flip the badge to "not a gateway".
     resolveFirst({
       ok: true,

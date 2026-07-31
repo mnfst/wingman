@@ -49,7 +49,7 @@ describe('provider presets', () => {
   });
 
   // Each provider issues its own credential, so the field has to follow the
-  // preset — a shared key meant an sk-… landing in an Anthropic x-api-key.
+  // preset. A shared key meant an sk-… landing in an Anthropic x-api-key.
   it('keeps a key per provider', () => {
     withState((s) => {
       s.persistAndSetKey('mnfst_one');

@@ -23,8 +23,8 @@ const ORIGIN = 'https://wingman.manifest.build';
 
 /**
  * Point `window.location` at a URL. Assignment rather than `history.replaceState`:
- * jsdom refuses to rewrite the document's origin, and the hosted app — not
- * jsdom's default localhost — is the boot case these tests are about.
+ * jsdom refuses to rewrite the document's origin, and the hosted app, not
+ * jsdom's default localhost, is the boot case these tests are about.
  */
 function visit(search = '') {
   const url = new URL(`${ORIGIN}/${search}`);

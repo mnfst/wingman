@@ -37,7 +37,7 @@ function extractText(json: unknown): string {
 }
 
 /**
- * Stub for LangChain's `ChatOpenAI` — covers the `.invoke()` path our
+ * Stub for LangChain's `ChatOpenAI`. Covers the `.invoke()` path our
  * generated snippet uses.
  */
 export function makeLangChainStub(ctx: RunnerContext) {

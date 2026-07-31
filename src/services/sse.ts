@@ -1,6 +1,6 @@
 // Generic Server-Sent Events reader. Decodes a fetch response body stream,
 // buffers across network chunks (an event can be split mid-line), and yields
-// one `{ event?, data }` per SSE event. Format-agnostic — each ApiFormat's
+// one `{ event?, data }` per SSE event. Format-agnostic: each ApiFormat's
 // StreamParser interprets the `data` payload.
 
 export interface SseEvent {
@@ -45,8 +45,8 @@ export async function* readSse(body: ReadableStream<Uint8Array>): AsyncGenerator
     const tail = parseEventBlock(buffer);
     if (tail) yield tail;
   } finally {
-    // Releasing the lock alone leaves the response body — and the connection
-    // behind it — open when the consumer breaks out early on the format's
+    // Releasing the lock alone leaves the response body, and the connection
+    // behind it, open when the consumer breaks out early on the format's
     // terminal event, which is the normal way a stream ends here. Cancel first.
     await reader.cancel().catch(() => {});
     reader.releaseLock();

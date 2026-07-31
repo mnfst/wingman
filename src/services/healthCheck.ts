@@ -12,8 +12,8 @@ export type HealthStatus =
 
 /**
  * A 200 alone doesn't mean a gateway answered. Anything serving a single-page
- * app — Wingman's own dev server, a catch-all reverse proxy, a hosting rewrite
- * rule — returns `200 text/html` for *every* path, health endpoint or not. That
+ * app (Wingman's own dev server, a catch-all reverse proxy, a hosting rewrite
+ * rule) returns `200 text/html` for *every* path, health endpoint or not. That
  * turned a wrong base URL into a green "reachable" badge, which is the same
  * false confidence the probe exists to prevent.
  */
@@ -28,7 +28,7 @@ function looksLikeHtml(contentType: string | null, body: string): boolean {
  * The health path is rooted at the *origin* (`{origin}/api/v1/health` is where
  * a Manifest gateway serves it), not under whatever path the base URL carries.
  * That used to be done with `new URL(path, base)`, which silently discarded the
- * base path — so a base of `…/v1` probed the right health endpoint, went green,
+ * base path, so a base of `…/v1` probed the right health endpoint, went green,
  * and then the send 404'd against `…/v1/v1/chat/completions`. The badge now
  * reports the URL it actually probed so a green badge can't imply more than it
  * checked.
@@ -47,7 +47,7 @@ export async function checkHealth(
   }
 
   // `normalized.base` is `origin + path` off a parsed URL, so resolving a
-  // relative health path against it cannot fail — the try/catch that used to
+  // relative health path against it cannot fail. The try/catch that used to
   // wrap this guarded a branch nothing could reach.
   const probedUrl = new URL(path, normalized.base).toString();
 
@@ -78,7 +78,7 @@ export async function checkHealth(
       kind: 'not-a-gateway',
       message:
         `${probedUrl} returned HTML, not a health payload. That host is serving a web page ` +
-        'for every path, so it is probably not the gateway — check the Base URL.',
+        'for every path, so it is probably not the gateway. Check the Base URL.',
       probedUrl,
     };
   }

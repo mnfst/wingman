@@ -100,7 +100,7 @@ describe('sendRequestStreaming', () => {
     expect((await sendRequestStreaming(input(), opts())).ttftMs).toBeUndefined();
   });
 
-  // A 429 or 400 comes back as a JSON error object, not as a stream — reading
+  // A 429 or 400 comes back as a JSON error object, not as a stream. Reading
   // it as SSE would show an empty response for the most useful failure there is.
   it('falls back to a buffered read for a non-OK response', async () => {
     fetchMock.mockResolvedValue(

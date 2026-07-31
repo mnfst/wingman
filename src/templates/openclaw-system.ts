@@ -1,7 +1,7 @@
 /**
  * Verbatim OpenClaw system prompt, re-captured 2026-07-30 from the shipped
  * npm release openclaw@2026.7.1-2 (dist-tag latest) via a stub
- * OpenAI-compatible server and an isolated home — the exact bytes a real
+ * OpenAI-compatible server and an isolated home: the exact bytes a real
  * OpenClaw client sends today. Machine identifiers from the capture (host
  * name, install path, workspace path) are redacted to the same generic
  * placeholders as previous captures so the simulation leaks nothing.

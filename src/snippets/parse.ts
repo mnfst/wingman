@@ -1,4 +1,4 @@
-// Reading an edited snippet back into the form — the other half of the
+// Reading an edited snippet back into the form: the other half of the
 // two-way binding between the Code panel and the rest of the request bar.
 //
 // It matches patterns rather than parsing three languages, which is enough
@@ -74,15 +74,15 @@ function parseBaseUrl(code: string, format: ApiFormat): string | undefined {
   const raw =
     matchValue(code, BASE_URL) ?? matchValue(code, FETCH_URL) ?? matchValue(code, CURL_URL);
   if (raw === undefined || containsEnvRef(raw)) return undefined;
-  // Snippets append the endpoint path the format owns, so strip it back off —
-  // otherwise a round trip grows a `/v1` per edit.
+  // Snippets append the endpoint path the format owns, so strip it back off,
+  // or a round trip grows a `/v1` per edit.
   const normalized = normalizeBaseUrl(raw, format.path);
   return normalized.valid ? normalized.base : undefined;
 }
 
 function parseApiKey(code: string, format: ApiFormat): string | undefined {
-  // Shell quoting can splice a reference into the middle of a string literal —
-  // OpenClaw's config blob renders `"apiKey":"'"$KEY"'"` — and reading a value
+  // Shell quoting can splice a reference into the middle of a string literal
+  // (OpenClaw's config blob renders `"apiKey":"'"$KEY"'"`), and reading a value
   // out of that yields a stray quote. Whether the *declaration* mentions an env
   // var is the reliable signal, so check the line before extracting from it.
   const declaration = API_KEY_LINE.exec(code)?.[1];
@@ -182,8 +182,8 @@ function objectHeaders(code: string): Record<string, string> | null {
 }
 
 /**
- * The headers the user actually owns. Whatever the builder injected for them —
- * the credential, `Content-Type` — is subtracted again, so round-tripping a
+ * The headers the user actually owns. Whatever the builder injected for them
+ * (the credential, `Content-Type`) is subtracted again, so round-tripping a
  * snippet never files an auto-generated `Authorization` into the Headers tab.
  */
 function parseHeaders(code: string, auto: Record<string, string>): Record<string, string> {
@@ -212,7 +212,7 @@ export function parseSnippet(code: string, opts: ParseOptions): SnippetPatch {
   if (userMessage !== undefined) {
     patch.userMessage = userMessage;
     // A snippet that spells out the user message spells out the system prompt
-    // too, so not finding one means there is none — deleting the system message
+    // too, so not finding one means there is none. Deleting the system message
     // from the code is how you clear it.
     patch.systemPrompt = parseSystemPrompt(code, list) ?? '';
   }

@@ -74,7 +74,7 @@ const HeaderEditor: Component<Props> = (props) => {
       {props.blocked.length > 0 && (
         <p class="header-editor__warning">
           Browsers don't let JavaScript override these headers in fetch:{' '}
-          <code>{props.blocked.join(', ')}</code>. The actual request goes out without them — useful
+          <code>{props.blocked.join(', ')}</code>. The actual request goes out without them, useful
           for testing what Manifest does with the SDK fingerprint when the User-Agent is missing.
         </p>
       )}

@@ -1,5 +1,5 @@
 // Closing a tab, clearing the strip, and sharing a result. Every action here
-// removes something, and each has to leave exactly one other tab selected —
+// removes something, and each has to leave exactly one other tab selected,
 // never a dead response with nothing highlighted.
 import { createRoot } from 'solid-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -238,7 +238,7 @@ describe('saving a request as a gist', () => {
       a.handleSaveToGist();
 
       expect(s.gistModalOpen()).toBe(true);
-      expect(s.gistMarkdown()).toContain('# Manifest Wingman — request report');
+      expect(s.gistMarkdown()).toContain('# Manifest Wingman request report');
       expect(s.gistMarkdown()).toContain('> hi');
       expect(s.saveStatus()).toBe('saved');
     });

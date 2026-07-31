@@ -1,6 +1,6 @@
 // The Code panel edits the same request everything else does, so typing in it
-// moves the URL bar, the key, the model, the headers and the message box —
-// the mirror image of those fields regenerating the snippet.
+// moves the URL bar, the key, the model, the headers and the message box,
+// which is the mirror image of those fields regenerating the snippet.
 //
 // There's no feedback loop to guard against: an edit is stored as the scratch
 // snippet and the scratch always wins over the generated one, so applying the

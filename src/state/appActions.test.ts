@@ -1,6 +1,6 @@
 // Tabs, history and sharing. The tab strip is history entries oldest-first
 // followed by drafts, and every action that removes a tab has to leave exactly
-// one other tab selected — never a dead response with nothing highlighted.
+// one other tab selected, never a dead response with nothing highlighted.
 import { createRoot } from 'solid-js';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import { createAppState } from './appState';

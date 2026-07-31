@@ -43,7 +43,7 @@ const StatusPill: Component<{ status: number; ok: boolean; statusText: string }>
     return 'warn';
   };
   // Status 0 means the request never reached a server, so there's no code to
-  // show — but the reason varies (rejected before sending, blocked, refused),
+  // show, but the reason varies (rejected before sending, blocked, refused),
   // and `statusText` carries it.
   const label = () => {
     if (props.status === 0) return props.statusText || 'Network error';
@@ -177,7 +177,7 @@ const AssistantMessage: Component<Props> = (props) => {
               <div class="assistant-msg__error">{r.error}</div>
             </Show>
 
-            {/* `Failed to fetch` on its own tells the user nothing — and the
+            {/* `Failed to fetch` on its own tells the user nothing, and the
                 two failures a browser-only tool hits most (an HTTPS page
                 reaching a local gateway, plain-HTTP mixed content) are not
                 fixable on the server, which is where an unqualified "CORS"

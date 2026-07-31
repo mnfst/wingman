@@ -47,7 +47,7 @@ describe('createDismissable', () => {
   });
 
   // The click that opens the menu bubbles to the document listener the effect
-  // has just attached — it must not immediately dismiss what it opened.
+  // has just attached, so it must not immediately dismiss what it opened.
   it('survives the click that opened it', () => {
     render(() => <Dropdown />);
     screen.getByText('toggle').click();
@@ -60,7 +60,7 @@ describe('createDismissable', () => {
 
     screen.getByText('pick').dispatchEvent(new MouseEvent('click', { bubbles: true }));
 
-    // `pick` calls close itself; what is asserted here is the container check —
+    // `pick` calls close itself; what is asserted here is the container check:
     // an inside click is not treated as a dismissal by the document listener.
     expect(menu()).toBeNull();
   });

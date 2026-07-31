@@ -1,5 +1,5 @@
 // The request bar: address, credential, model, Send. Two things matter beyond
-// wiring — the key is never revealed unasked when the provider changes, and the
+// wiring: the key is never revealed unasked when the provider changes, and the
 // health badge never claims more than the probe actually checked.
 import { render, screen } from '@solidjs/testing-library';
 import { createSignal } from 'solid-js';
@@ -174,7 +174,9 @@ describe('saving and the code jump', () => {
 
   it('confirms the copy after saving', () => {
     render(() => <UrlBar {...props({ canSave: true, saveStatus: 'saved' })} />);
-    expect(screen.getByRole('button', { name: 'Copied' }).title).toMatch(/paste into the GitHub/);
+    expect(screen.getByRole('button', { name: 'Copied' }).title).toMatch(
+      /Paste it into the GitHub/,
+    );
   });
 
   it('blocks a second save while one is in flight', () => {
@@ -248,7 +250,7 @@ describe('the health badge', () => {
 
     const badge = screen.getByText('healthy');
     expect(badge.title).toBe(
-      'Health check succeeded in 42 ms — probed https://app.manifest.build/api/v1/health',
+      'Health check succeeded in 42 ms. Probed https://app.manifest.build/api/v1/health',
     );
     expect(badge.className).toContain('health-badge--ok');
   });

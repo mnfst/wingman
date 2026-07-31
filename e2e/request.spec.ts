@@ -86,7 +86,7 @@ test('surfaces a provider error rather than swallowing it', async ({ page, gatew
 });
 
 // A base URL that cannot be resolved used to reach `fetch`, which resolved a
-// schemeless value against Wingman's own origin — sending the key elsewhere.
+// schemeless value against Wingman's own origin, sending the key elsewhere.
 test('refuses to send an unusable base URL', async ({ page, gateway }) => {
   await page.getByLabel('Base URL').fill('   ');
   await page.getByLabel('User message').fill('Say hi');
@@ -101,7 +101,7 @@ test('refuses to send an unusable base URL', async ({ page, gateway }) => {
 test('normalises a pasted endpoint and says what it changed', async ({ page, gateway }) => {
   await page.getByLabel('Base URL').fill('https://gw.example.com/v1/chat/completions');
 
-  await expect(page.locator('.urlbar__hint')).toContainText('the format already appends it');
+  await expect(page.locator('.urlbar__hint')).toContainText('The format already appends it');
 
   await page.getByLabel('User message').fill('Say hi');
   await page.getByRole('button', { name: 'Send', exact: true }).click();

@@ -24,7 +24,7 @@ describe('classifyFetchFailure', () => {
 
   // The reported failure: hosted HTTPS Wingman in the dashboard drawer calling
   // a loopback dev gateway. Chrome gates this behind the Local Network Access
-  // permission, so no server-side CORS change can fix it — calling it "CORS"
+  // permission, so no server-side CORS change can fix it. Calling it "CORS"
   // is what sent people editing allow-lists that were already correct.
   it.each([
     'http://localhost:52154/v1/chat/completions',

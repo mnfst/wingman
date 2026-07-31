@@ -99,7 +99,7 @@ describe('the client catalog', () => {
   });
 
   // Every client is reachable from the UI, so every client's own three
-  // contributions — headers, body extras, snippet — have to hold up for each
+  // contributions (headers, body extras, snippet) have to hold up for each
   // format and language it declares. A catalog entry that throws here is one
   // that would throw the moment it is selected.
   it.each(PROFILES.map((p) => [p.id, p] as const))('builds a request for %s', (_id, profile) => {
@@ -117,7 +117,7 @@ describe('the client catalog', () => {
   });
 
   // A fingerprint client hides its Headers tab, so the headers it sets are the
-  // only ones that will ever go out — they cannot be empty.
+  // only ones that will ever go out, so they cannot be empty.
   it('gives every locked client a fingerprint to send', () => {
     for (const p of PROFILES.filter((profile) => profile.headersLocked)) {
       expect(Object.keys(p.headers(params)).length).toBeGreaterThan(0);

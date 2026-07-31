@@ -29,7 +29,7 @@ describe('highlight', () => {
   });
 
   // The response-headers pane asks for "text", which is not a registered
-  // language — it must come back escaped rather than raw.
+  // language, so it must come back escaped rather than raw.
   it('escapes rather than highlights an unregistered language', () => {
     expect(highlight('<img src=x onerror=alert(1)>', 'text')).toBe(
       '&lt;img src=x onerror=alert(1)&gt;',

@@ -43,7 +43,7 @@ describe('checkHealth', () => {
     expect(result.kind).toBe('not-a-gateway');
     if (result.kind === 'not-a-gateway') {
       expect(result.message).toMatch(/HTML, not a health payload/);
-      expect(result.message).toMatch(/check the Base URL/);
+      expect(result.message).toMatch(/Check the Base URL/);
     }
   });
 

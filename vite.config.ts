@@ -10,7 +10,7 @@ const { version } = JSON.parse(readFileSync(new URL('./package.json', import.met
 /** Static directories the app itself draws from. */
 const PRECACHED_PUBLIC_DIRS = ['fonts', 'icons'];
 
-/** Files in there the installer needs but the app never renders — `icons/pwa`
+/** Files in there the installer needs but the app never renders. `icons/pwa`
     is the launcher icon, and it has no business in the offline payload. */
 const INSTALLER_ONLY = /^icons\/pwa\//;
 
@@ -24,8 +24,8 @@ function publicFiles(dir: string): string[] {
 /**
  * Emits `dist/sw.js` from `src/sw.js` with this build's assets baked in.
  *
- * The worker can't precache what it can't name, and half those names — every
- * JS and CSS file — change on every build. Without this, an offline launch
+ * The worker can't precache what it can't name, and half those names (every
+ * JS and CSS file) change on every build. Without this, an offline launch
  * would find the HTML cached and the script that renders it missing, which is
  * a white page. Hashing the list into the cache name also means each deploy
  * starts from a clean cache and drops the one before it.

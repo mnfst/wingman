@@ -151,7 +151,7 @@ export async function sendRequest(input: SendInput): Promise<SendResult> {
 /**
  * Send with stream:true and read the response as SSE, pushing each event
  * through the format's StreamParser. Non-OK responses (and bodyless ones) fall
- * back to a buffered read — provider error payloads are JSON, not a stream.
+ * back to a buffered read: provider error payloads are JSON, not a stream.
  */
 export async function sendRequestStreaming(
   input: SendInput,

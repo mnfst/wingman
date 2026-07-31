@@ -141,7 +141,7 @@ describe('buildMarkdownReport content', () => {
       openaiChat,
     );
     expect(md).toContain('🌐');
-    expect(md).toContain('`NETWORK` — request did not reach the server');
+    expect(md).toContain('`NETWORK`, request did not reach the server');
   });
 
   it.each([
@@ -152,10 +152,10 @@ describe('buildMarkdownReport content', () => {
     expect(buildMarkdownReport(ctx(), result(over), openaiChat)).toContain(emoji);
   });
 
-  it('falls back to an em dash when the response carries no usage or model', () => {
+  it('falls back to a dash when the response carries no usage or model', () => {
     const md = buildMarkdownReport(ctx(), result({ responseJson: {} }), openaiChat);
-    expect(md).toContain('| **Tokens** | — |');
-    expect(md).toContain('| **Model returned** | — |');
+    expect(md).toContain('| **Tokens** | - |');
+    expect(md).toContain('| **Model returned** | - |');
   });
 
   it('reports a partial usage without inventing the missing counts', () => {
@@ -164,7 +164,7 @@ describe('buildMarkdownReport content', () => {
       result({ responseJson: { usage: { prompt_tokens: 3 } } }),
       openaiChat,
     );
-    expect(md).toContain('— total · 3 in / — out');
+    expect(md).toContain('- total · 3 in / - out');
   });
 
   it('reports an output-only usage the same way', () => {
@@ -173,7 +173,7 @@ describe('buildMarkdownReport content', () => {
       result({ responseJson: { usage: { completion_tokens: 1, total_tokens: 4 } } }),
       openaiChat,
     );
-    expect(md).toContain('4 total · — in / 1 out');
+    expect(md).toContain('4 total · - in / 1 out');
   });
 
   it('pretty-prints the response JSON', () => {

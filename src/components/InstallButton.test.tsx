@@ -1,6 +1,6 @@
-// The install offer. It has to stay invisible everywhere it can't deliver —
-// a browser that never offers, an iOS tab, an already-installed window — since
-// a dead "Install" is worse than no button at all.
+// The install offer. It has to stay invisible everywhere it can't deliver:
+// a browser that never offers, an iOS tab, an already-installed window.
+// A dead "Install" is worse than no button at all.
 import { render, screen } from '@solidjs/testing-library';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import InstallButton from './InstallButton.jsx';

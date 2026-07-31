@@ -18,7 +18,7 @@ const clickBackdrop = (selector: string) => {
 };
 
 describe('GistModal', () => {
-  const markdown = '# Manifest Wingman — request report';
+  const markdown = '# Manifest Wingman request report';
 
   it('stays out of the DOM until it is opened', () => {
     render(() => <GistModal open={false} markdown={markdown} onClose={vi.fn()} />);

@@ -45,7 +45,7 @@ describe('storage that refuses to work', () => {
     expect(() => removeStorage(STORAGE.model)).not.toThrow();
   });
 
-  // This one runs on boot, before anything is on screen — throwing here would
+  // This one runs on boot, before anything is on screen. Throwing here would
   // leave a blank page.
   it('survives a purge it is not allowed to perform', () => {
     blockStorage();

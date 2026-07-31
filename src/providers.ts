@@ -4,7 +4,7 @@
 // endpoint or figuring out the request shape.
 //
 // Base URLs follow Wingman's convention: they do NOT include the version/path
-// suffix — the selected `ApiFormat` appends it (`/v1/chat/completions` for
+// suffix. The selected `ApiFormat` appends it (`/v1/chat/completions` for
 // OpenAI-compatible, `/v1/messages` for Anthropic). So every preset here is a
 // provider whose endpoint is exactly `{baseUrl}/v1/chat/completions` (Bearer)
 // or `{baseUrl}/v1/messages` (x-api-key). Providers needing a different wire
@@ -36,12 +36,12 @@ export interface Provider {
   icon: string;
   /** One-line example-models hint. */
   subtitle: string;
-  /** API-key input placeholder — hints the provider's key prefix. */
+  /** API-key input placeholder, hinting the provider's key prefix. */
   apiKeyPlaceholder: string;
   /**
    * Model pre-filled when the preset is picked. Unlike Manifest's `auto`
    * router, provider APIs need a concrete model id, so each preset ships a
-   * sensible default. Best-effort — the Model field stays editable.
+   * sensible default. Best-effort, and the Model field stays editable.
    */
   defaultModel: string;
 }
@@ -51,7 +51,7 @@ export const DEFAULT_PROVIDER_ID = 'custom';
 
 /**
  * Canonical Manifest Cloud gateway. Pre-filled as the default Base URL on the
- * hosted app so the primary use case — testing a Manifest gateway — works
+ * hosted app so the primary use case (testing a Manifest gateway) works
  * without typing (or mistyping) the host. Note it's `app.manifest.build`, not
  * `api.manifest.build`: the latter has no TLS cert. This host speaks the
  * OpenAI/Anthropic-compatible wire format (`{host}/v1/chat/completions`,
@@ -264,12 +264,12 @@ export const PROVIDER_BY_ID: Record<string, Provider> = Object.fromEntries(
   PROVIDERS.map((p) => [p.id, p]),
 );
 
-/** The Custom/Manifest preset — the only one whose base URL is user-editable. */
+/** The Custom/Manifest preset, the only one whose base URL is user-editable. */
 export const CUSTOM_PROVIDER: Provider = PROVIDER_BY_ID[DEFAULT_PROVIDER_ID]!;
 
 /**
  * The env var a code snippet reads the key from instead of printing it. Named
- * after the provider so the snippet reads like real project code — the OpenAI
+ * after the provider so the snippet reads like real project code. The OpenAI
  * SDK looks for `OPENAI_API_KEY` on its own, and `MANIFEST_API_KEY` is what a
  * gateway user would have exported anyway.
  */

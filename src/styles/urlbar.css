@@ -273,7 +273,7 @@
   box-shadow: none;
 }
 
-/* Send will execute the edited SDK snippet — violet, IDE "run" semantics. */
+/* Send will execute the edited SDK snippet: violet, IDE "run" semantics. */
 .urlbar__send--code {
   background: linear-gradient(135deg, #8b5cf6, #7c3aed);
   box-shadow: 0 2px 6px rgba(139, 92, 246, 0.35);
@@ -316,7 +316,7 @@
   color: var(--err);
 }
 
-/* `</>` — jump to the generated code, like Postman's code icon by the URL. */
+/* `</>`: jump to the generated code, like Postman's code icon by the URL. */
 .urlbar__code {
   width: 36px;
   height: 36px;

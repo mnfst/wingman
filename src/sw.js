@@ -3,14 +3,14 @@
  * open instantly and survive a flaky connection.
  *
  * It only ever touches same-origin GETs. Every request Wingman exists to make
- * — the calls to the gateway or provider you typed — is cross-origin and goes
+ * (the calls to the gateway or provider you typed) is cross-origin and goes
  * straight to the network, untouched and uncached. Keeping keys and responses
  * out of the cache is the whole point: nothing Wingman holds should outlive
  * the tab.
  *
  * This file is a build input, not a served one: vite.config.ts fills in the
  * two placeholders below and emits the result as `dist/sw.js`. That is also
- * what makes updates work — every build produces different bytes, and
+ * what makes updates work: every build produces different bytes, and
  * different bytes are what tell the browser to install a new worker.
  */
 
@@ -26,7 +26,7 @@ const CACHE = `wingman-${BUILD_ID}`;
    draw. The app is client-rendered, so the JS is as load-bearing as the HTML,
    and the fonts and provider logos are what keep an offline launch from
    looking broken rather than merely disconnected. */
-const SHELL = ['/', '/favicon.svg', '/wingman.svg', '/manifest.webmanifest', ...PRECACHE];
+const SHELL = ['/', '/favicon.svg', '/manifest.webmanifest', ...PRECACHE];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -52,13 +52,14 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
-  // Anything not served by Wingman itself — providers, gateways, analytics —
+  // Anything not served by Wingman itself (providers, gateways, analytics)
   // is none of the worker's business.
   if (url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/_vercel/')) return;
 
-  // Navigations: fresh HTML when online, the cached shell when not. The host
-  // rewrites every path to `/`, so that one entry answers any route.
+  // Navigations: fresh HTML when online, the cached shell when not. Wingman is
+  // a single route, so that one entry is every navigation there is to answer.
+  // Unknown paths 404 from the host rather than being rewritten to `/`.
   if (request.mode === 'navigate') {
     event.respondWith(
       fetch(request)
@@ -91,7 +92,7 @@ self.addEventListener('fetch', (event) => {
  *
  * Hosts label static files `Vary: Origin` (Vercel and Vite's own preview
  * server both do), and the precache fetches them without an `Origin` while the
- * page asks for its module scripts with one — so a strict match misses every
+ * page asks for its module scripts with one, so a strict match misses every
  * entry that matters and the app comes up blank offline. Everything in here is
  * one of Wingman's own files, served one way to everybody, so there is no
  * second representation for `Vary` to be protecting.
@@ -100,7 +101,7 @@ function match(request) {
   return caches.match(request, { ignoreVary: true });
 }
 
-/** Store a response, but only a complete one — a 206 or an opaque error is worse than nothing. */
+/** Store a response, but only a complete one. A 206 or an opaque error is worse than nothing. */
 async function put(request, response) {
   if (!response.ok || response.status !== 200 || response.type !== 'basic') return;
   const cache = await caches.open(CACHE);

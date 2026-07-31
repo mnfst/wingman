@@ -1,4 +1,4 @@
-// The message box and the editable code view — the two places the user types
+// The message box and the editable code view: the two places the user types
 // something the request is built from.
 import { render, screen } from '@solidjs/testing-library';
 import { describe, expect, it, vi } from 'vitest';

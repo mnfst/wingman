@@ -1,7 +1,7 @@
 // The two request facets that are keyed by `format:client:language` rather than
 // held globally: the SDK snippet the user may have edited, and the request
 // headers they may have overridden. Split out of appState so that file stays
-// readable — nothing here touches the network or history.
+// readable. Nothing here touches the network or history.
 import { createMemo, createSignal, type Accessor } from 'solid-js';
 import type { HeaderEntry } from '../components/HeaderEditor.jsx';
 import type { ApiFormat, ApiFormatId, RequestParams } from '../formats';
@@ -22,7 +22,7 @@ interface Deps {
 
 /**
  * Everything is keyed by `${formatId}:${profileId}:${lang}` so switching client
- * or language doesn't carry one combination's edits into another — the snippet
+ * or language doesn't carry one combination's edits into another. The snippet
  * you edited for the OpenAI SDK in TypeScript is still there when you come back
  * to it, and Python starts from the generated code.
  */
@@ -64,7 +64,7 @@ export function createRequestForm(d: Deps) {
   // truth for Send, provided the client can execute it in this language.
   const [scratchCode, setScratchCode] = createSignal<Record<string, string>>({});
 
-  // Everything a snippet renders, in one object — and the same one handed to
+  // Everything a snippet renders, in one object, and the same one handed to
   // the parser when the snippet is edited, so the two directions stay symmetric.
   const snippetContext = createMemo<SnippetContext>(() => ({
     params: d.params(),

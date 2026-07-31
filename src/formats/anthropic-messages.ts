@@ -18,7 +18,7 @@ function extractText(json: unknown): string | null {
   return parts.length ? parts.join('') : null;
 }
 
-// Anthropic reports input/output tokens but no total — we compute it.
+// Anthropic reports input/output tokens but no total, so we compute it.
 function extractUsage(json: unknown): Usage | null {
   const u = asRecord(asRecord(json)?.usage);
   if (!u) return null;
@@ -90,7 +90,7 @@ function createStreamParser(): StreamParser {
 export const anthropicMessages: ApiFormat = {
   id: 'anthropic-messages',
   label: 'Anthropic Messages',
-  blurb: 'POST /v1/messages — Anthropic’s native API (x-api-key, requires max_tokens).',
+  blurb: 'POST /v1/messages, Anthropic’s native API (x-api-key, requires max_tokens).',
   icon: '/icons/providers/anthropic.svg',
   docsUrl: 'https://docs.anthropic.com/en/api/messages',
   path: '/v1/messages',
