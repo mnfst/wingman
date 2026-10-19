@@ -1,0 +1,41 @@
+# Cloudflare Workers static-assets headers. Mirrors the `headers` in vercel.json;
+# keep the two in sync while both hosts are live. Cloudflare joins values when
+# several rules set the same header on one path, so keep header names unique
+# across overlapping rules.
+
+/*
+  Content-Security-Policy: frame-ancestors 'self' https://*.manifest.build
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: clipboard-read=(self), clipboard-write=(self)
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/icons/*
+  Cache-Control: public, max-age=604800
+
+/favicon.svg
+  Cache-Control: public, max-age=604800
+
+/favicon.ico
+  Cache-Control: public, max-age=604800
+
+/apple-touch-icon.png
+  Cache-Control: public, max-age=604800
+
+/og.png
+  Cache-Control: public, max-age=604800
+
+/wingman.svg
+  Cache-Control: public, max-age=604800
+
+/sw.js
+  Cache-Control: public, max-age=0, must-revalidate
+
+/manifest.webmanifest
+  Content-Type: application/manifest+json; charset=utf-8
+  Cache-Control: public, max-age=0, must-revalidate
