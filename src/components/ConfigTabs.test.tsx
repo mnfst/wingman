@@ -134,7 +134,7 @@ describe('the Client tab', () => {
 
   it('falls back to the first client for an id it does not know', () => {
     render(() => <ConfigTabs {...props({ activeProfileId: 'retired' })} />);
-    expect(screen.getByText(/Sends OpenClaw's system prompt/)).toBeTruthy();
+    expect(screen.getByText(/The official OpenAI client, calling Chat Completions/)).toBeTruthy();
   });
 });
 

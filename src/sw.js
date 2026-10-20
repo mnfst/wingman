@@ -52,10 +52,9 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return;
 
   const url = new URL(request.url);
-  // Anything not served by Wingman itself (providers, gateways, analytics)
+  // Anything not served by Wingman itself (providers, gateways)
   // is none of the worker's business.
   if (url.origin !== self.location.origin) return;
-  if (url.pathname.startsWith('/_vercel/')) return;
 
   // Navigations: fresh HTML when online, the cached shell when not. Wingman is
   // a single route, so that one entry is every navigation there is to answer.
