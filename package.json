@@ -29,7 +29,6 @@
     "version:packages": "changeset version"
   },
   "dependencies": {
-    "@vercel/analytics": "^2.0.1",
     "highlight.js": "^11.11.1",
     "solid-js": "^1.9.0"
   },
